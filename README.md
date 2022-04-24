@@ -5,8 +5,7 @@ Imagine we want to construct a building and we want to design an elevator system
 ## Problem
 Given a building $b$ from set of all buildings $B$, we would like to construct an elevator system for this building $e_b \in E_b$, where $E_b$ is set of all elevator systems for $b$, such as $e_b$ is the most efficient one.
 
- 
-
+## Formal model
 Now let's definice what exactly is a building and an elevator system.
 Building is defined by number of floors and population distribution. Population distribution at a given time is:
 
@@ -17,61 +16,81 @@ Building is defined by number of floors and population distribution. Population 
 Population distribution changes over time.
 
  Formally, building is a tuple $(n_b, p_b)$, where $n_b \in \mathbb{N}$ and $p_b \in P_b$, where $P_b$ is a set of all population distributions for building $b$.
-Population distribution $p_b \in P_b$ for a building $b$ is a function $p_b: \mathbb{N} \rightarrow (w_b, w_f, s)$, where $w_b: F \rightarrow [0,1]$, where $F = \{1,2,...,n_b\}$, be a probability function representing how likely a request for elevator will occur at $j-th$ floor, $w_f$ is an $n_b$-tuple $(w_1, w_2, ..., w_{n_b})$, where $w_i: F \rightarrow [0,1]$ are probability functions and $w_i(i) = 0$ , for $i \in \{0,1,...,n_b\}$, representing probability of person wanting to go from $i-th$ floor to $j-th$ floor, where $j \in F$, and $s \in \mathbb{N}$,  representing total population size.
+Population distribution $p_b \in P_b$ for a building $b$ is a function $p_b: \mathbb{N} \rightarrow (w_b, w_f, s)$, where $w_b: F \rightarrow [0,1]$, $F = \{1,2,...,n_b\}$, be a probability function representing how likely a request for elevator will occur at $j-th$ floor, $w_f$ is an $n_b$-tuple $(w_1, w_2, ..., w_{n_b})$, where $w_i: F \rightarrow [0,1]$ are probability functions and $w_i(i) = 0$ , for $i \in \{0,1,...,n_b\}$, representing probability of person wanting to go from $i-th$ floor to $j-th$ floor, where $j \in F$, and $s \in \mathbb{N}$,  representing total population size.
 Defining population distribution this way, $p_b(t)$ represents some population distribution at time $t$ and we can simulate change of population distribution over time ($t$ can represent parts of day, where in the morning there is an up peak and in the afternoon there is a down peak, so the population distribution has to change).
 
 Elevator system is defined by set of elevators and strategy. It only makes sense to define elevator system only for some specific building. Before we formally define elevator system and strategy, we must first define the following. 
 
-Elevator $e \in E$ is a tuple $(a, A, P)$, where $A$ is a set of possible actions (such as move up, move down, idle, board,...) and $P$ is a set of elevator's parameters (such as capacity, acceleration, speed, current capacity,...), $a \in A$ is a current action and $E$ is a set of all possible elevators.
+Elevator $e \in E$ is a tuple $(a, A, P)$, where $A$ is a set of possible actions (such as move up, move down, idle, board,...), $P$ is a set of elevator's parameters (such as capacity, acceleration, speed, current capacity,...), $a \in A$ is a current action and $E$ is a set of all possible elevators.
 
-Situation at time $t \in \mathbb{N}$ of building $b$ is a tuple $(L, p_b, f_t, g_t)$, $f_t: L \rightarrow F$, $g_t: F \rightarrow \mathbb{N}$, where $L \subseteq E$.
-Situation describes elevators, population distribution, in what floors are elevators and number of requests at a given time. Note that some elevator's parameters can change over time, such as people count or current capacity, so it makes sense to define situation this way.
+Situation at time $t \in \mathbb{N}$ of building $b$ is a tuple $(L, p_b, f_t, g_t)$, $f_t: L \rightarrow F \cup (i \in F,j \in F)$, $g_t: F \rightarrow \mathbb{N}$, $L \subseteq E$.
+Situation describes elevators, population distribution, in what floors or between what floors are elevators and number of requests/people on a floor at a given time. Note that some elevator's parameters can change over time, such as people count or current capacity, so it makes sense to define situation this way.
 
 Strategy is a function $s:S \rightarrow S$, where $S$ is set of all situations.
 
 And finally, elevator system $e_b \in E_b$ for building $b$ is a tuple $(L, s)$, where $L$ is a set of elevators of a building $b$ and $s$ is a strategy function.
 
-Now we know what an elevator system is, we can try to optimize it.
+Now we know what an elevator system is, so we can try to optimize it.
 
+## Simulation
+Simulation referes to discrete event simulation obeying next-event time progression paradigm (TODO: reference wiki).
+Simulation will start at some initial situation $T_{0}$, for example situation, where all elevators are in first floor ($f_t \in T_{0}, f_t(l)= 0$ $\forall l \in L \in T_{0}$) and there are no people yet ($g_t \in T_{0}, g_t(f) = 0$ $\forall f \in F \in T_{0}$).
+One step of a simulation coresponds to transition from one situation to some other situation according to elevator system strategy function. Formally defined by induction:
+$T_1 = s(T_0)$ and $T_i+1 = s(T_{i})$, $i \in \mathbb{N}$.
+
+In each step, from $T_i$ to $T_{i+1}$:
+
+* update global time $t$ by time of step $t_{s_i}$, $t = t + t_{s_i}$ 
+* time of step is determined by speed of currently moved elevator(s)
+    * elevators can have different speeds, so some elevators move from one floor to another in one simulation step, but others are not that fast, so they are between some two floors
+* update population distribution, $p_d(t) \in (s(T_i) = T_{i+1})$
+* update elevators locations, $f_t \in (s(T_i) = T_{i+1})$
+* spawn requests/people, update $g_t \in (s(T_i) = T_{i+1})$.
+
+
+## Efficiency function
 We will measure efficiency by some efficiency function $q_b \in Q_b: E_b \rightarrow \mathbb{R}$, where $Q_b$ is set of all efficiency functions for $b$.
 If for some two elevator systems $e_{b1}, e_{b2} \in E_b$ $q_b \in Q_b: q_b(e_{b1}) > q_b(e_{b2})$, we say that $e_{b1}$ is more efficient than $e_{b2}$ according to $q_b$.
 Depending by what metrics we consider elevator system efficient, we choose appropriate efficiency function.
 
-TODO:
-
-Define waiting for elevator
-
-* number of situations between first button press (request) and first elevator on the same floor with action board
-* number of situations between boarding of a person in elevator and getting him off on the desired floor
-
-Metrics
+Some reasonable metrics are:
 
 * average/worst-case/median/... waiting time for elevator
 * average/worst-case/median/... waiting time in elevator
+* how it behaves under little bit different population distribution
+* TODO others, might be a good idea to reference to current knowledge section
 
-My approach
+We can define waiting time of a person for elevator as number of situations between first button press (request) of a person on some floor and first elevator on the same floor with action board, such that the person can actually board the elevator (e.g. maximum capacity isn't surpassed).
 
-* take some elevator system and evaluate it through efficiency function 
-* efficiency function runs simulations on this elevator system
-* I choose reasonable set of efficiency functions beforehand
-* pick the best elevator system based on requirements and collected data (e.g. pick elevator system that performs best on average for every efficiency function)
+Defining waiting time of a person in an elevator is very similiar. It is number of situations between person's boarding and getting off the elevator.
 
+Efficiency function evaluates elevator systems by running simulations.
 
+## My approach
+We take some elevator systems and evaluate them through efficiency function.
+Efficiency function runs several simulations on this elevator system. 
+We choose reasonable set of efficiency functions beforehand. What efficiency functions we want to use depends on what metrics are important for us.
+After all elevator systems have been evaluated, we pick the best elevator system based on requirements and collected data (e.g. pick elevator system that performs best on average for every efficiency function).
 
+This approach has several advantages. Firstly, we can easily see how specific elevator system behaves and what decisions does it make in each situation.
+Secondly, we can also easily tweak input parameters and see by how much different elevator systems differ. Thridly, we are very flexible in what efficiency functions to choose and by what metrics evaluate elevator systems. And last but not least, we can very easily add on new strategies in the future and test them against already collected data.
 
-
+The only disadvantage I see is that each simulation might take some nontrivial amount of time.
 
 ### Example:
 We want to find the most efficient elevator system for building with 10 floors and we would like to use only 3 elevators.
-We assume, that majority of people will arrive at 8am and they would like to go to office floors, which are floors 5 to 10.
+We assume, that majority of people will arrive at 7am and 8am and they would like to go to office floors, which are floors 5 to 10.
 At 12pm many people would like to visit restaurant at floor 1. At 13pm the same people would like to go back to their offices.
-Between 17pm and 18pm, we predict that almost everyone would like to go to floor 0. We think that this behaviour will be very similiar each day.
+Between 17pm and 18pm, we predict that almost everyone would like to go to floor 0. We think that this behaviour will be very similiar each day. Average number of people each day is about 1000.
 
-#### **Run of one simulation:**
-
-
-
-
+Let building $b = (10, p_d)$, where $p_b(t) = (w_{b_t}, w_{s_t}, 1000)$. 
+$$
+w_{b_7}(f), w_{b_8}(f)=
+\begin{cases}
+0.9 & \quad \text{when $f = 1$}\\ 
+0.1/|F| - 1 & \quad \text{otherwise}
+\end{cases}
+$$
 
 
 ## Definitions
