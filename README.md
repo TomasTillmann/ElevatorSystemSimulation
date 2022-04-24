@@ -6,7 +6,7 @@ Imagine we want to construct a building and we want to design an elevator system
 Given a building $b$ from set of all buildings $B$, we would like to construct an elevator system for this building $e_b \in E_b$, where $E_b$ is set of all elevator systems for $b$, such as $e_b$ is the most efficient one.
 
 ## Formal model
-Now let's definice what exactly is a building and an elevator system.
+Now let's define what exactly is a building and an elevator system.
 Building is defined by number of floors and population distribution. Population distribution at a given time is:
 
 * how likely there is a request for elevator on some floor
@@ -23,8 +23,8 @@ Elevator system is defined by set of elevators and strategy. It only makes sense
 
 Elevator $e \in E$ is a tuple $(a, A, P)$, where $A$ is a set of possible actions (such as move up, move down, idle, board,...), $P$ is a set of elevator's parameters (such as capacity, acceleration, speed, current capacity,...), $a \in A$ is a current action and $E$ is a set of all possible elevators.
 
-Situation at time $t \in \mathbb{N}$ of building $b$ is a tuple $(L, p_b, f_t, g_t)$, $f_t: L \rightarrow F \cup (i \in F,j \in F)$, $g_t: F \rightarrow \mathbb{N}$, $L \subseteq E$.
-Situation describes elevators, population distribution, in what floors or between what floors are elevators and number of requests/people on a floor at a given time. Note that some elevator's parameters can change over time, such as people count or current capacity, so it makes sense to define situation this way.
+Situation at time $t \in \mathbb{N}$ of building $b$ is a tuple $(L, p_b, f_t, g_t, h_t)$, $f_t: L \rightarrow F \cup (i \in F,j \in F)$, $g_t: F \rightarrow \mathbb{N}$, $h_t: L \rightarrow F' \subseteq F$, $L \subseteq E$.
+Situation describes elevators, population distribution, in what floors or between what floors are elevators, number of requests/people on a floor and what floors each elevator has to visit at a given time. Note that some elevator's parameters can change over time, such as people count or current capacity, so it makes sense to define situation this way.
 
 Strategy is a function $s:S \rightarrow S$, where $S$ is set of all situations.
 
@@ -34,18 +34,26 @@ Now we know what an elevator system is, so we can try to optimize it.
 
 ## Simulation
 Simulation referes to discrete event simulation obeying next-event time progression paradigm (TODO: reference wiki).
-Simulation will start at some initial situation $T_{0}$, for example situation, where all elevators are in first floor ($f_t \in T_{0}, f_t(l)= 0$ $\forall l \in L \in T_{0}$) and there are no people yet ($g_t \in T_{0}, g_t(f) = 0$ $\forall f \in F \in T_{0}$).
+Simulation will start at some initial situation $T_{0}$, for example situation, where all elevators are in first floor ($f_t \in T_{0}, f_t(l)= 0$ $\forall l \in L \in T_{0}$), there are no people yet ($g_t \in T_{0}, g_t(f) = 0$ $\forall f \in F \in T_{0}$) and hence no elevator must visit some floor ($h_t(e) = \emptyset$ $\forall e \in E$).
 One step of a simulation coresponds to transition from one situation to some other situation according to elevator system strategy function. Formally defined by induction:
 $T_1 = s(T_0)$ and $T_i+1 = s(T_{i})$, $i \in \mathbb{N}$.
 
 In each step, from $T_i$ to $T_{i+1}$:
 
-* update global time $t$ by time of step $t_{s_i}$, $t = t + t_{s_i}$ 
+* update global time $t$ by time of step $t_{s_i}$, $t = t + t_{s_i}$
+    * global time keeps track of for how long the simulation is going and dictates population distribution 
 * time of step is determined by speed of currently moved elevator(s)
     * elevators can have different speeds, so some elevators move from one floor to another in one simulation step, but others are not that fast, so they are between some two floors
 * update population distribution, $p_d(t) \in (s(T_i) = T_{i+1})$
 * update elevators locations, $f_t \in (s(T_i) = T_{i+1})$
 * spawn requests/people, update $g_t \in (s(T_i) = T_{i+1})$.
+* update what floors each elevator needs to visit, update $h_t \in (s(T_i) = T_{i+1})$.
+
+Another step of discrete event simulation is triggered by some event. If strategy function is reasonably defined, each step should corespond to simulating an event when elevator or elevators arrive to a new floor.
+
+In strategy function definition, there are no constraints on what situations can some situation be mapped. But in order to model a real world scenario, strategy function should be able to map situation only on situations, where elevators don't change their parameters, elevators positions are only one floor away from each other and so on ...
+
+TODO: dodefinuj strategy function definition, aby byli dosazitelne jenom nejake sitauci - tak by potom situace odpovidali nejakemu stavovemu prostoru (graf kde hrany reprezentuji dosazitelnost)
 
 
 ## Efficiency function
@@ -75,24 +83,26 @@ After all elevator systems have been evaluated, we pick the best elevator system
 This approach has several advantages. Firstly, we can easily see how specific elevator system behaves and what decisions does it make in each situation.
 Secondly, we can also easily tweak input parameters and see by how much different elevator systems differ. Thridly, we are very flexible in what efficiency functions to choose and by what metrics evaluate elevator systems. And last but not least, we can very easily add on new strategies in the future and test them against already collected data.
 
-The only disadvantage I see is that each simulation might take some nontrivial amount of time.
+The only disadvantage I see is that each simulation might take some nontrivial amount of time, but I don't think it should be an issue (definitely not on simple strategies, like some scheduling algorithms).
 
 
-## Definitions
+# Program implementation of formal model
 TODO: 
 * make this more software oriented, math definitions above
 * delete some and update
 
 ### **Simulation**
-* It is a discrete simulation, where every step of the simulation elevators can either move up, down, stay or board people (these are all the events). It uses standard discrete simulation techniques and patterns.
+* every step of the simulation elevators can either move up, down, stay or board people (these are all the events).
 
 #### Attributes
-* Scheduler
+* scheduler
+* global time
+* current situation
 
 ### **Elevator**
-* Are controlled by Central Elevator Scheduler
+* Controlled by strategy
 * Elevator in a building. There might be elevators with different parameters in the same building, hence each of a different type.
-* Elevator doesn't need to have all attributes set. Some elevators can't know how many people is on board and knows just the current weight. Some others might not even know the current weight.
+* Elevator doesn't need to have all attributes set. Some elevators aren't sophisticated enough to know how many people is on board and knows just the current weight. Some others might not even know the current weight.
 
 #### Attributes
 * speed
@@ -112,53 +122,45 @@ TODO:
 * Building where we want our efficient elevator system.
 
 * number of floors
-* number of elevators and elevator types
+* population distribution 
 
 ### **Population distribution**
-* Assigns each floor how likely a person on this floor would like to use an elevator and where probably would the person go, at a given time. 
-* e.g. In an office building in the afternoon from office floors it is very likely a person would call an elevator and would like to get to floor one or underground (parking), because their workday is over, but in the morning it will be the other way around (down peak or up peak period).
-
 #### Attribues
-* time 
-    * time of day
-    * can be disretized in morning, after lunch, afternoon or in hours, minutes, ...
+* each floor has assigned probability - coresponds to $w_b \in p_b$ 
 
-* each floor has list of probabilities, each corresponding to what floor a person might want to get (e.g. floor 1: 2 - 0.2, 3 - 0.3 4 - 0.2 5 - 0.2 6 - 0.1)
+* each floor has list of probabilities to what floors person would likely want to go - corresponds to $w_f \in p_b$, each entry coresponds to $w_i \in w_f$ 
 
-* each floor has probability of person wanting to use the elevator (e.g. floor 1 - 0.8, floor 2 - 0.05, ... floor 6 (last) - 0)
+* population size - coresponds to $s \in p_b$
 
-* population size
-    * how many persons can spawn in a day
-    * represents total number of people using building's elevators current day
+#### Actions
+* Distribute(time)
+    * assigns each floor requests/persons according to distribution
 
 ### **Situation**
-* Represents where (in what floors) are all the elevators and where are all the people either waiting for elevator or already in an elevator.
-* Central elevator scheduler makes decisions based on the current situation.
-* Every time an event happens, the current situation changes to next situation. Situations are atomic.
 * Some attributes might be set or might not. It depends how sophisticated you want your elevator system to be. For example, if elevator system users have some sort of ID card, than each person can call an elevator by the id card and therefore the CES could be certain about the number of people in a given floor. In this scenario, situation should carry this information. 
 But in a different scenario, where users don't have an identification, CES couldn't know how many people is actually waiting on each floor. It's only information is how many times a button is pressed (and one person can press the button how many times he likes), so in this scenario it might not make sense to remember people count.
 
 #### Attributes
-* list of elevators
+* list of elevators with their positions
 * list of floors with people count
 * list of floors with indication whether there is a request for elevator or not 
+* list of floors to visit for each elevator
 
-### **Central Elevator Scheduler**
-* Gives instructions to elevators based on the current situation, meaning it assigns every elevator some action (event). Central Elevator Scheduler obeys some scheduling algorithm.
-* Can use different scheduling algorithms at different times (e.g. would like to use different scheduling algorithm in the morning and in the afternoon).
-
+### **Elevator system**
 #### Attribues
-* population distribution
-    * it's crucial that CES has this knowledge, because thanks to this, it can decide globally and not just locally by the current situation
-* situation
-* strategy - algorithms to obey at given times
+* elevators
+* strategy
 
 ### **Evaluation function**
 * evaluates given strategy
 
+#### Action
+* Evaluate(simulation)
+
 TODO:
 * too early to specify user guide
 * general and user simulations arent very clear
+* disclaimer. this section is outdated
 ## How to use? 
 You can either run your own simulations based on different parameters, compare different algorithms and try to optimize it for yourself or you can use more sophisticated approach and let this program run several simulations with different algorithms and tweaked parameters to find the most optimal solution.
 
