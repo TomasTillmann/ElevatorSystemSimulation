@@ -3,7 +3,7 @@
 Imagine we want to construct a building and we want to design an elevator system for it. How can we do it, so the elevator system is the most efficient one for this specific building? We run simulations of different elevator systems and different algorithms, compare them and pick the best one. This is what this program is about.
 
 ## Problem
-Given a building $B$, we would like to construct an elevator system for this building $E_B$, such as $E_B$ is the most efficient one.
+Given a building $B \in B_{SET}$, we would like to construct an elevator system for this building $E_B$, such as $E_B$ is the most efficient one.
 We will measure efficiency by some quality function $q$.
 
 
