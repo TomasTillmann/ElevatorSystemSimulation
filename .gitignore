@@ -1,0 +1,10 @@
+# ignore bc template - want to use it only for reference
+/bc_template
+
+# ignore latex compilation files
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz

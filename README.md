@@ -1,28 +1,38 @@
-# Elevator systems - optimalization
-Imagine we want to construct a building and we want to design an elevator system for it. How can we do it, so the elevator system is the most efficient one for this specific building? We run simulations of different elevator systems, compare them and pick the best one. This is what this program is about.
+# Elevator systems - optimization
+## Abstract
+Imagine we want to construct a building and we want to design an elevator system for it. How can we do it, so the elevator system is the most efficient one for this specific building? We run simulations of different elevator systems and different algorithms, compare them and pick the best one. This is what this program is about.
+
+## Problem
+Given a building $B$, we would like to construct an elevator system for this building $E_B$, such as $E_B$ is the most efficient one.
+We will measure efficiency by some quality function $q$.
+
 
 
 ## Definitions
 ### **Simulation**
-* It is a discrete simulation, where every step of the simulation elevators can either move up, down or stay (these are all the events). It uses standard discrete simulation techniques and patterns.
+* It is a discrete simulation, where every step of the simulation elevators can either move up, down, stay or board people (these are all the events). It uses standard discrete simulation techniques and patterns.
 
 #### Attributes
 * Scheduler
 
 ### **Elevator**
-* Elevator in a building. There might be elevators with different parameters in the same building.
+* Are controlled by Central Elevator Scheduler
+* Elevator in a building. There might be elevators with different parameters in the same building, hence each of a different type.
+* Elevator doesn't need to have all attributes set. Some elevators can't know how many people is on board and knows just the current weight. Some others might not even know the current weight.
 
 #### Attributes
 * speed
-* capacity 
+* capacity
 * acceleration
 * average waiting time of elevator for passengers getting on/off
 * current number of people
+* current weight
 
 #### Actions
 * up()
 * down()
 * stay()
+* board()
 
 ### **Building**
 * Building where we want our efficient elevator system.
@@ -32,7 +42,7 @@ Imagine we want to construct a building and we want to design an elevator system
 
 ### **Population distribution**
 * Assigns each floor how likely a person on this floor would like to use an elevator and where probably would the person go, at a given time. 
-* e.g. In an office building in the afternoon from floor 5,6,7 it is very likely a person would call an elevator and would like to get to floor one or underground (parking), because their workday is over, but in the morning it will be the other way around.
+* e.g. In an office building in the afternoon from office floors it is very likely a person would call an elevator and would like to get to floor one or underground (parking), because their workday is over, but in the morning it will be the other way around (down peak or up peak period).
 
 #### Attribues
 * time 
@@ -45,16 +55,19 @@ Imagine we want to construct a building and we want to design an elevator system
 
 * population size
     * how many persons can spawn in a day
-    * represents average number of people using building's elevators each day
+    * represents total number of people using building's elevators current day
 
 ### **Situation**
 * Represents where (in what floors) are all the elevators and where are all the people either waiting for elevator or already in an elevator.
-* Central elevator scheduler makes decisions based on the surrent situation.
+* Central elevator scheduler makes decisions based on the current situation.
 * Every time an event happens, the current situation changes to next situation. Situations are atomic.
+* Some attributes might be set or might not. It depends how sophisticated you want your elevator system to be. For example, if elevator system users have some sort of ID card, than each person can call an elevator by the id card and therefore the CES could be certain about the number of people in a given floor. In this scenario, situation should carry this information. 
+But in a different scenario, where users don't have an identification, CES couldn't know how many people is actually waiting on each floor. It's only information is how many times a button is pressed (and one person can press the button how many times he likes), so in this scenario it might not make sense to remember people count.
 
-#### Attribues
+#### Attributes
 * list of elevators
 * list of floors with people count
+* list of floors with indication whether there is a request for elevator or not 
 
 ### **Central Elevator Scheduler**
 * Gives instructions to elevators based on the current situation, meaning it assigns every elevator some action (event). Central Elevator Scheduler obeys some scheduling algorithm.
