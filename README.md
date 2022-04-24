@@ -77,21 +77,6 @@ Secondly, we can also easily tweak input parameters and see by how much differen
 
 The only disadvantage I see is that each simulation might take some nontrivial amount of time.
 
-### Example:
-We want to find the most efficient elevator system for building with 10 floors and we would like to use only 3 elevators.
-We assume, that majority of people will arrive at 7am and 8am and they would like to go to office floors, which are floors 5 to 10.
-At 12pm many people would like to visit restaurant at floor 1. At 13pm the same people would like to go back to their offices.
-Between 17pm and 18pm, we predict that almost everyone would like to go to floor 0. We think that this behaviour will be very similiar each day. Average number of people each day is about 1000.
-
-Let building $b = (10, p_d)$, where $p_b(t) = (w_{b_t}, w_{s_t}, 1000)$. 
-$$
-w_{b_7}(f), w_{b_8}(f)=
-\begin{cases}
-0.9 & \quad \text{when $f = 1$}\\ 
-0.1/|F| - 1 & \quad \text{otherwise}
-\end{cases}
-$$
-
 
 ## Definitions
 TODO: 
