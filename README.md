@@ -3,8 +3,32 @@
 Imagine we want to construct a building and we want to design an elevator system for it. How can we do it, so the elevator system is the most efficient one for this specific building? We run simulations of different elevator systems and different algorithms, compare them and pick the best one. This is what this program is about.
 
 ## Problem
-Given a building $B \in B_{SET}$, we would like to construct an elevator system for this building $E_B$, such as $E_B$ is the most efficient one.
-We will measure efficiency by some quality function $q$.
+Given a building $b$ from set of all buildings $B$, we would like to construct an elevator system for this building $e_b \in E_b$, where $E_b$ is set of all elevator systems for $b$, such as $e_b$ is the most efficient one.
+
+We will measure efficiency by some efficiency function $q_b \in Q_b: E_b \rightarrow \mathbb{R}$, where $Q_b$ is set of all efficiency functions for $b$.
+If for some two elevator systems $e_{b1}, e_{b2} \in E_b$ $q_b \in Q_b: q_b(e_{b1}) > q_b(e_{b2})$, we say that $e_{b1}$ is more efficient than $e_{b2}$ according to $q_b$.
+Depending by what metrics we consider elevator system efficient, we choose appropriate efficiency function. 
+
+Now let's definice what exactly is a building and an elevator system.
+Building is defined by number of floors and population distribution. Population distribution at a given time is:
+* how likely there is a request for elevator on some floor
+* what's the probability of person going from floor A to floor B
+* total population size
+
+Population distribution changes over time.
+
+ Formally, building is a tuple $(n_b, p_b)$, where $n_b \in \mathbb{N}$ and $p_b \in P_b$, where $P_b$ is a set of all population distributions for building $b$.
+Population distribution $p_b \in P_b$ for a building $b$ is a function $p_b: \mathbb{N} \rightarrow (w_b, w_f, s)$, where $w_b: F \rightarrow [0,1]$, where $F = \{1,2,...,n_b\}$, be a probability function representing how likely a request for elevator will occur at $j-th$ floor, $w_f$ is an $n_b$-tuple $(w_1, w_2, ..., w_{n_b})$, where $w_i: F \rightarrow [0,1]$ are probability functions and $w_i(i) = 0$ , for $i \in \{0,1,...,n_b\}$, representing probability of person wanting to go from $i-th$ floor to $j-th$ floor, where $j \in F$, and $s \in \mathbb{N}$,  representing total population size.
+Defining population distribution this way, $p_b(t)$ represents some population distribution at time $t$ and we can simulate change of population distribution over time ($t$ can represent parts of day, where in the morning there is an up peak and in the afternoon there is a down peak, so the population distribution has to change).
+
+Elevator system is defined by set of elevators and strategy. It only makes sense to define elevator system only for some specific building. Before we formally define elevator system and strategy, we must first define the following. 
+
+Elevator $e \in E$ is a tuple $(A, P)$, where $A$ is a set of possible actions (such as move up, move down, idle, board) and $P$ is a set of elevator's parameters (such as capacity, acceleration, speed, ...) and $E$ is a set of all possible elevators.
+
+Situation at time $t \in \mathbb{N}$ of building $b$ with ele is a tuple $(p_b, g_t)$, where $g_t: S \rightarrow F$.
+
+Formally, elevator system $e_b \in E_b$ for building $b$ is a tuple $(L, s)$, where $L \subset E$ is a set of elevators and $s:S \rightarrow S$, where $S$ is set of all situations, is a strategy function.
+
 
 
 
