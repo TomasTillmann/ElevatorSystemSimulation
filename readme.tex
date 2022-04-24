@@ -1,0 +1,362 @@
+%% converted from readme.md
+\hypertarget{elevator-systems---optimization}{%
+\section{Elevator systems -
+optimization}\label{elevator-systems---optimization}}
+
+\hypertarget{abstract}{%
+\subsection{Abstract}\label{abstract}}
+
+Imagine we want to construct a building and we want to design an
+elevator system for it. How can we do it, so the elevator system is the
+most efficient one for this specific building? We run simulations of
+different elevator systems and different algorithms, compare them and
+pick the best one. This is what this program is about.
+
+\hypertarget{problem}{%
+\subsection{Problem}\label{problem}}
+
+Given a building \(B\), we would like to construct an elevator system
+for this building \(E_B\), such as \(E_B\) is the most efficient one. We
+will measure efficiency by some quality function \(q\).
+
+\hypertarget{definitions}{%
+\subsection{Definitions}\label{definitions}}
+
+\hypertarget{simulation}{%
+\subsubsection{\texorpdfstring{\textbf{Simulation}}{Simulation}}\label{simulation}}
+
+\begin{itemize}
+\tightlist
+\item
+  It is a discrete simulation, where every step of the simulation
+  elevators can either move up, down, stay or board people (these are
+  all the events). It uses standard discrete simulation techniques and
+  patterns.
+\end{itemize}
+
+\hypertarget{attributes}{%
+\paragraph{Attributes}\label{attributes}}
+
+\begin{itemize}
+\tightlist
+\item
+  Scheduler
+\end{itemize}
+
+\hypertarget{elevator}{%
+\subsubsection{\texorpdfstring{\textbf{Elevator}}{Elevator}}\label{elevator}}
+
+\begin{itemize}
+\tightlist
+\item
+  Are controlled by Central Elevator Scheduler
+\item
+  Elevator in a building. There might be elevators with different
+  parameters in the same building, hence each of a different type.
+\item
+  Elevator doesn't need to have all attributes set. Some elevators can't
+  know how many people is on board and knows just the current weight.
+  Some others might not even know the current weight.
+\end{itemize}
+
+\hypertarget{attributes-1}{%
+\paragraph{Attributes}\label{attributes-1}}
+
+\begin{itemize}
+\tightlist
+\item
+  speed
+\item
+  capacity
+\item
+  acceleration
+\item
+  average waiting time of elevator for passengers getting on/off
+\item
+  current number of people
+\item
+  current weight
+\end{itemize}
+
+\hypertarget{actions}{%
+\paragraph{Actions}\label{actions}}
+
+\begin{itemize}
+\tightlist
+\item
+  up()
+\item
+  down()
+\item
+  stay()
+\item
+  board()
+\end{itemize}
+
+\hypertarget{building}{%
+\subsubsection{\texorpdfstring{\textbf{Building}}{Building}}\label{building}}
+
+\begin{itemize}
+\item
+  Building where we want our efficient elevator system.
+\item
+  number of floors
+\item
+  number of elevators and elevator types
+\end{itemize}
+
+\hypertarget{population-distribution}{%
+\subsubsection{\texorpdfstring{\textbf{Population
+distribution}}{Population distribution}}\label{population-distribution}}
+
+\begin{itemize}
+\tightlist
+\item
+  Assigns each floor how likely a person on this floor would like to use
+  an elevator and where probably would the person go, at a given time.
+\item
+  e.g.~In an office building in the afternoon from office floors it is
+  very likely a person would call an elevator and would like to get to
+  floor one or underground (parking), because their workday is over, but
+  in the morning it will be the other way around (down peak or up peak
+  period).
+\end{itemize}
+
+\hypertarget{attribues}{%
+\paragraph{Attribues}\label{attribues}}
+
+\begin{itemize}
+\item
+  time
+
+  \begin{itemize}
+  \tightlist
+  \item
+    time of day
+  \item
+    can be disretized in morning, after lunch, afternoon or in hours,
+    minutes, \ldots{}
+  \end{itemize}
+\item
+  each floor has list of probabilities, each corresponding to what floor
+  a person might want to get (e.g.~floor 1: 2 - 0.2, 3 - 0.3 4 - 0.2 5 -
+  0.2 6 - 0.1)
+\item
+  each floor has probability of person wanting to use the elevator
+  (e.g.~floor 1 - 0.8, floor 2 - 0.05, \ldots{} floor 6 (last) - 0)
+\item
+  population size
+
+  \begin{itemize}
+  \tightlist
+  \item
+    how many persons can spawn in a day
+  \item
+    represents total number of people using building's elevators current
+    day
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{situation}{%
+\subsubsection{\texorpdfstring{\textbf{Situation}}{Situation}}\label{situation}}
+
+\begin{itemize}
+\tightlist
+\item
+  Represents where (in what floors) are all the elevators and where are
+  all the people either waiting for elevator or already in an elevator.
+\item
+  Central elevator scheduler makes decisions based on the current
+  situation.
+\item
+  Every time an event happens, the current situation changes to next
+  situation. Situations are atomic.
+\item
+  Some attributes might be set or might not. It depends how
+  sophisticated you want your elevator system to be. For example, if
+  elevator system users have some sort of ID card, than each person can
+  call an elevator by the id card and therefore the CES could be certain
+  about the number of people in a given floor. In this scenario,
+  situation should carry this information. But in a different scenario,
+  where users don't have an identification, CES couldn't know how many
+  people is actually waiting on each floor. It's only information is how
+  many times a button is pressed (and one person can press the button
+  how many times he likes), so in this scenario it might not make sense
+  to remember people count.
+\end{itemize}
+
+\hypertarget{attributes-2}{%
+\paragraph{Attributes}\label{attributes-2}}
+
+\begin{itemize}
+\tightlist
+\item
+  list of elevators
+\item
+  list of floors with people count
+\item
+  list of floors with indication whether there is a request for elevator
+  or not
+\end{itemize}
+
+\hypertarget{central-elevator-scheduler}{%
+\subsubsection{\texorpdfstring{\textbf{Central Elevator
+Scheduler}}{Central Elevator Scheduler}}\label{central-elevator-scheduler}}
+
+\begin{itemize}
+\tightlist
+\item
+  Gives instructions to elevators based on the current situation,
+  meaning it assigns every elevator some action (event). Central
+  Elevator Scheduler obeys some scheduling algorithm.
+\item
+  Can use different scheduling algorithms at different times (e.g.~would
+  like to use different scheduling algorithm in the morning and in the
+  afternoon).
+\end{itemize}
+
+\hypertarget{attribues-1}{%
+\paragraph{Attribues}\label{attribues-1}}
+
+\begin{itemize}
+\tightlist
+\item
+  population distribution
+
+  \begin{itemize}
+  \tightlist
+  \item
+    it's crucial that CES has this knowledge, because thanks to this, it
+    can decide globally and not just locally by the current situation
+  \end{itemize}
+\item
+  situation
+\item
+  strategy - algorithms to obey at given times
+\end{itemize}
+
+\hypertarget{evaluation-function}{%
+\subsubsection{\texorpdfstring{\textbf{Evaluation
+function}}{Evaluation function}}\label{evaluation-function}}
+
+\begin{itemize}
+\tightlist
+\item
+  evaluates given strategy
+\end{itemize}
+
+\hypertarget{how-to-use}{%
+\subsection{How to use?}\label{how-to-use}}
+
+You can either run your own simulations based on different parameters,
+compare different algorithms and try to optimize it for yourself or you
+can use more sophisticated approach and let this program run several
+simulations with different algorithms and tweaked parameters to find the
+most optimal solution.
+
+\hypertarget{parameters}{%
+\subsection{Parameters}\label{parameters}}
+
+These are parameters you are able to set before running the simulation:
+1. number of floors in the building 1. number of elevators 1. population
+distribution 1. each elevator's parameters 1. CES strategy
+
+\hypertarget{optimization-simulations}{%
+\subsection{Optimization simulations}\label{optimization-simulations}}
+
+\hypertarget{what-to-optimize}{%
+\subsubsection{What to optimize?}\label{what-to-optimize}}
+
+\begin{itemize}
+\item
+  It is quite obvious, that the more elevators and the more efficient
+  they are the more efficient is our elevator system going to be.
+  However, we would like to minimize the number of elevators, because
+  each lift schaft is economicaly just a wasted space, that could have
+  been used for something more profitable.
+\item
+  The same goes for elevator parameters (speed, capacity, \ldots{}).
+  It's reasonable to keep them bounded below some maximum parameters, to
+  make each elevator affordable.
+\item
+  Hence, it makes sense to try to optimize our elevator system not just
+  solely on performance but also on it's cost.
+\item
+  Neverthless, how good elevator system is will ultimately determined by
+  some Evaluation function, that can use completely different evaluating
+  principle.
+\end{itemize}
+
+\hypertarget{general-simulation}{%
+\subsubsection{General simulation}\label{general-simulation}}
+
+\begin{itemize}
+\item
+  in general simulation, you don't specify number of elevators and their
+  qualities.
+\item
+  general simulation tries to not only optimize strategy, but also
+  optimize number of elevators and their parameters to satisfy some
+  Evaluation function.
+\item
+  general simulation just runs multiple concrete strategies with
+  different elevator counts and qualities and compares those using some
+  quality function.
+\item
+  You can choose the Evaluation function
+
+  \begin{itemize}
+  \tightlist
+  \item
+    best bet would be quality function based on some price-quality ratio
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{concrete-simulation}{%
+\subsubsection{Concrete simulation}\label{concrete-simulation}}
+
+\begin{itemize}
+\item
+  you specify concrete number of elevators and their qualities
+\item
+  concrete simulation just tries to find the best possible strategy for
+  given building and population distribution
+\end{itemize}
+
+\hypertarget{user-simulation}{%
+\subsection{User Simulation}\label{user-simulation}}
+
+\begin{itemize}
+\item
+  After some optimization simulation has found the best approach how to
+  tackle given building and population distribution, it might be
+  convenient to try to run a simulation with found optimal elevator
+  system and see how it behaves for yourself. This is exactly what user
+  simulation is for.
+\item
+  During user simulation, you can play around and change some
+  parameters, to see how adaptive optimal solution is and have feel for
+  how it behaves:
+
+  \begin{enumerate}
+  \def\labelenumi{\arabic{enumi}.}
+  \tightlist
+  \item
+    spawn persons to exact floors
+  \item
+    change CES strategy
+  \item
+    tweak population distribution
+  \end{enumerate}
+\end{itemize}
+
+\hypertarget{future}{%
+\subsection{Future}\label{future}}
+
+\begin{itemize}
+\tightlist
+\item
+  it would be great to not just have very simple scheduling algorithms
+  at our disposal but also some more sophisticated techniques, like
+  genetic algorithms, machine learning etc \ldots{}
+\end{itemize}

@@ -17,17 +17,28 @@ Building is defined by number of floors and population distribution. Population 
 
 Population distribution changes over time.
 
- Formally, building is a tuple $(n_b, p_b)$, where $n_b \in \mathbb{N}$ and $p_b \in P_b$, where $P_b$ is a set of all population distributions for building $b$.
-Population distribution $p_b \in P_b$ for a building $b$ is a function $p_b: \mathbb{N} \rightarrow (w_b, w_f, s)$, where $w_b: F \rightarrow [0,1]$, where $F = \{1,2,...,n_b\}$, be a probability function representing how likely a request for elevator will occur at $j-th$ floor, $w_f$ is an $n_b$-tuple $(w_1, w_2, ..., w_{n_b})$, where $w_i: F \rightarrow [0,1]$ are probability functions and $w_i(i) = 0$ , for $i \in \{0,1,...,n_b\}$, representing probability of person wanting to go from $i-th$ floor to $j-th$ floor, where $j \in F$, and $s \in \mathbb{N}$,  representing total population size.
+ Formally, building is a tuple $(n_b, p_b)$, $n_b \in \mathbb{N}$ and $p_b \in P_b$, where $P_b$ is a set of all population distributions for building $b$.
+Population distribution $p_b \in P_b$ for a building $b$ is a function $p_b: \mathbb{N} \rightarrow (w_b, w_f, s)$, where $w_b: F \rightarrow [0,1]$, $F = \{1,2,...,n_b\}$, be a probability function representing how likely a request for elevator will occur at $j-th$ floor, $w_f$ is an $n_b$-tuple $(w_1, w_2, ..., w_{n_b})$, where $w_i: F \rightarrow [0,1]$ are probability functions and $w_i(i) = 0$ , for $i \in \{0,1,...,n_b\}$, representing probability of person wanting to go from $i-th$ floor to $j-th$ floor, where $j \in F$, and $s \in \mathbb{N}$,  representing total population size.
 Defining population distribution this way, $p_b(t)$ represents some population distribution at time $t$ and we can simulate change of population distribution over time ($t$ can represent parts of day, where in the morning there is an up peak and in the afternoon there is a down peak, so the population distribution has to change).
 
 Elevator system is defined by set of elevators and strategy. It only makes sense to define elevator system only for some specific building. Before we formally define elevator system and strategy, we must first define the following. 
 
-Elevator $e \in E$ is a tuple $(A, P)$, where $A$ is a set of possible actions (such as move up, move down, idle, board) and $P$ is a set of elevator's parameters (such as capacity, acceleration, speed, ...) and $E$ is a set of all possible elevators.
+Elevator $e \in E$ is a tuple $(A, P)$, where $A$ is a set of possible actions (such as move up, move down, idle, board,...) and $P$ is a set of elevator's parameters (such as capacity, acceleration, speed, current capacity,...) and $E$ is a set of all possible elevators.
 
-Situation at time $t \in \mathbb{N}$ of building $b$ with ele is a tuple $(p_b, g_t)$, where $g_t: S \rightarrow F$.
+Situation at time $t \in \mathbb{N}$ of building $b$ is a tuple $(L, p_b, g_t)$, $g_t: L \rightarrow F$, where $L \subseteq E$.
+Situation represents state of elevators and population distribution at a given time.
 
-Formally, elevator system $e_b \in E_b$ for building $b$ is a tuple $(L, s)$, where $L \subset E$ is a set of elevators and $s:S \rightarrow S$, where $S$ is set of all situations, is a strategy function.
+And finally, elevator system $e_b \in E_b$ for building $b$ is a function $s:S \rightarrow S$, where $S$ is set of all situations.
+
+### Example:
+We want to find the most efficient elevator system for building with 10 floors and we would like to use only 3 elevators.
+We assume, that majority of people will arrive at 8am and they would like to go to office floors, which are floors 5 to 10.
+At 12pm many people would like to visit restaurant at floor 1. At 13pm the same people would like to go back to their offices.
+Between 17pm and 18pm, we predict that almost everyone would like to go to floor 0. We think that this behaviour will be very similiar each day.
+
+#### **Run of one simulation:**
+
+
 
 
 
