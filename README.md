@@ -122,6 +122,12 @@ Secondly, we can also easily tweak input parameters and see by how much differen
 The only disadvantage I see is that each simulation might take some nontrivial amount of time, but I don't think it should be an issue (definitely not on simple strategies, like some scheduling algorithms).
 
 
+
+
+
+
+
+
 # Program implementation of formal model
 TODO: 
 * make this more software oriented, math definitions above
@@ -207,43 +213,3 @@ These are parameters you are able to set before running the simulation:
 1. population distribution
 1. each elevator's parameters 
 1. CES strategy
-
-
-
-## Optimization simulations
-### What to optimize?
-* It is quite obvious, that the more elevators and the more efficient they are the more efficient is our elevator system going to be. However, we would like to minimize the number of elevators, because each lift schaft is economicaly just a wasted space, that could have been used for something more profitable.
-
-* The same goes for elevator parameters (speed, capacity, ...). It's reasonable to keep them bounded below some maximum parameters, to make each elevator affordable.
-
-* Hence, it makes sense to try to optimize our elevator system not just solely on performance but also on it's cost.
-
-* Neverthless, how good elevator system is will ultimately determined by some Evaluation function, that can use completely different evaluating principle.
-
-### General simulation
-* in general simulation, you don't specify number of elevators and their qualities.
-
-* general simulation tries to not only optimize strategy, but also optimize number of elevators and their parameters to satisfy some Evaluation function.
-
-* general simulation just runs multiple concrete strategies with different elevator counts and qualities and compares those using some quality function.
-
-* You can choose the Evaluation function
-    * best bet would be quality function based on some price-quality ratio 
-
-### Concrete simulation
-* you specify concrete number of elevators and their qualities
-
-* concrete simulation just tries to find the best possible strategy for given building and population distribution
-
-
-## User Simulation 
-* After some optimization simulation has found the best approach how to tackle given building and population distribution, it might be convenient to try to run a simulation with found optimal elevator system and see how it behaves for yourself. This is exactly what user simulation is for.
-
-* During user simulation, you can play around and change some parameters, to see how adaptive optimal solution is and have feel for how it behaves:
-    1. spawn persons to exact floors
-    1. change CES strategy
-    1. tweak population distribution
-
-## Future
-* it would be great to not just have very simple scheduling algorithms at our disposal but also some more sophisticated techniques, like genetic algorithms, machine learning etc ...
-
