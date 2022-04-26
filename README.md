@@ -3,32 +3,100 @@
 Imagine we want to construct a building and we want to design an elevator system for it. How can we do it, so the elevator system is the most efficient one for this specific building? We run simulations of different elevator systems and different algorithms, compare them and pick the best one. This is what this program is about.
 
 ## Problem
-Given a building $b$ from set of all buildings $B$, we would like to construct an elevator system for this building $e_b \in E_b$, where $E_b$ is set of all elevator systems for $b$, such as $e_b$ is the most efficient one.
+Imagine a building with an elevator system. How should the elevator system work to be the most efficient one? What is the best elevator system strategy for this concrete building?
+
+Before we dive into these questions, we need to start with what an elevator system actually is. 
+Elevator system consists of elevators, each having some parameters (speed, capacity, ...) and actions (move up, move down, stay, open doors, ...)
+and strategy (SCAN, first comes first served, ...), that controls elevators. This strategy is what we would like to optimize. 
+
+Thus we want to find the best way how should an elevator system behave.
+Elevator system makes it's decisions based on these information:
+* on what floors are requests
+* what floors must each elevator visit
+* where each elevator is
+
+These are also information that every elevator system needs to have at it's disposal, otherwise it could only operate randomly.
+Just having these information as input is sufficient for developing some more sophisticated strategy, but there are other information, that an elevator system can have access to:
+
+**Current situation information**:
+* how many people each elevator has
+* how many people in elevator want to go in each floor
+* how many people requesting for elevator is on each floor
+* how many people is in the building
+
+**Population predictions**:
+* how likely a request appears at some floor (can change over time)
+* how likely a person from floor A would like to go to floor B (can change over time)
+
+If elevator system has some of these (or possibly some different) information at his disposal, his strategy can be much more sophisticated and has potential to operate much better. Note, that information, that each elevator needs to have at it's disposal are *Current situation information*.
+
+How likely a request appears at some floor changes over time. For example in up peak period, it is very likely that requests occur in ground floor. In down peak period, most of the requests would appear in higher floors.
+Similiarly, for how likely a person would like to go from floor A to a different floor B. In up peak, persons from ground floor would probably like to go to their offices, let's say floors 5 to 10 and during down peak period, they would like to go from their offices to ground floor.
+
+What information elevator system has depends on how sophisticated it is.
+Some elevator systems for example have the abilitiy to know how many people is in the building, each floor, or in each elevator, because elevator users have some sort of identification card with which they request the elevator.
+
+Some other systems have the ability to know how many people in elevator want to go in each floor, because when user calls for the elevator, he doesn't just press a button, but also configures on a display where would he like to go.
+
+There is many different elevator systems with different information at their disposal. It is safe to say, that elevator systems with more available information have the biggest potential to be the most optimal, but we might not always have the financial needs for the best elevator systems. Sometimes, we would like to find the most optimal strategy for some not so sophisticated elevator systems.
+
+Consequently, there is also a handful of metrics against we can measure how some strategy is succesful. Some very reasonable metrics are average waiting time for an elevator, average waiting time in an elevator, worst-case waiting time or even some average of all of these metrics combined ...
+
+So now we know what problem we want to solve. We want to find the best strategy for some elevator system or more elevator systems with different available information about building's population. How good a strategy is could be predefined by some metrics.
+
+## Formalization of the problem 
+### Input
+* Buildig $B = (E, I)$ with elevator system $E$ that has some available information about building's population $I$
+    * $I = (C, P)$
+    * where $C$ are current situation information and $P$ are population predictions 
+* Metrics that define how succesful strategy is $M$
+
+### Output
+* find the most optimal strategy $S$ for given building $B$ against given metrics $M$
+
+## My approach
+Let there be some efficiency function $q_M: q(S, B) \rightarrow [0,1]$, obeying given metrics $M$.
+This efficiency function takes strategy $S$ and building $B$ and rates it by number from 0 to 1. The bigger the number, the more $S$ is optimal forr elevator system $E$ in $B$.
+
+If we have $q_M$ and some set of strategies $S_{set}$, we can very easily find $S_{optimal} \in S_{set}:$ $q_M(S_{optimal},B) = max(\{q_M(S, B) | \forall S \in S_{set}\}$ that is the most optimal.
+
+Obtaining some $S_{set}$ isn't very difficult. It can be for example a set of some well-known scheduling algorithms, such as SCAN, First comes first served, priority scheduling, round robin scheduling, ...
+Set $S_{set}$ could also potentially contain some user defined algorithms or some algorithms developed specificaly for $B$ (for example by some genetic algorithm,...).
+
+It is much harder to obtain $q_M$, which is right now the only missing piece needed for solving the problem. 
+
+This is how I want to define this efficiency function $q_M$. This efficiency function $q_M$ will run discrete simulation.
+The simulation runs for some reasonably long time and after it ends it calculates how well $S$ did according to $M$.
+
+
 
 ## Formal model
-Now let's define what exactly is a building and an elevator system.
-Building is defined by number of floors and population distribution. Population distribution at a given time is:
+Floors are a set $F$, where $F \subseteq \mathbb{Z}$, each element $i \in F$ represent $i-th$ floor.
 
-* how likely there is a request for elevator on some floor
-* what's the probability of person going from floor A to floor B
-* total population size
+Elevator  $e \in E$ is a tuple $(a, P_s, P_d)$, where $a \in A$ represent elevator's current action, where $A$ is a set of all possible actions: move up, move down, idle, board. $P_s$ is a set of elevator's static parameters: capacity, acceleration, speed.
+These parameters remain the same for the whole simulation and they represent parameters that do not change dynamically. $P_d$ is a set of dynamic parameters, describing elevator's current state: current speed, current capacity, current people count. Set $E$ is a set of all possible elevators.
 
-Population distribution changes over time.
+Elevators $L$ are $L \subseteq E$.
 
- Formally, building is a tuple $(n_b, p_b)$, where $n_b \in \mathbb{N}$ and $p_b \in P_b$, where $P_b$ is a set of all population distributions for building $b$.
-Population distribution $p_b \in P_b$ for a building $b$ is a function $p_b: \mathbb{N} \rightarrow (w_b, w_f, s)$, where $w_b: F \rightarrow [0,1]$, $F = \{1,2,...,n_b\}$, be a probability function representing how likely a request for elevator will occur at $j-th$ floor, $w_f$ is an $n_b$-tuple $(w_1, w_2, ..., w_{n_b})$, where $w_i: F \rightarrow [0,1]$ are probability functions and $w_i(i) = 0$ , for $i \in \{0,1,...,n_b\}$, representing probability of person wanting to go from $i-th$ floor to $j-th$ floor, where $j \in F$, and $s \in \mathbb{N}$,  representing total population size.
-Defining population distribution this way, $p_b(t)$ represents some population distribution at time $t$ and we can simulate change of population distribution over time ($t$ can represent parts of day, where in the morning there is an up peak and in the afternoon there is a down peak, so the population distribution has to change).
+Building $b$ is a tuple $b = (F_b, L_b)$, $F_b \subseteq \mathbb{Z}$, representing floors and $L_b \subseteq E$ representing elevators.
 
-Elevator system is defined by set of elevators and strategy. It only makes sense to define elevator system only for some specific building. Before we formally define elevator system and strategy, we must first define the following. 
+Population distribution of a building $b = (F_b, L_b)$ is a tuple $p_{d_b} = (w_{b_1}, w_{b_2}) \in P_{d_b}$, where $w_{b_1}: F_b \rightarrow [0,1]$, is a probability function representing how likely a request for elevator will occur at $j-th, j \in F_b$ floor and $w_{b_2}$ is an $|F_b|$-tuple $(w_1, w_2, ..., |F_b|)$, where $w_i: F_b \rightarrow [0,1]$ are probability functions representing probability of person wanting to go from $i-th, i \in F_b$ floor to $j-th, j \in F_b$ floor. $P_{d_b}$ is a set of all possible population distributions for building $b$.
 
-Elevator $e \in E$ is a tuple $(a, A, P)$, where $A$ is a set of possible actions (such as move up, move down, idle, board,...), $P$ is a set of elevator's parameters (such as capacity, acceleration, speed, current capacity,...), $a \in A$ is a current action and $E$ is a set of all possible elevators.
+Count of people on floors of a building $b = (F_b, L_b)$ $c_{p_b} \in C_{p_b}$ is a function $c_{p_b}: F_b \rightarrow \mathbb{N}$, representing how many people/requests are on each floor.
+Set $C_{p_b}$ is a set of all possible count of people on floors functions for $b$. 
 
-Situation at time $t \in \mathbb{N}$ of building $b$ is a tuple $(L, p_b, f_t, g_t, h_t)$, $f_t: L \rightarrow F \cup (i \in F,j \in F)$, $g_t: F \rightarrow \mathbb{N}$, $h_t: L \rightarrow F' \subseteq F$, $L \subseteq E$.
-Situation describes elevators, population distribution, in what floors or between what floors are elevators, number of requests/people on a floor and what floors each elevator has to visit at a given time. Note that some elevator's parameters can change over time, such as people count or current capacity, so it makes sense to define situation this way.
+Elevators position of a building $b = (F_b, L_b)$ $e_{p_b} \in E_{p_b}$ is a function $e_{p_b}: L \rightarrow F_b$, representing on which floors elevators are.
+Set $E_{p_b}$ is a set of all possible elevators positions functions for $b$.
 
-Strategy is a function $s:S \rightarrow S$, where $S$ is set of all situations.
+Population context $c_b$ of a building $b$ is a function $c_b: c_b(t) \rightarrow (c_{p_b}, p_{d_b})$,representing population of a building $b$ at some time $t \in \mathbb{R}$, where $c_{p_b} \in C_{p_b}, p_{d_b} \in P_{d_b}$.
 
-And finally, elevator system $e_b \in E_b$ for building $b$ is a tuple $(L, s)$, where $L$ is a set of elevators of a building $b$ and $s$ is a strategy function.
+Population context can simulate how a building's population and it's behavior changes over time. Population context provides all necessary inputs for our elevator system.
+
+Strategy is a function $s(L, c_f, p_d) \rightarrow L'$, where $L \subset E$, $c_f$ is a count function and $p_d$ is a population distribution.
+For every strategy function holds, that if $L = (a, P_s, P_d)$, then $L' = (a', P_s, P_d)$, $a' \in A$.
+Strategy function looks at the current con
+
+And finally, elevator system $e_b \in E_b$ for building $b$ is a tuple $(L, s)$, where $L \subset E$ is a set of elevators and $s$ is a strategy function.
 
 Now we know what an elevator system is, so we can try to optimize it.
 
