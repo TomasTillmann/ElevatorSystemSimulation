@@ -11,6 +11,7 @@ and strategy (SCAN, first comes first served, ...), that controls elevators. Thi
 
 Thus we want to find the best way how should an elevator system behave.
 Elevator system makes it's decisions based on these information:
+
 * on what floors are requests
 * what floors must each elevator visit
 * where each elevator is
@@ -19,12 +20,14 @@ These are also information that every elevator system needs to have at it's disp
 Just having these information as input is sufficient for developing some more sophisticated strategy, but there are other information, that an elevator system can have access to:
 
 **Current situation information**:
+
 * how many people each elevator has
 * how many people in elevator want to go in each floor
 * how many people requesting for elevator is on each floor
 * how many people is in the building
 
 **Population predictions**:
+
 * how likely a request appears at some floor (can change over time)
 * how likely a person from floor A would like to go to floor B (can change over time)
 
