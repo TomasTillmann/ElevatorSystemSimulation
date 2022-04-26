@@ -68,38 +68,6 @@ It is much harder to obtain $q_M$, which is right now the only missing piece nee
 This is how I want to define this efficiency function $q_M$. This efficiency function $q_M$ will run discrete simulation.
 The simulation runs for some reasonably long time and after it ends it calculates how well $S$ did according to $M$.
 
-
-
-## Formal model
-Floors are a set $F$, where $F \subseteq \mathbb{Z}$, each element $i \in F$ represent $i-th$ floor.
-
-Elevator  $e \in E$ is a tuple $(a, P_s, P_d)$, where $a \in A$ represent elevator's current action, where $A$ is a set of all possible actions: move up, move down, idle, board. $P_s$ is a set of elevator's static parameters: capacity, acceleration, speed.
-These parameters remain the same for the whole simulation and they represent parameters that do not change dynamically. $P_d$ is a set of dynamic parameters, describing elevator's current state: current speed, current capacity, current people count. Set $E$ is a set of all possible elevators.
-
-Elevators $L$ are $L \subseteq E$.
-
-Building $b$ is a tuple $b = (F_b, L_b)$, $F_b \subseteq \mathbb{Z}$, representing floors and $L_b \subseteq E$ representing elevators.
-
-Population distribution of a building $b = (F_b, L_b)$ is a tuple $p_{d_b} = (w_{b_1}, w_{b_2}) \in P_{d_b}$, where $w_{b_1}: F_b \rightarrow [0,1]$, is a probability function representing how likely a request for elevator will occur at $j-th, j \in F_b$ floor and $w_{b_2}$ is an $|F_b|$-tuple $(w_1, w_2, ..., |F_b|)$, where $w_i: F_b \rightarrow [0,1]$ are probability functions representing probability of person wanting to go from $i-th, i \in F_b$ floor to $j-th, j \in F_b$ floor. $P_{d_b}$ is a set of all possible population distributions for building $b$.
-
-Count of people on floors of a building $b = (F_b, L_b)$ $c_{p_b} \in C_{p_b}$ is a function $c_{p_b}: F_b \rightarrow \mathbb{N}$, representing how many people/requests are on each floor.
-Set $C_{p_b}$ is a set of all possible count of people on floors functions for $b$. 
-
-Elevators position of a building $b = (F_b, L_b)$ $e_{p_b} \in E_{p_b}$ is a function $e_{p_b}: L \rightarrow F_b$, representing on which floors elevators are.
-Set $E_{p_b}$ is a set of all possible elevators positions functions for $b$.
-
-Population context $c_b$ of a building $b$ is a function $c_b: c_b(t) \rightarrow (c_{p_b}, p_{d_b})$,representing population of a building $b$ at some time $t \in \mathbb{R}$, where $c_{p_b} \in C_{p_b}, p_{d_b} \in P_{d_b}$.
-
-Population context can simulate how a building's population and it's behavior changes over time. Population context provides all necessary inputs for our elevator system.
-
-Strategy is a function $s(L, c_f, p_d) \rightarrow L'$, where $L \subset E$, $c_f$ is a count function and $p_d$ is a population distribution.
-For every strategy function holds, that if $L = (a, P_s, P_d)$, then $L' = (a', P_s, P_d)$, $a' \in A$.
-Strategy function looks at the current con
-
-And finally, elevator system $e_b \in E_b$ for building $b$ is a tuple $(L, s)$, where $L \subset E$ is a set of elevators and $s$ is a strategy function.
-
-Now we know what an elevator system is, so we can try to optimize it.
-
 ## Simulation
 Simulation referes to discrete event simulation obeying next-event time progression paradigm (TODO: reference wiki).
 Simulation will start at some initial situation $T_{0}$, for example situation, where all elevators are in first floor ($f_t \in T_{0}, f_t(l)= 0$ $\forall l \in L \in T_{0}$), there are no people yet ($g_t \in T_{0}, g_t(f) = 0$ $\forall f \in F \in T_{0}$) and hence no elevator must visit some floor ($h_t(e) = \emptyset$ $\forall e \in E$).
