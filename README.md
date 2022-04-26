@@ -65,7 +65,14 @@ Set $S_{set}$ could also potentially contain some user defined algorithms or som
 
 It is much harder to obtain $q_M$, which is right now the only missing piece needed for solving the problem. 
 
-This is how I want to define this efficiency function $q_M$. This efficiency function $q_M$ will run discrete simulation.
+I want to define $q_M$ this way.
+Efficiency function $q_M$ will run discrete simulation.
+This simulation simulates elevators and population.
+Elevators obey $S$. Population obey $P$.
+If no specific $P$ is defined, simulation could simulate people according to some distribution (e.g. Poisson distribution, Uniform distribution,...).
+
+TODO: Discrete events describe
+The discrete events
 The simulation runs for some reasonably long time and after it ends it calculates how well $S$ did according to $M$.
 
 ## Simulation
