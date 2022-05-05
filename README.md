@@ -56,7 +56,7 @@ So now we know what problem we want to solve. We want to find the best strategy 
         * $e \in E:$ $e = (e_A, e_P)$
             * $e_A$ are elevator's possible actions
             * $e_P$ are elevator's parameters
-    * $C$, current situation information
+    * $C$, current situation information that elevator system can obtain from the enviroment 
 * $P_B$, population predictions for $B$
 * Metrics $M$ that define how succesful strategy is
 
@@ -77,8 +77,36 @@ It is much harder to obtain $q_M$, which is right now the only missing piece nee
 I want $q_M$ to run a discrete simulation. 
 
 ## Discrete Simulation
-Efficiency function $q_M$ will run discrete event simulation using next-event progression paradigm.
+Efficiency function $q_M$ will run discrete event simulation using next-event progression paradigm. 
 
+The simulation schedules events. Events are:
+1. move elevator to the current floor 
+1. move elevator to the floor above
+1. move elevator to the floor beyond
+1. board people to elevator
+1. spawn people to floors
+
+Each event takes some time. For example, time of moving an elevator to the floor above or beyond can be calculated from elevator's speed and height of rooms, it can also be an elevator's parameter ($\in e_P$) or perhaps most conviniently, it could be predifined before the start of the simulation.
+
+Same goes for boarding time, interval between spawning people etc ...
+Each event has some time for how long it will take. This time, after picking up the event from scheduler's queue is of course added to the total time $t$. Time $t$ represent total running time of the simulation.
+
+Each of these events is then scheduled by scheduler at the appropriately calculated time.
+What the next event is going to be is determined by some logic, depending on what event exactly is being scheduled. If the event regards elevators, next event is determined by current situation context and by the strategy. If the event regards enviroment, such as spawning people, the decision is based on $P$ and $t$.
+
+So what is beinng simulated is the enviroment (where people spawn, how many, where people want to go, ...) and elevators (where to move in each step of the simulation, boarding, ...). 
+
+Now we have to measure how well are elevators operating under control of given strategy, in order to measure how good the strategy is. What is being measured depends heavily on what the metrics are. Neverthless, during the simulation, we need to keep track of statistical data. This could be average waiting time so far, worst waiting time so far, etc ... 
+
+After the simulation is terminated (either if $t$ is too big or by some other condition), quality of the strategy will be based on collected statistics.
+
+## Why this approach
+Running a simulation is much easier than doing complex mathematical analysis. Also, user can see how exactly will the designed system behave in real time. This can give some important insights how to either improve strategy even further or whether to either invest in a better elevator system or be satisfied with a cheaper one (with less information about current situation context).
+
+## Remarks
+I would mainly like to focus on developing flexible, maintainable, easy to read and overall clean piece of software. I think it's more important to be able to easily change some of the approaches described above in order to play around with this problem and try to understand it through this software better than try to come up with the most optimal solution right off the bat.
+
+I would also like to add support for possibility of developing some self learning algortihms that could learn from given data (building) and try to come up with the most optimal algorithm for a given building.
 
 
 ##########################################################################
