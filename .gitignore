@@ -2,7 +2,7 @@
 /bc_template
 
 # ignore vs code config stuff
-/.vscode
+.vscode
 
 # ignore latex compilation files
 *.aux
