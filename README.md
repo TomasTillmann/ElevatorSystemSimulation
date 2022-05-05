@@ -80,11 +80,12 @@ I want $q_M$ to run a discrete simulation.
 Efficiency function $q_M$ will run discrete event simulation using next-event progression paradigm. 
 
 The simulation schedules events. Events are:
-1. move elevator to the current floor 
-1. move elevator to the floor above
-1. move elevator to the floor beyond
-1. board people to elevator
-1. spawn people to floors
+
+1. Move elevator to the current floor 
+2. Move elevator to the floor above
+3. Move elevator to the floor beyond
+4. Board people to elevator
+5. Spawn people to floors
 
 Each event takes some time. For example, time of moving an elevator to the floor above or beyond can be calculated from elevator's speed and height of rooms, it can also be an elevator's parameter ($\in e_P$) or perhaps most conviniently, it could be predifined before the start of the simulation.
 
@@ -94,7 +95,7 @@ Each event has some time for how long it will take. This time, after picking up 
 Each of these events is then scheduled by scheduler at the appropriately calculated time.
 What the next event is going to be is determined by some logic, depending on what event exactly is being scheduled. If the event regards elevators, next event is determined by current situation context and by the strategy. If the event regards enviroment, such as spawning people, the decision is based on $P$ and $t$.
 
-So what is beinng simulated is the enviroment (where people spawn, how many, where people want to go, ...) and elevators (where to move in each step of the simulation, boarding, ...). 
+So what is being simulated is the enviroment (where people spawn, how many, where people want to go, ...) and elevators (where to move in each step of the simulation, boarding, ...). 
 
 Now we have to measure how well are elevators operating under control of given strategy, in order to measure how good the strategy is. What is being measured depends heavily on what the metrics are. Neverthless, during the simulation, we need to keep track of statistical data. This could be average waiting time so far, worst waiting time so far, etc ... 
 
