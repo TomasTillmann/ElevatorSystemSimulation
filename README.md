@@ -6,7 +6,7 @@ Imagine we want to construct a building and we want to design an elevator system
 Imagine a building with an elevator system. How should the elevator system work to be the most efficient one? What is the best elevator system strategy for this concrete building?
 
 Before we dive into these questions, we need to start with what an elevator system actually is. 
-Elevator system consists of elevators, each having some parameters (speed, capacity, ...) and actions (move up, move down, stay, open doors, ...)
+Elevator system consists of elevators, each having some parameters (speed, capacity, ...), actions (move up, move down, stay, open doors, ...)
 and strategy (SCAN, first comes first served, ...), that controls elevators. This strategy is what we would like to optimize. 
 
 Thus we want to find the best way how should an elevator system behave.
@@ -31,7 +31,7 @@ Just having these information as input is sufficient for developing some more so
 * how likely a request appears at some floor (can change over time)
 * how likely a person from floor A would like to go to floor B (can change over time)
 
-If elevator system has some of these (or possibly some different) information at his disposal, his strategy can be much more sophisticated and has potential to operate much better. Note, that information, that each elevator needs to have at it's disposal are *Current situation information*.
+If elevator system has some of these (or possibly some different) information at his disposal, his strategy can be much more sophisticated and has potential to operate much better. Note, that information, that each elevator needs to have at it's disposal are of course **Current situation information**.
 
 How likely a request appears at some floor changes over time. For example in up peak period, it is very likely that requests occur in ground floor. In down peak period, most of the requests would appear in higher floors.
 Similiarly, for how likely a person would like to go from floor A to a different floor B. In up peak, persons from ground floor would probably like to go to their offices, let's say floors 5 to 10 and during down peak period, they would like to go from their offices to ground floor.
@@ -45,34 +45,78 @@ There is many different elevator systems with different information at their dis
 
 Consequently, there is also a handful of metrics against we can measure how some strategy is succesful. Some very reasonable metrics are average waiting time for an elevator, average waiting time in an elevator, worst-case waiting time or even some average of all of these metrics combined ...
 
-So now we know what problem we want to solve. We want to find the best strategy for some elevator system or more elevator systems with different available information about building's population. How good a strategy is could be predefined by some metrics.
+So now we know what problem we want to solve. We want to find the best strategy for some elevator system or more elevator systems with different available information about the enviroment. How good a strategy is could be predefined by some metrics.
 
 ## Formalization of the problem 
 ### Input
-* Buildig $B = (E, I)$ with elevator system $E$ that has some available information about building's population $I$
-    * $I = (C, P)$
-    * where $C$ are current situation information and $P$ are population predictions 
-* Metrics that define how succesful strategy is $M$
+* Buildig $B = (F, E_s)$
+    * $F \subseteq \mathbb{Z}$, floors 
+    * $E_s = (E, C)$, elevator system
+    * $E$ is set of elevators
+        * $e \in E:$ $e = (e_A, e_P)$
+            * $e_A$ are elevator's possible actions
+            * $e_P$ are elevator's parameters
+    * $C$, current situation information
+* $P_B$, population predictions for $B$
+* Metrics $M$ that define how succesful strategy is
 
 ### Output
-* find the most optimal strategy $S$ for given building $B$ against given metrics $M$
+* find the most optimal strategy $s$ for given building $B$ against given metrics $M$
 
 ## My approach
-Let there be some efficiency function $q_M: q(S, B) \rightarrow [0,1]$, obeying given metrics $M$.
-This efficiency function takes strategy $S$ and building $B$ and rates it by number from 0 to 1. The bigger the number, the more $S$ is optimal forr elevator system $E$ in $B$.
+Let there be some efficiency function $q_M: q(s, B) \rightarrow [0,1]$, obeying given metrics $M$.
+This efficiency function takes strategy $s$ and building $B$ and rates it by number from 0 to 1. The bigger the number, the more $s$ is optimal for elevator system $E$ in $B$.
 
-If we have $q_M$ and some set of strategies $S_{set}$, we can very easily find $S_{optimal} \in S_{set}:$ $q_M(S_{optimal},B) = max(\{q_M(S, B) | \forall S \in S_{set}\}$ that is the most optimal.
+If we have $q_M$ and some set of strategies $S_{strategies}$, we can very easily find $$s_{optimal} \in S_{strategies}: q_M(S_{optimal},B) = max(\{q_M(s, B) | \forall s \in S_{strategies}\}$$ that is the most optimal.
 
-Obtaining some $S_{set}$ isn't very difficult. It can be for example a set of some well-known scheduling algorithms, such as SCAN, First comes first served, priority scheduling, round robin scheduling, ...
-Set $S_{set}$ could also potentially contain some user defined algorithms or some algorithms developed specificaly for $B$ (for example by some genetic algorithm,...).
+Obtaining some $S_{strategies}$ isn't very difficult. It can be for example a set of some well-known scheduling algorithms, such as SCAN, First comes first served, priority scheduling, round robin scheduling, ...
+Set $S_{strategies}$ could also potentially contain some user defined algorithms or some algorithms developed specificaly for $B$ (for example by some genetic algorithm,...).
 
 It is much harder to obtain $q_M$, which is right now the only missing piece needed for solving the problem. 
 
-I want to define $q_M$ this way.
-Efficiency function $q_M$ will run discrete simulation.
-This simulation simulates elevators and population.
-Elevators obey $S$. Population obey $P$.
-If no specific $P$ is defined, simulation could simulate people according to some distribution (e.g. Poisson distribution, Uniform distribution,...).
+I want $q_M$ to run a discrete simulation. 
+
+## Discrete Simulation
+Efficiency function $q_M$ will run discrete event simulation using next-event progression paradigm.
+
+### State:
+State is $state = (E_{location}, E_{visit}, P_{location})$.
+Elevator's location of elevators $E_{location}: E \rightarrow F \cup (i,j), i,j \in F$, assigning each elevator either specific floor or pair of numbers, representing between what floors elevator is. Let $S_{states}$ be a set of all states. 
+
+What floors each $e \in E$ needs to visit, $E_{visit}: E \rightarrow P(F)$. Optionally, depending on $C$, $E_{visit}: E \rightarrow P(F) \times \mathbb{N}$, representing also how many people want to go to each floor. 
+
+Population's location $P_{location}: F \rightarrow \mathbb{N}$, representing either number of people or number of requests at each floor. What exactly depends on $C$.
+
+#### Step function:
+Step function is a mapping $step: S_{states} \rightarrow S_{states}$.
+
+### Global parameters:
+#### Clock:
+Let $t$ be a current time of simulation. At the start of simulation, let $t = t_0$, where $t_0 = 0$.
+Time $t$ can represent time in whatever measurement units are suitable for the system being modeled.
+Since this is discrete event simulation, using next-event progression paradigm, time doesn't progress continously, but instead progresses discretely.
+
+#### Population predictions:
+Population predictions changes over time, hence they are dependent only on time and not on system's behaviour. 
+
+### Events:
+For all $e \in E$:
+* plan $e$ 
+### Randomness:
+### Statistics:
+### Ending condition:
+
+### How it works:
+Simulation plans events on elevators and events on population. Events on elevators are planned according to strategy.
+Let $s_i = (E_{location_i}, E_{visit_i}, P_{location_i}))$ current state of simulation.
+Strategy 
+
+##########################################################################
+
+f no specific $P$ is defined, simulation could simulate people according to some distribution (e.g. Poisson distribution, Uniform distribution,...).
+
+Discrete events of the simulation are:
+
 
 TODO: Discrete events describe
 The discrete events
