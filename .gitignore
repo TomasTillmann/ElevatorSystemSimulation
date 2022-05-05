@@ -1,6 +1,9 @@
 # ignore bc template - want to use it only for reference
 /bc_template
 
+# ignore vs code config stuff
+/.vscode
+
 # ignore latex compilation files
 *.aux
 *.fdb_latexmk
@@ -8,3 +11,4 @@
 *.log
 *.out
 *.synctex.gz
+
