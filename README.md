@@ -79,37 +79,7 @@ I want $q_M$ to run a discrete simulation.
 ## Discrete Simulation
 Efficiency function $q_M$ will run discrete event simulation using next-event progression paradigm.
 
-### State:
-State is $state = (E_{location}, E_{visit}, P_{location})$.
-Elevator's location of elevators $E_{location}: E \rightarrow F \cup (i,j), i,j \in F$, assigning each elevator either specific floor or pair of numbers, representing between what floors elevator is. Let $S_{states}$ be a set of all states. 
 
-What floors each $e \in E$ needs to visit, $E_{visit}: E \rightarrow P(F)$. Optionally, depending on $C$, $E_{visit}: E \rightarrow P(F) \times \mathbb{N}$, representing also how many people want to go to each floor. 
-
-Population's location $P_{location}: F \rightarrow \mathbb{N}$, representing either number of people or number of requests at each floor. What exactly depends on $C$.
-
-#### Step function:
-Step function is a mapping $step: S_{states} \rightarrow S_{states}$.
-
-### Global parameters:
-#### Clock:
-Let $t$ be a current time of simulation. At the start of simulation, let $t = t_0$, where $t_0 = 0$.
-Time $t$ can represent time in whatever measurement units are suitable for the system being modeled.
-Since this is discrete event simulation, using next-event progression paradigm, time doesn't progress continously, but instead progresses discretely.
-
-#### Population predictions:
-Population predictions changes over time, hence they are dependent only on time and not on system's behaviour. 
-
-### Events:
-For all $e \in E$:
-* plan $e$ 
-### Randomness:
-### Statistics:
-### Ending condition:
-
-### How it works:
-Simulation plans events on elevators and events on population. Events on elevators are planned according to strategy.
-Let $s_i = (E_{location_i}, E_{visit_i}, P_{location_i}))$ current state of simulation.
-Strategy 
 
 ##########################################################################
 
