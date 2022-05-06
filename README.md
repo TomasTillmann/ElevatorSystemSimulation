@@ -6,8 +6,8 @@ Imagine we want to construct a building and we want to design an elevator system
 Imagine a building with an elevator system. How should the elevator system work to be the most efficient one? What is the best elevator system strategy for this concrete building?
 
 Before we dive into these questions, we need to start with what an elevator system actually is. 
-Elevator system consists of elevators, each having some parameters (speed, capacity, ...), actions (move up, move down, stay, open doors, ...)
-and strategy (SCAN, first comes first served, ...), that controls elevators. This strategy is what we would like to optimize. 
+Elevator system consists of elevators, each having some parameters (speed, capacity, ...) and possible actions (move up, move down, stay, open doors, ...).
+Elevator system is controlled by strategy (SCAN, first comes first served, ...). This strategy is what we would like to optimize. 
 
 Thus we want to find the best way how should an elevator system behave.
 Elevator system makes it's decisions based on these information:
@@ -22,7 +22,7 @@ Just having these information as input is sufficient for developing some more so
 **Current situation information**:
 
 * how many people each elevator has
-* how many people in elevator want to go in each floor
+* how many people in elevator want to go to each floor
 * how many people requesting for elevator is on each floor
 * how many people is in the building
 
@@ -39,7 +39,7 @@ Similiarly, for how likely a person would like to go from floor A to a different
 What information elevator system has depends on how sophisticated it is.
 Some elevator systems for example have the abilitiy to know how many people is in the building, each floor, or in each elevator, because elevator users have some sort of identification card with which they request the elevator.
 
-Some other systems have the ability to know how many people in elevator want to go in each floor, because when user calls for the elevator, he doesn't just press a button, but also configures on a display where would he like to go.
+Some other systems have the ability to know how many people in elevator want to go to each floor, because when user calls for the elevator, he doesn't just press a button, but also configures on a display where would he like to go.
 
 There is many different elevator systems with different information at their disposal. It is safe to say, that elevator systems with more available information have the biggest potential to be the most optimal, but we might not always have the financial needs for the best elevator systems. Sometimes, we would like to find the most optimal strategy for some not so sophisticated elevator systems.
 
@@ -64,10 +64,15 @@ So now we know what problem we want to solve. We want to find the best strategy 
 * find the most optimal strategy $s$ for given building $B$ against given metrics $M$
 
 ## My approach
-Let there be some efficiency function $q_M: q(s, B) \rightarrow [0,1]$, obeying given metrics $M$.
+Let there be some efficiency function $q_M: q_M(s, B) \rightarrow [0,1]$, obeying given metrics $M$.
 This efficiency function takes strategy $s$ and building $B$ and rates it by number from 0 to 1. The bigger the number, the more $s$ is optimal for elevator system $E$ in $B$.
 
-If we have $q_M$ and some set of strategies $S_{strategies}$, we can very easily find $$s_{optimal} \in S_{strategies}: q_M(S_{optimal},B) = max(\{q_M(s, B) | \forall s \in S_{strategies}\}$$ that is the most optimal.
+If we have $q_M$ and some set of strategies $S_{strategies}$, we can very easily find 
+
+$$
+s_{optimal} : q_M(s_{optimal},B) = max(\{q_M(s, B) | \forall s \in S_{strategies}\})
+$$
+that is the most optimal.
 
 Obtaining some $S_{strategies}$ isn't very difficult. It can be for example a set of some well-known scheduling algorithms, such as SCAN, First comes first served, priority scheduling, round robin scheduling, ...
 Set $S_{strategies}$ could also potentially contain some user defined algorithms or some algorithms developed specificaly for $B$ (for example by some genetic algorithm,...).
@@ -87,17 +92,19 @@ The simulation schedules events. Events are:
 4. Board people to elevator
 5. Spawn people to floors
 
-Each event takes some time. For example, time of moving an elevator to the floor above or beyond can be calculated from elevator's speed and height of rooms, it can also be an elevator's parameter ($\in e_P$) or perhaps most conviniently, it could be predifined before the start of the simulation.
+Each event takes some time. For example, time of moving an elevator to the floor above or beyond can be calculated from elevator's speed and height of rooms, it can also be an elevator's parameter ($\in e_P$).
 
-Same goes for boarding time, interval between spawning people etc ...
-Each event has some time for how long it will take. This time, after picking up the event from scheduler's queue is of course added to the total time $t$. Time $t$ represent total running time of the simulation.
+Boarding time can also be an elevator's parameter ($\in e_P$). Interval between spawning people and potentially some other could be set before the simulation start. 
+
+This time, after picking up the event from scheduler's queue is of course added to the total time $t$. Time $t$ represent total running time of the simulation.
 
 Each of these events is then scheduled by scheduler at the appropriately calculated time.
-What the next event is going to be is determined by some logic, depending on what event exactly is being scheduled. If the event regards elevators, next event is determined by current situation context and by the strategy. If the event regards enviroment, such as spawning people, the decision is based on $P$ and $t$.
+What the next scheduled event is going to be is determined by some logic, depending on what event exactly is being scheduled. If the event regards elevators, next event is determined by current situation context and by the strategy $s$. If the event regards enviroment, such as spawning people, the decision is based on $P$ and $t$.
 
-So what is being simulated is the enviroment (where people spawn, how many, where people want to go, ...) and elevators (where to move in each step of the simulation, boarding, ...). 
+So what is being simulated is the enviroment (where people spawn, how many, where people want to go, ...), this affects the current situation context, and elevators (where to move in each step of the simulation, boarding, ...) and this is what $s$ wants to optimize.
 
-Now we have to measure how well are elevators operating under control of given strategy, in order to measure how good the strategy is. What is being measured depends heavily on what the metrics are. Neverthless, during the simulation, we need to keep track of statistical data. This could be average waiting time so far, worst waiting time so far, etc ... 
+Now we have to measure how well are elevators operating under control of given strategy $s$, in order to measure how good the strategy is.
+What is beining measured is called statistics. What exactly statistics are depends on given metric $M$. 
 
 After the simulation is terminated (either if $t$ is too big or by some other condition), quality of the strategy will be based on collected statistics.
 
