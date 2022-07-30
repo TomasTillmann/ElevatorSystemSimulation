@@ -15,11 +15,16 @@ namespace Model {
         public ElevatorAction? CurrentAction { get; private set; }
         public MetersPerSecond TravelSpeed { get; private set; }
         public MetersPerSecond AccelerationDelaySpeed { get; private set; }
+        public DateTime WhenFinished { get; set; }
         public TimeSpan DepartingTime { get; private set; }
         public int Capacity { get; private set; }
         public ElevatorLocation Location { get; set; }
         public FloorLocation? MaxFloorLocation { get; set; }
         public FloorLocation? MinFloorLocation { get; set; }
+
+        public Elevator(ElevatorLocation location) {
+            Location = location;
+        }
 
         public void MoveUp() {
         }
@@ -29,6 +34,11 @@ namespace Model {
         }
 
         public void Idle() {
+        }
+
+        public void Depart() {
+            DepartOut();
+            DepartIn();
         }
 
         public void DepartIn() {

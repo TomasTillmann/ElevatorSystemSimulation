@@ -11,13 +11,15 @@ namespace Simulation {
         private TimeSpan _Time { get; set; }
         private int _DepartedPeopleCount { get; set; }
         private RequestGenerator? _RequestGenerator { get; set; }
-        private Building? _Building;
+        private Calendar _Calendar { get; set; }
 
-        protected override Action<List<Request>>? CurrentAlgorithm { get; set; } 
+        protected override Action<Event>? CurrentAlgorithm { get; set; } 
 
         public Statistics? Statistics { get; set; }
         public int RunCount { get; set; }
-        public override Building? Building {
+
+        private Building _Building;
+        public override Building Building {
             get {
                 return _Building;
             }
@@ -47,13 +49,11 @@ namespace Simulation {
                 _PeopleToDepart = value;
                 _DurationTime = null;
             }
-        } 
-
-        public Simulation() { }
+        }
 
         public Simulation(Building building) {
             Building = building;
-            _RequestGenerator = new RequestGenerator(Building);
+            _Calendar = new();
         }
 
 
@@ -100,7 +100,7 @@ namespace Simulation {
             }
 
 
-            CurrentAlgorithm(_RequestGenerator.GenerateRequests());
+            CurrentAlgorithm(_Calendar.GetEvent());
             ResetAfterStep();
         }
 
@@ -111,10 +111,40 @@ namespace Simulation {
         }
     }
 
+    public class Calendar {
+        private PriorityQueue<Event, DateTime> Events { get; set; } = new();
+        public Event GetEvent() {
+            return Events.Dequeue();
+        }
+
+        public void AddEvent(Event e) {
+            Events.Enqueue(e, e.WhenAvailable);
+        }
+    }
+
+    public class Event {
+        public DateTime WhenAvailable { get; set; }
+
+        private Elevator _Elevator;
+        public Elevator Elevator {
+            get {
+                return _Elevator;
+            }
+            set {
+                _Elevator = value;
+                WhenAvailable = value.WhenFinished;
+            }
+        }
+
+        public Event(Elevator elevator) {
+            _Elevator = elevator;
+        }
+    }
+
     public abstract class AlgorithmEnvironment {
         public virtual object? Resources { get; set; }
-        public abstract Building? Building { get; set; }
-        protected abstract Action<List<Request>>? CurrentAlgorithm { get; set; }
+        public abstract Building Building { get; set; }
+        protected abstract Action<Event>? CurrentAlgorithm { get; set; }
     }
 
     public struct Request {
