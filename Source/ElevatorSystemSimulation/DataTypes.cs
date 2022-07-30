@@ -12,15 +12,31 @@ namespace DataTypes {
         public MetersPerSecond(double value) {
             Value = value;
         }
+
+        public static Meters operator * (MetersPerSecond speed, TimeSpan time) {
+            return new Meters(speed.Value * time.Seconds);
+        }
+
+        public static Meters operator * (TimeSpan time, MetersPerSecond speed) {
+            return new Meters(speed.Value * time.Seconds);
+        }
     }
 
     public struct FloorLocation {
-        public double Id { get; }
-        public double Height { get; }
+        public int Id { get; }
 
-        public FloorLocation(double id, double height) {
+        public FloorLocation(int id) {
             Id = id;
-            Height = height;
+        }
+    }
+
+    public class ElevatorLocation {
+        public int Floor { get; set; }
+        public Meters MetersBetweenFloors { get; set; }
+
+        public ElevatorLocation(int floor, Meters metersBetweenFloors) {
+            Floor = floor;
+            MetersBetweenFloors = metersBetweenFloors;
         }
     }
 
@@ -29,6 +45,10 @@ namespace DataTypes {
         public Meters(double value) {
             Value = value;
         }
+
+        public static Meters operator + (Meters m1, Meters m2) {
+            return new Meters(m1.Value + m2.Value);
+        }
     }
 
     public class PopulationDistribution {
@@ -36,5 +56,13 @@ namespace DataTypes {
         public DateTime ToDateTime { get; set; }
 
         // TODO add actual distribution representation
+    }
+
+    public enum ElevatorAction {
+        MoveUp,
+        MoveDown,
+        Idle,
+        DepartIn,
+        DepartOut,
     }
 }

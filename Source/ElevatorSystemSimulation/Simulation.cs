@@ -8,17 +8,15 @@ using DataTypes;
 
 namespace Simulation {
     public class Simulation : AlgorithmEnvironment {
-
         private TimeSpan _Time { get; set; }
         private int _DepartedPeopleCount { get; set; }
         private RequestGenerator? _RequestGenerator { get; set; }
         private Building? _Building;
-        private TimeSpan? _DurationTime;
-        private int? _PeopleToDepart;
 
         protected override Action<List<Request>>? CurrentAlgorithm { get; set; } 
 
-
+        public Statistics? Statistics { get; set; }
+        public int RunCount { get; set; }
         public override Building? Building {
             get {
                 return _Building;
@@ -28,8 +26,8 @@ namespace Simulation {
                 _RequestGenerator = new RequestGenerator(Building);
             }
         }
-        public Statistics? Statistics { get; set; }
-        public int RunCount { get; set; }
+
+        private TimeSpan? _DurationTime;
         public TimeSpan? DurationTime { 
             get { 
                 return _DurationTime; 
@@ -39,6 +37,8 @@ namespace Simulation {
                 _PeopleToDepart = null;
             } 
         }
+
+        private int? _PeopleToDepart;
         public int? PeopleToDepart {
             get {
                 return _PeopleToDepart;
@@ -67,20 +67,24 @@ namespace Simulation {
 
         public void Run() {
             if(Building == null) {
-                throw new ArgumentNullException("Cannot run simulation on building. Building wasn't set. It is null.");
+                throw new InvalidOperationException("Cannot run simulation on building. Building wasn't set. It is null.");
             }
 
             Building.IsFreezed = true;
 
-            if(DurationTime == null) {
+            if(PeopleToDepart != null) {
                 while(_DepartedPeopleCount < PeopleToDepart) {
                     _InternalRun();
                 }
             }
-            else {
+            else if(DurationTime != null) {
                 while(_Time < DurationTime) {
                     _InternalRun();
                 }
+            }
+            
+            else {
+                throw new InvalidOperationException("Neither DurationTime or PeopleToDepart was set! At least one must be.");
             }
 
             Building.IsFreezed = false;
@@ -104,8 +108,6 @@ namespace Simulation {
             if(Building == null) {
                 throw new ArgumentNullException("Cannot run simulation on building. Building wasn't set. It is null.");
             }
-
-            Building.ElevatorSystem.StepDuration = null;
         }
     }
 

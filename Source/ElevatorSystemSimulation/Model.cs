@@ -8,45 +8,38 @@ using DataTypes;
 
 namespace Model {
     public class Elevator {
-        private ElevatorSystem? ElevatorSystem { get; set; }
+        internal Building? Building { get; set; }
 
 
-        public MetersPerSecond TravelSpeed { get; set; }
-        public MetersPerSecond AccelerationDelaySpeed { get; set; }
-        public TimeSpan DepartingTime { get; set; }
-        public int Capacity { get; set; }
-        public FloorLocation Location { get; set; }
+        public ElevatorAction? LastAction { get; private set; }
+        public ElevatorAction? CurrentAction { get; private set; }
+        public MetersPerSecond TravelSpeed { get; private set; }
+        public MetersPerSecond AccelerationDelaySpeed { get; private set; }
+        public TimeSpan DepartingTime { get; private set; }
+        public int Capacity { get; private set; }
+        public ElevatorLocation Location { get; set; }
         public FloorLocation? MaxFloorLocation { get; set; }
         public FloorLocation? MinFloorLocation { get; set; }
 
         public void MoveUp() {
-            ElevatorSystem?.FindStepDuration();
-
-
         }
 
+
         public void MoveDown() { 
-            ElevatorSystem?.FindStepDuration();
         }
 
         public void Idle() {
-            ElevatorSystem?.FindStepDuration();
-
         }
 
         public void DepartIn() {
-            ElevatorSystem?.FindStepDuration();
-
         }
 
         public void DepartOut() {
-            ElevatorSystem?.FindStepDuration();
-
         }
 
         public override bool Equals(object? obj) {
             return obj is Elevator elevator &&
-                   EqualityComparer<ElevatorSystem?>.Default.Equals(ElevatorSystem, elevator.ElevatorSystem) &&
+                   EqualityComparer<ElevatorSystem?>.Default.Equals(Building?.ElevatorSystem, elevator.Building?.ElevatorSystem) &&
                    EqualityComparer<MetersPerSecond>.Default.Equals(TravelSpeed, elevator.TravelSpeed) &&
                    EqualityComparer<MetersPerSecond>.Default.Equals(AccelerationDelaySpeed, elevator.AccelerationDelaySpeed) &&
                    DepartingTime.Equals(elevator.DepartingTime) &&
@@ -54,7 +47,7 @@ namespace Model {
         }
 
         public override int GetHashCode() {
-            return HashCode.Combine(ElevatorSystem, TravelSpeed, AccelerationDelaySpeed, DepartingTime, Capacity);
+            return HashCode.Combine(TravelSpeed, AccelerationDelaySpeed, DepartingTime, Capacity);
         }
     }
 
@@ -66,6 +59,8 @@ namespace Model {
 
     public class Population {
         public List<PopulationDistribution> Distribution { get; set; }
+        public int TotalPeopleCount { get; set; }
+        public int AveragePeopleCount { get; set; }
 
 
         public Population(List<PopulationDistribution> distribution) {
@@ -74,39 +69,75 @@ namespace Model {
     }
 
     public class Building {
-        public bool IsFreezed { get; set; }
-        public List<Floor> Floors { get; set; }
-        public ElevatorSystem ElevatorSystem { get; set; }
-        public List<Population> Population { get; set; }
+        private Dictionary<int, Floor> _Floors { get; set; } = new();
 
-        public Building(bool isFreezed, List<Floor> floors, ElevatorSystem elevatorSystem, List<Population> population) {
+
+        public bool IsFreezed { get; set; }
+        public List<Floor> Floors { get; set; } 
+        public ElevatorSystem ElevatorSystem { get; set; }
+        public Population Population { get; set; }
+
+        public Building(bool isFreezed, List<Floor> floors, ElevatorSystem elevatorSystem, Population population) {
             IsFreezed = isFreezed;
-            Floors = floors;
             ElevatorSystem = elevatorSystem;
             Population = population;
+            Floors = floors;
+
+            foreach(var floor in floors) {
+                _Floors.Add((int)floor.Location.Id, floor);
+            }
+        }
+
+        public Floor? GetFloor(ElevatorLocation Location) {
+            if (_Floors.ContainsKey(Location.Floor)) {
+                return _Floors[Location.Floor];
+            }
+
+            return null;
+        }
+
+        public Floor? GetUpperFloor(ElevatorLocation location) {
+            if (_Floors.ContainsKey(location.Floor + 1)) {
+                return _Floors[location.Floor + 1];
+            }
+
+            return null;
+        }
+
+        public Floor? GetLowerFloor(ElevatorLocation location) {
+            if (_Floors.ContainsKey(location.Floor - 1)) {
+                return _Floors[location.Floor - 1];
+            }
+
+            return null;
         }
     }
 
     public class Statistics {
-
+        public int AverageWaitingTime { get; set; }
+        public int LongestWaitingTime { get; set; }
+        public int PeopleDepartedCount { get; set; }
+        public int AverageElevatorTravelInFloors { get; set; }
+        private List<int> _AllWaitingTimes = new();
+        public List<int> AllWaitingTimes {
+            get {
+                _AllWaitingTimes.Sort();
+                return _AllWaitingTimes;
+            }
+        } 
     }
 
     public class ElevatorSystem {
         public List<Elevator> Elevators { get; set; }
-        public TimeSpan? StepDuration { get; set; }
+        private Building _Building { get; set; }
 
-        public ElevatorSystem(List<Elevator> elevators, TimeSpan? stepDuration) {
+        public ElevatorSystem(List<Elevator> elevators, Building building) {
             Elevators = elevators;
-            StepDuration = stepDuration;
-        }
+            _Building = building;
 
-
-        public void FindStepDuration() {
-            if(StepDuration == null) {
-                // calculation
+            foreach (var elevator in elevators) {
+                elevator.Building = _Building;
             }
-
-            return;
         }
     }
 }
