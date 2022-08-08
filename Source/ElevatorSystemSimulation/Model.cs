@@ -4,47 +4,49 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DataTypes;
+using Interfaces;
 
 
 namespace Model {
-    public class Elevator {
+    public class Elevator : IReadOnlyElevator, IElevator {
         internal Building? Building { get; set; }
+        internal Simulation.Simulation? Simulation { get; set; }
 
 
-        public ElevatorAction? LastAction { get; private set; }
-        public ElevatorAction? CurrentAction { get; private set; }
         public MetersPerSecond TravelSpeed { get; private set; }
         public MetersPerSecond AccelerationDelaySpeed { get; private set; }
-        public DateTime WhenFinished { get; set; }
         public TimeSpan DepartingTime { get; private set; }
         public int Capacity { get; private set; }
+        public FloorLocation? MaxFloorLocation { get; private set; }
+        public FloorLocation? MinFloorLocation { get; private set; }
+        public DateTime WhenAvailable { get; set; }
         public ElevatorLocation Location { get; set; }
-        public FloorLocation? MaxFloorLocation { get; set; }
-        public FloorLocation? MinFloorLocation { get; set; }
 
         public Elevator(ElevatorLocation location) {
             Location = location;
         }
 
         public void MoveUp() {
+            // calculate WhenAvailable
+            PlanThisElevator();
         }
-
-
         public void MoveDown() { 
+            PlanThisElevator();
         }
 
         public void Idle() {
+            PlanThisElevator();
         }
 
         public void Depart() {
-            DepartOut();
-            DepartIn();
+            PlanThisElevator();
         }
 
-        public void DepartIn() {
-        }
-
-        public void DepartOut() {
+        private void PlanThisElevator() {
+            if(Simulation == null) {
+                throw new InvalidOperationException("Internal Error - Simulation has to be set on each elevator");
+            }
+            Simulation.PlanElevator(this);
         }
 
         public override bool Equals(object? obj) {
@@ -94,7 +96,7 @@ namespace Model {
             Floors = floors;
 
             foreach(var floor in floors) {
-                _Floors.Add((int)floor.Location.Id, floor);
+                _Floors.Add((int)floor.Location.Floor, floor);
             }
         }
 

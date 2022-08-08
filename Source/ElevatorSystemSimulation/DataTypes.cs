@@ -23,10 +23,10 @@ namespace DataTypes {
     }
 
     public struct FloorLocation {
-        public int Id { get; }
+        public int Floor { get; }
 
-        public FloorLocation(int id) {
-            Id = id;
+        public FloorLocation(int floor) {
+            Floor = floor;
         }
     }
 
@@ -49,6 +49,8 @@ namespace DataTypes {
         public static Meters operator + (Meters m1, Meters m2) {
             return new Meters(m1.Value + m2.Value);
         }
+
+        public static implicit operator Meters(int value) => new Meters(value);
     }
 
     public class PopulationDistribution {
@@ -62,7 +64,6 @@ namespace DataTypes {
         MoveUp,
         MoveDown,
         Idle,
-        DepartIn,
-        DepartOut,
+        Depart,
     }
 }

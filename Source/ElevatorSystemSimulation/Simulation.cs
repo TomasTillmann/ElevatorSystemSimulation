@@ -5,21 +5,29 @@ using System.Text;
 using System.Threading.Tasks;
 using Model;
 using DataTypes;
+using Interfaces;
 
 namespace Simulation {
+
+    public interface AlgorithmEnvironment {
+        public object? Resources { get; set; }
+        public Building Building { get; set; }
+    }
+
     public class Simulation : AlgorithmEnvironment {
         private TimeSpan _Time { get; set; }
         private int _DepartedPeopleCount { get; set; }
-        private RequestGenerator? _RequestGenerator { get; set; }
+        private RequestGenerator _RequestGenerator { get; set; }
         private Calendar _Calendar { get; set; }
+        private Action<Event>? CurrentAlgorithm { get; set; } 
 
-        protected override Action<Event>? CurrentAlgorithm { get; set; } 
 
+        public object? Resources { get; set; }
         public Statistics? Statistics { get; set; }
         public int RunCount { get; set; }
 
         private Building _Building;
-        public override Building Building {
+        public Building Building {
             get {
                 return _Building;
             }
@@ -51,26 +59,29 @@ namespace Simulation {
             }
         }
 
+        #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public Simulation(Building building) {
+            #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
             Building = building;
             _Calendar = new();
         }
 
 
         public void SetAlgorithmsToCompare(List<Action> algorithms) {
-
+            if(algorithms == null || algorithms.Count == 0) {
+                throw new InvalidOperationException("There needs to be at least one algorithm provided.");
+            }
         }
 
         public void SetRequestsToGenerate(List<Request> requests) {
-
+            if(requests == null || requests.Count == 0) {
+                throw new InvalidOperationException("There needs to be at least one request provided.");
+            }
         }
 
         public void Run() {
-            if(Building == null) {
-                throw new InvalidOperationException("Cannot run simulation on building. Building wasn't set. It is null.");
-            }
-
             Building.IsFreezed = true;
+            //TODO: feed calendar with some initial events
 
             if(PeopleToDepart != null) {
                 while(_DepartedPeopleCount < PeopleToDepart) {
@@ -90,29 +101,35 @@ namespace Simulation {
             Building.IsFreezed = false;
         }
 
+        internal void PlanElevator(Elevator elevator) {
+            Event e = new(elevator);
+            _Calendar.AddEvent(e);
+        }
+
         private void _InternalRun() {
             if(CurrentAlgorithm == null) {
                 throw new ArgumentNullException("Cannot run simulation. There were no algorithms set!");
             }
 
-            if(_RequestGenerator == null) {
-                throw new InvalidOperationException("Internal Request generator isn't set, and it should be.");
-            }
-
-
-            CurrentAlgorithm(_Calendar.GetEvent());
-            ResetAfterStep();
+            Event e = _Calendar.GetEvent();
+            e.NewRequests = _RequestGenerator.GenerateRequests();
+            CurrentAlgorithm(e);
+            _ResetAfterStep();
         }
 
-        private void ResetAfterStep() {
+        private void _ResetAfterStep() {
             if(Building == null) {
                 throw new ArgumentNullException("Cannot run simulation on building. Building wasn't set. It is null.");
             }
         }
     }
 
-    public class Calendar {
+    internal class Calendar {
         private PriorityQueue<Event, DateTime> Events { get; set; } = new();
+
+        public Calendar() {
+            //Events.Comparer = // from minimal to maximum TODO:
+        }
         public Event GetEvent() {
             return Events.Dequeue();
         }
@@ -120,31 +137,30 @@ namespace Simulation {
         public void AddEvent(Event e) {
             Events.Enqueue(e, e.WhenAvailable);
         }
+
+        public void Clear() {
+            Events.Clear();
+        }
     }
 
     public class Event {
         public DateTime WhenAvailable { get; set; }
+        public List<Request> NewRequests { get; set; } = new();
 
-        private Elevator _Elevator;
-        public Elevator Elevator {
+        private IReadOnlyElevator _Elevator;
+        public IReadOnlyElevator Elevator {
             get {
                 return _Elevator;
             }
             set {
                 _Elevator = value;
-                WhenAvailable = value.WhenFinished;
+                WhenAvailable = value.WhenAvailable;
             }
         }
 
-        public Event(Elevator elevator) {
+        public Event(IReadOnlyElevator elevator) {
             _Elevator = elevator;
         }
-    }
-
-    public abstract class AlgorithmEnvironment {
-        public virtual object? Resources { get; set; }
-        public abstract Building Building { get; set; }
-        protected abstract Action<Event>? CurrentAlgorithm { get; set; }
     }
 
     public struct Request {
@@ -163,7 +179,7 @@ namespace Simulation {
         }
 
         public List<Request> GenerateRequests() {
-            throw new NotImplementedException();
+            return new();
         }
     }
 }
