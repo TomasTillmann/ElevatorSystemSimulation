@@ -8,10 +8,8 @@ using Interfaces;
 
 
 namespace Model {
-    public class Elevator : IReadOnlyElevator, IElevator {
-        internal Building? Building { get; set; }
-        internal Simulation.Simulation? Simulation { get; set; }
-
+    public class Elevator : IElevator {
+        private IPlanner _Planner { get; set; }
 
         public MetersPerSecond TravelSpeed { get; private set; }
         public MetersPerSecond AccelerationDelaySpeed { get; private set; }
@@ -19,47 +17,36 @@ namespace Model {
         public int Capacity { get; private set; }
         public FloorLocation? MaxFloorLocation { get; private set; }
         public FloorLocation? MinFloorLocation { get; private set; }
-        public DateTime WhenAvailable { get; set; }
         public ElevatorLocation Location { get; set; }
 
-        public Elevator(ElevatorLocation location) {
+        public Elevator(IPlanner planner,
+            MetersPerSecond travelSpeed,
+            MetersPerSecond accelerationDelaySpeed,
+            TimeSpan departingTime,
+            int capacity,
+            FloorLocation? maxFloorLocation,
+            FloorLocation? minFloorLocation,
+            ElevatorLocation location) {
+
+            _Planner = planner;
+            TravelSpeed = travelSpeed;
+            AccelerationDelaySpeed = accelerationDelaySpeed;
+            DepartingTime = departingTime;
+            Capacity = capacity;
+            MaxFloorLocation = maxFloorLocation;
+            MinFloorLocation = minFloorLocation;
             Location = location;
         }
 
-        public void MoveUp() {
-            // calculate WhenAvailable
-            PlanThisElevator();
-        }
-        public void MoveDown() { 
-            PlanThisElevator();
+        public void MoveTo(int floor) {
+            // here Planner plan elevator is called
         }
 
         public void Idle() {
-            PlanThisElevator();
         }
 
-        public void Depart() {
-            PlanThisElevator();
-        }
-
-        private void PlanThisElevator() {
-            if(Simulation == null) {
-                throw new InvalidOperationException("Internal Error - Simulation has to be set on each elevator");
-            }
-            Simulation.PlanElevator(this);
-        }
-
-        public override bool Equals(object? obj) {
-            return obj is Elevator elevator &&
-                   EqualityComparer<ElevatorSystem?>.Default.Equals(Building?.ElevatorSystem, elevator.Building?.ElevatorSystem) &&
-                   EqualityComparer<MetersPerSecond>.Default.Equals(TravelSpeed, elevator.TravelSpeed) &&
-                   EqualityComparer<MetersPerSecond>.Default.Equals(AccelerationDelaySpeed, elevator.AccelerationDelaySpeed) &&
-                   DepartingTime.Equals(elevator.DepartingTime) &&
-                   Capacity == elevator.Capacity;
-        }
-
-        public override int GetHashCode() {
-            return HashCode.Combine(TravelSpeed, AccelerationDelaySpeed, DepartingTime, Capacity);
+        public void Load() {
+            // here Planner plan elevator is called
         }
     }
 
@@ -84,13 +71,11 @@ namespace Model {
         private Dictionary<int, Floor> _Floors { get; set; } = new();
 
 
-        public bool IsFreezed { get; set; }
         public List<Floor> Floors { get; set; } 
         public ElevatorSystem ElevatorSystem { get; set; }
         public Population Population { get; set; }
 
         public Building(bool isFreezed, List<Floor> floors, ElevatorSystem elevatorSystem, Population population) {
-            IsFreezed = isFreezed;
             ElevatorSystem = elevatorSystem;
             Population = population;
             Floors = floors;
@@ -140,16 +125,10 @@ namespace Model {
     }
 
     public class ElevatorSystem {
-        public List<Elevator> Elevators { get; set; }
-        private Building _Building { get; set; }
+        public List<IElevator> Elevators { get; set; }
 
-        public ElevatorSystem(List<Elevator> elevators, Building building) {
+        public ElevatorSystem(List<IElevator> elevators) {
             Elevators = elevators;
-            _Building = building;
-
-            foreach (var elevator in elevators) {
-                elevator.Building = _Building;
-            }
         }
     }
 }
