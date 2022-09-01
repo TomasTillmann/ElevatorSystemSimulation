@@ -6,51 +6,66 @@ using System.Threading.Tasks;
 using Model;
 
 namespace DataTypes {
-    public struct MetersPerSecond {
-        public double Value { get; }
+    public struct CentimetersPerSecond {
+        public int Value { get; }
 
-        public MetersPerSecond(double value) {
+        public CentimetersPerSecond(int value) {
             Value = value;
         }
 
-        public static Meters operator * (MetersPerSecond speed, TimeSpan time) {
-            return new Meters(speed.Value * time.Seconds);
-        }
-
-        public static Meters operator * (TimeSpan time, MetersPerSecond speed) {
-            return new Meters(speed.Value * time.Seconds);
-        }
+        #region Operators
+        public static Centimeters operator * (CentimetersPerSecond speed, TimeSpan time) => new(speed.Value * time.Seconds);
+        public static Centimeters operator * (TimeSpan time, CentimetersPerSecond speed) => new(speed.Value * time.Seconds);
+        #endregion
     }
 
-    public struct FloorLocation {
-        public int Floor { get; }
-
-        public FloorLocation(int floor) {
-            Floor = floor;
-        }
-    }
-
-    public class ElevatorLocation {
-        public int Floor { get; set; }
-        public Meters MetersBetweenFloors { get; set; }
-
-        public ElevatorLocation(int floor, Meters metersBetweenFloors) {
-            Floor = floor;
-            MetersBetweenFloors = metersBetweenFloors;
-        }
-    }
-
-    public struct Meters {
-        public double Value { get; }
-        public Meters(double value) {
+    public struct Centimeters {
+        public int Value { get; }
+        public Centimeters(int value) {
             Value = value;
         }
 
-        public static Meters operator + (Meters m1, Meters m2) {
-            return new Meters(m1.Value + m2.Value);
+        #region Operators
+        public static Centimeters operator +(Centimeters m1, Centimeters m2) => new(m1.Value + m2.Value);
+        public static Centimeters operator - (Centimeters m1, Centimeters m2) => new(m1.Value - m2.Value);
+        public static Seconds operator / (Centimeters distance, CentimetersPerSecond velocity) => new(distance.Value / velocity.Value);
+
+        public static implicit operator Centimeters(int value) => new Centimeters(value);
+        #endregion
+    }
+
+    public struct Seconds {
+        public int Value { get; }
+
+        public Seconds(int value) {
+            Value = value;
         }
 
-        public static implicit operator Meters(int value) => new Meters(value);
+        #region Operators
+
+        public static Seconds operator + (Seconds s1, Seconds s2) => new (s1.Value + s2.Value);
+        public static Seconds operator - (Seconds s1, Seconds s2) => new (s1.Value - s2.Value);
+        public static bool operator < (Seconds s1, Seconds s2) => s1.Value < s2.Value;
+        public static bool operator > (Seconds s1, Seconds s2) => s1.Value > s2.Value;
+        public static bool operator == (Seconds s1, Seconds s2) => s1.Value == s2.Value;
+        public static bool operator != (Seconds s1, Seconds s2) => s1.Value != s2.Value;
+
+        #endregion
+
+        #region EqualsAndGetHashCode
+
+        public override bool Equals(object? o) {
+            if(o is Seconds seconds) {
+                return Equals((Seconds)o);
+            }
+
+            return false;
+        }
+        public override int GetHashCode() {
+            return Value.GetHashCode();
+        }
+
+        #endregion
     }
 
     public class PopulationDistribution {

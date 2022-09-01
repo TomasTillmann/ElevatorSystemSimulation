@@ -7,102 +7,43 @@ using Model;
 using DataTypes;
 using Interfaces;
 
-namespace Simulation {
-    public class Simulation : IPlanner {
-        private int _Time { get; set; }
-        private int _DepartedPeopleCount { get; set; }
-        private Generator _Generator { get; set; }
+namespace MainLogic {
+    public class Simulation {
         private Calendar _Calendar { get; set; } = new();
-        private IElevatorLogic CurrentLogic { get; set; } 
+        private Statistics _Statistics { get; set; } = new();
 
+        public Seconds CurrentTime { get; private set; }
+        public IElevatorLogic CurrentLogic { get; }  
+        public Building Building { get; }
+        public Seconds TotalTime { get; }
+        public Generator Generator { get; }
 
-        public Statistics Statistics { get; set; } = new();
-
-        private Building _Building;
-        public Building Building {
-            get {
-                return _Building;
-            }
-            set {
-                _Building = value;
-                _Generator = new Generator(Building);
-            }
-        }
-
-        private int? _TotalTime;
-        public int? TotalTime { 
-            get { 
-                return _TotalTime; 
-            } 
-            set {
-                _TotalTime = value;
-                _TotalPeopleToDepart = null;
-            } 
-        }
-
-        private int? _TotalPeopleToDepart;
-        public int? TotalPeopleToDepart {
-            get {
-                return _TotalPeopleToDepart;
-            }
-            set {
-                _TotalPeopleToDepart = value;
-                _TotalTime = null;
-            }
-        }
-
-        #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public Simulation(Building building) {
-            #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        public Simulation(IElevatorLogic currentLogic, Building building, Seconds totalTime, Generator generator) {
+            CurrentLogic = currentLogic;
             Building = building;
+            TotalTime = totalTime;
+            Generator = generator;
         }
 
-        public void SetElevatorLogicsToCompare(List<IElevatorLogic> elevatorLogics) {
-            if(elevatorLogics == null || elevatorLogics.Count == 0) {
-                throw new InvalidOperationException("There needs to be at least one algorithm provided.");
-            }
+        public void PlanElevator(IElevator elevator, Seconds duration, Centimeters location) {
+            _Calendar.AddEvent(new ElevatorEvent(elevator, CurrentTime + duration, location));
         }
 
-        public void SetRequestsToGenerate(List<IRequest> requests) {
-            if(requests == null || requests.Count == 0) {
-                throw new InvalidOperationException("There needs to be at least one request provided.");
-            }
-        }
-
-        public void PlanElevator(IElevator elevator, int plannedTime) {
-            IEvent e = new ElevatorAvailableEvent(elevator, plannedTime);
-            _Calendar.AddEvent(e);
-        }
-
-        public void UnplanElevator(IElevator elevator) {
+        private void UnplanElevator(IElevator elevator) {
 
         }
 
         public void Run() {
-            foreach(NewRequestEvent request in _Generator.GenerateNewRequestEvents()) {
+            foreach(NewRequestEvent request in Generator.GenerateNewRequestEvents()) {
                 _Calendar.AddEvent(request);
             }
 
-            if(CurrentLogic == null) {
-                throw new ArgumentNullException("Cannot run simulation. There were no algorithms set!");
-            }
-
-            if(TotalPeopleToDepart != null) {
-                while(_DepartedPeopleCount < TotalPeopleToDepart) {
-                    _InternalRun();
-                }
-            }
-            else if(TotalTime != null) {
-                while(_Time < TotalTime) {
-                    _InternalRun();
-                }
-            }
-            else {
-                throw new InvalidOperationException("Neither DurationTime or PeopleToDepart was set! At least one must be.");
+            while(CurrentTime < TotalTime) {
+                Step();
             }
         }
 
-        private void _InternalRun() {
+        private void Step() {
             CurrentLogic.Step(_Calendar.GetEvent());
             _ResetAfterStep();
         }
@@ -112,12 +53,44 @@ namespace Simulation {
         }
     }
 
+    public struct ElevatorEvent : IEvent {
+        public Seconds PlannedTime { get; }
+        public IElevator Elevator { get; }
+        public Centimeters Location { get; }
+
+        public ElevatorEvent(IElevator elevator, Seconds plannedTime, Centimeters location) {
+            Elevator = elevator;
+            PlannedTime = plannedTime;
+            Location = location;
+        }
+    }
+
+    public struct NewRequestEvent : IEvent {
+        public Seconds PlannedTime { get; }
+        public IRequest Request { get; }
+
+        public NewRequestEvent(IRequest request, Seconds plannedTime) {
+            PlannedTime = plannedTime;
+            Request = request;
+        }
+    }
+
+    public struct Request : IRequest {
+        public Floor Floor { get; set; }
+        public int ProbabilityToGenerate { get; set; }
+        public int? NumberOfPersons { get; set; }
+        public Floor? ToFloor { get; set; }
+        public int? Priority { get; set; }
+        public List<int>? AllowedElevators { get; set; }
+    }
+
     internal class Calendar {
-        private PriorityQueue<IEvent, int> Events { get; set; } = new();
+        private PriorityQueue<IEvent, Seconds> Events { get; }
 
         public Calendar() {
-            //Events.Comparer = // from minimal to maximum TODO:
+            Events = new PriorityQueue<IEvent, Seconds>(new TimeComparer());
         }
+
         public IEvent GetEvent() {
             return Events.Dequeue();
         }
@@ -129,38 +102,15 @@ namespace Simulation {
         public void Clear() {
             Events.Clear();
         }
-    }
 
-    public struct ElevatorAvailableEvent : IEvent {
-        public int PlannedTime { get; }
-        public IElevator Elevator { get; }
-
-        public ElevatorAvailableEvent(IElevator elevator, int plannedTime) {
-            Elevator = elevator;
-            PlannedTime = plannedTime;
+        private class TimeComparer : Comparer<Seconds> {
+            public override int Compare(Seconds x, Seconds y) {
+                return x.Value.CompareTo(y.Value);
+            }
         }
     }
 
-    public struct NewRequestEvent : IEvent {
-        public int PlannedTime { get; }
-        public IRequest Request { get; }
-
-        public NewRequestEvent(IRequest request, int plannedTime) {
-            PlannedTime = plannedTime;
-            Request = request;
-        }
-    }
-
-    public struct Request : IRequest {
-        public FloorLocation FloorLocation { get; set; }
-        public int ProbabilityToGenerate { get; set; }
-        public int? NumberOfPersons { get; set; }
-        public FloorLocation? ToFloorLocation { get; set; }
-        public int? Priority { get; set; }
-        public List<int>? AllowedElevators { get; set; }
-    }
-
-    internal class Generator {
+    public class Generator {
         private Building _Building { get; set; }
         public Generator(Building building) {
             _Building = building;

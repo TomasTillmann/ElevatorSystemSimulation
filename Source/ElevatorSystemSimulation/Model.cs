@@ -5,58 +5,87 @@ using System.Text;
 using System.Threading.Tasks;
 using DataTypes;
 using Interfaces;
-
+using MainLogic;
+using Extensions;
 
 namespace Model {
     public class Elevator : IElevator {
-        private IPlanner _Planner { get; set; }
+        private Simulation _Simulation { get; }
 
-        public MetersPerSecond TravelSpeed { get; private set; }
-        public MetersPerSecond AccelerationDelaySpeed { get; private set; }
-        public TimeSpan DepartingTime { get; private set; }
-        public int Capacity { get; private set; }
-        public FloorLocation? MaxFloorLocation { get; private set; }
-        public FloorLocation? MinFloorLocation { get; private set; }
-        public ElevatorLocation Location { get; set; }
 
-        public Elevator(IPlanner planner,
-            MetersPerSecond travelSpeed,
-            MetersPerSecond accelerationDelaySpeed,
-            TimeSpan departingTime,
+        public CentimetersPerSecond TravelSpeed { get; }
+        public CentimetersPerSecond AccelerationDelaySpeed { get; }
+        public Seconds DepartingTime { get; }
+        public int Capacity { get; }
+        public Floor? MaxFloorLocation { get; }
+        public Floor? MinFloorLocation { get; }
+        public Centimeters Location { get; set; }
+        public int Direction { get; set; }
+
+
+        public Elevator(
+            CentimetersPerSecond travelSpeed,
+            CentimetersPerSecond acceleratingTravelSpeed,
+            Seconds departingTime,
             int capacity,
-            FloorLocation? maxFloorLocation,
-            FloorLocation? minFloorLocation,
-            ElevatorLocation location) {
+            Floor? maxFloorLocation,
+            Floor? minFloorLocation,
+            Centimeters location,
+            Simulation simulation) {
 
-            _Planner = planner;
             TravelSpeed = travelSpeed;
-            AccelerationDelaySpeed = accelerationDelaySpeed;
+            AccelerationDelaySpeed = acceleratingTravelSpeed;
             DepartingTime = departingTime;
             Capacity = capacity;
             MaxFloorLocation = maxFloorLocation;
             MinFloorLocation = minFloorLocation;
             Location = location;
+            _Simulation = simulation;
         }
 
-        public void MoveTo(int floor) {
-            // here Planner plan elevator is called
+        public void MoveTo(Floor floor) {
+            Direction = GetDirection(floor.Location);
+            _Simulation.PlanElevator(this, GetDistance(floor.Location) / TravelSpeed, floor.Location);
         }
 
         public void Idle() {
+            _Simulation.PlanElevator(this, 0.ToSeconds(), Location);
         }
 
         public void Load() {
-            // here Planner plan elevator is called
+            _Simulation.PlanElevator(this, DepartingTime, Location);
+        }
+
+        private Centimeters GetDistance(Centimeters floorLocation) {
+            Centimeters distance = floorLocation - Location;
+            return distance.Value > 0 ?
+                distance :
+                new(-1 * distance.Value);
+        }
+
+        private int GetDirection(Centimeters floorLocation) {
+            return (floorLocation - Location).Value > 0 ?
+                1 :
+                -1;
         }
     }
 
-    public class Floor {
-        public string? FloorName { get; set; }
-        public FloorLocation Location { get; set; }
-        public Meters Height { get; set; }
+    public class Floor : IFloor {
+        public int FloorId { get; }
+        // Location represents ground of the floor, not ceiling
+        public Centimeters Location { get; }
+        public Centimeters Height { get; }
+        public string? Name { get; }
+
+        public Floor(int floorId, Centimeters location, Centimeters height, string? name = null) {
+            FloorId = floorId;
+            Location = location;
+            Height = height;
+            Name = name;
+        }
     }
 
-    public class Population {
+    public class Population : IPopulation {
         public List<PopulationDistribution> Distribution { get; set; }
         public int TotalPeopleCount { get; set; }
         public int AveragePeopleCount { get; set; }
@@ -67,46 +96,16 @@ namespace Model {
         }
     }
 
-    public class Building {
-        private Dictionary<int, Floor> _Floors { get; set; } = new();
+    public class Building : IBuilding {
+        public List<IFloor> Floors { get; set; } 
+        public IElevatorSystem ElevatorSystem { get; set; }
+        public IPopulation Population { get; set; }
 
-
-        public List<Floor> Floors { get; set; } 
-        public ElevatorSystem ElevatorSystem { get; set; }
-        public Population Population { get; set; }
-
-        public Building(bool isFreezed, List<Floor> floors, ElevatorSystem elevatorSystem, Population population) {
+        public Building(bool isFreezed, List<IFloor> floors, ElevatorSystem elevatorSystem, Population population) {
             ElevatorSystem = elevatorSystem;
             Population = population;
             Floors = floors;
 
-            foreach(var floor in floors) {
-                _Floors.Add((int)floor.Location.Floor, floor);
-            }
-        }
-
-        public Floor? GetFloor(ElevatorLocation Location) {
-            if (_Floors.ContainsKey(Location.Floor)) {
-                return _Floors[Location.Floor];
-            }
-
-            return null;
-        }
-
-        public Floor? GetUpperFloor(ElevatorLocation location) {
-            if (_Floors.ContainsKey(location.Floor + 1)) {
-                return _Floors[location.Floor + 1];
-            }
-
-            return null;
-        }
-
-        public Floor? GetLowerFloor(ElevatorLocation location) {
-            if (_Floors.ContainsKey(location.Floor - 1)) {
-                return _Floors[location.Floor - 1];
-            }
-
-            return null;
         }
     }
 
@@ -124,8 +123,10 @@ namespace Model {
         } 
     }
 
-    public class ElevatorSystem {
-        public List<IElevator> Elevators { get; set; }
+    public class ElevatorSystem : IElevatorSystem {
+        public List<IElevator> Elevators { get; set; } = new();
+
+        public ElevatorSystem() { }
 
         public ElevatorSystem(List<IElevator> elevators) {
             Elevators = elevators;
