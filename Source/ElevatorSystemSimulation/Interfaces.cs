@@ -1,58 +1,78 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DataTypes;
 using Model;
-using DataTypes;
 
-namespace Interfaces {
-    public interface IElevatorLogic {
+namespace Interfaces
+{
+    public interface IElevatorLogic
+    {
         IBuilding Building { get; set; }
         void Step(IEvent e);
     }
 
-    public interface IElevatorSystem : IElevatorsStatusProvider {
+    public interface IElevatorSystem : IElevatorsStatusProvider
+    {
         List<IElevator> Elevators { get; set; }
     }
 
-    public interface IFloors {
-        List<IFloor> Floors { get; set; }
-
-    }
-    
-    public interface IBuilding {
+    public interface IBuilding
+    {
+        IElevatorSystem ElevatorSystem { get; }
+        IFloors Floors { get; }
     }
 
-    public interface IFloor {
+    public interface IFloors
+    {
+        List<IFloor> Value { get; }
+    }
+
+    public interface IFloor
+    {
+        Centimeters Location { get; set; }
         int FloorId { get; }
-        Centimeters Location { get; }
         Centimeters Height { get; }
         string? Name { get; }
     }
 
-    public interface IPopulation {
+    public interface IPopulation
+    {
 
     }
 
-    public interface IEvent {
-        Seconds PlannedTime { get; }
+    public interface IEvent
+    {
+        Seconds WhenPlanned { get; }
     }
 
-    public interface IRequest {
+    public interface IRequest 
+    {
+        Seconds WhenPlanned { get; }
+        //TODO other stuff
+    }
+
+    public interface IElevatorsStatusProvider
+    {
 
     }
 
-    public interface IElevatorsStatusProvider {
-
-    }
-
-    public interface IElevatorActions {
-        void MoveTo(Floor floor);
+    public interface IElevatorActions
+    {
+        void MoveTo(IFloor? floor);
         void Idle();
         void Load();
     }
 
-    public interface IElevator : IElevatorActions {
+    public interface IPlannableElevator
+    {
+        Action<Elevator, Seconds, Centimeters>? PlanElevator { get; set; }
+        Action<Elevator>? UnplanElevator { get; set; }
+        public bool IsPlanned { get; set; }
+    }
+
+    public interface IElevator : IElevatorActions
+    {
+    }
+
+    public interface IPlannableActionableElevator : IPlannableElevator, IElevator
+    {
     }
 }
