@@ -17,7 +17,6 @@ namespace ElevatorSystemSimulation
             }
         }
         public Seconds CurrentTime { get; private set; }
-        public Statistics Statistics { get; private set; } = new();
         public IElevatorLogic CurrentLogic { get; }
         public Building Building { get; }
         public Seconds TotalTime { get; }

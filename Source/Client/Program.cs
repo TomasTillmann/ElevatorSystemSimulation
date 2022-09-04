@@ -141,9 +141,6 @@ namespace Client
 
             Simulation simulation = new(building, elevatorLogic, totalSimulationRunningTime, generator.Generate(30, floors, totalSimulationRunningTime));
             simulation.Run();
-
-            Statistics result = simulation.Statistics;
-            //Console.WriteLine(result);
         }
     }
 }

@@ -10,18 +10,14 @@ namespace ElevatorSystemSimulation
             CentimetersPerSecond acceleratingTravelSpeed,
             Seconds departingTime,
             int capacity,
-            Floor? startingFloor,
-            Floor? maxFloorLocation = null,
-            Floor? minFloorLocation = null)
+            Floor? startingFloor)
         {
             return new Elevator(
             travelSpeed,
             acceleratingTravelSpeed,
             departingTime,
             capacity,
-            startingFloor,
-            maxFloorLocation = null,
-            minFloorLocation = null);
+            startingFloor);
         }
     }
 
@@ -36,18 +32,14 @@ namespace ElevatorSystemSimulation
         public int Capacity { get; }
         public Direction Direction { get; private set; }
         public Centimeters Location { get; set; }
-        public Centimeters? maxFloorLocation { get; set; }
-        public Centimeters? minFloorLocation { get; set; }
 
-        // client cant make instances directly
+        // client cant make instances directly - internal
         internal Elevator(
             CentimetersPerSecond travelSpeed,
             CentimetersPerSecond acceleratingTravelSpeed,
             Seconds departingTime,
             int capacity,
-            Floor? startingFloor,
-            Floor? maxFloorLocation = null,
-            Floor? minFloorLocation = null)
+            Floor? startingFloor)
         {
             TravelSpeed = travelSpeed;
             AccelerationDelaySpeed = acceleratingTravelSpeed;
@@ -151,13 +143,11 @@ namespace ElevatorSystemSimulation
     {
         public Floors Floors { get; set; }
         public ElevatorSystem ElevatorSystem { get; set; }
-        public Population? Population { get; set; }
 
-        public Building(Floors floors, ElevatorSystem elevatorSystem, Population? population = null)
+        public Building(Floors floors, ElevatorSystem elevatorSystem)
         {
             Floors = floors;
             ElevatorSystem = elevatorSystem;
-            Population = population;
         }
     }
 
@@ -171,9 +161,10 @@ namespace ElevatorSystemSimulation
             InBetweenFloorsSpace = inBetweenFloorsSpace;
 
             // avoiding sorting value too
-            Floor[] tempValue = new Floor[value.Count];
-            value.CopyTo(tempValue);
-            Value = tempValue.ToList();
+            foreach(Floor floor in value)
+            {
+                Value.Add(floor);
+            }
             //
 
             Value.Sort((f1, f2) => f1.FloorId.CompareTo(f2.FloorId));
@@ -183,11 +174,6 @@ namespace ElevatorSystemSimulation
         public Floor? GetFloorById(int floorId)
         {
             return Value.Find(floor => floor.FloorId == floorId);
-        }
-
-        public Floor? GetFloorByLocation(Centimeters location)
-        {
-            return Value.Find(floor => floor.Location == location);
         }
 
         private void SetFloorsLocation()
@@ -212,52 +198,4 @@ namespace ElevatorSystemSimulation
             Elevators = elevators;
         }
     }
-
-    public class ElevatorSystemInBuilding : ElevatorSystem
-    {
-        public Centimeters LowestLocation { get; }
-        public Centimeters HighestLocation { get; }
-
-        public ElevatorSystemInBuilding(List<IElevatorView> elevators, Centimeters lowestLocation, Centimeters highestLocation)
-        : base(elevators)
-        {
-            LowestLocation = lowestLocation;
-            HighestLocation = highestLocation;
-        }
-    }
-
-    //TODO: dont worry for now 
-    #region PopulationAndStatistics
-
-    public class Population
-    {
-        public List<PopulationDistribution> Distribution { get; set; }
-        public int TotalPeopleCount { get; set; }
-        public int AveragePeopleCount { get; set; }
-
-
-        public Population(List<PopulationDistribution> distribution)
-        {
-            Distribution = distribution;
-        }
-    }
-
-    public class Statistics
-    {
-        public int AverageWaitingTime { get; set; }
-        public int LongestWaitingTime { get; set; }
-        public int PeopleDepartedCount { get; set; }
-        public int AverageElevatorTravelInFloors { get; set; }
-        private List<int> _AllWaitingTimes = new();
-        public List<int> AllWaitingTimes
-        {
-            get
-            {
-                _AllWaitingTimes.Sort();
-                return _AllWaitingTimes;
-            }
-        }
-    }
-
-    #endregion
 }

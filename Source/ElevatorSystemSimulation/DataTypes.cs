@@ -87,14 +87,6 @@
         #endregion
     }
 
-    public class PopulationDistribution
-    {
-        public DateTime FromDateTime { get; set; }
-        public DateTime ToDateTime { get; set; }
-
-        // TODO add actual distribution representation
-    }
-
     public enum Direction
     {
         Down = -1,
