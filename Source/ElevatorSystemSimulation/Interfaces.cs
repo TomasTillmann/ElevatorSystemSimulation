@@ -8,12 +8,6 @@
             void Step(IEvent e);
         }
 
-        public interface IElevatorLogic<ClientsRequestEvent> : IElevatorLogic where ClientsRequestEvent : IRequestEvent
-        {
-            void Step(IElevatorEvent e);
-            void Step(ClientsRequestEvent e);
-        }
-
         public interface IEvent
         {
             Seconds WhenPlanned { get; }
@@ -23,12 +17,6 @@
         public interface IRequestEvent : IEvent
         {
             Floor Floor { get; }
-        }
-
-        public interface IElevatorEvent : IEvent
-        {
-            public IElevatorView Elevator { get; }
-            public Floor Destination { get; }
         }
 
         public interface IElevatorActions

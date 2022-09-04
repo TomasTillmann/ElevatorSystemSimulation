@@ -5,7 +5,7 @@ using ElevatorSystemSimulation.Extensions;
 namespace Client
 {
     // Main logic - implements client - there will be available catalog of some logics
-    public class ClientsElevatorIncredbleAlgorithm : IElevatorLogic<ClientsAmazingRequestEvent>
+    public class ClientsElevatorIncredbleAlgorithm : IElevatorLogic
     {
         private List<IElevatorView> _Elevators { get; set; }
         private Floors _Floors { get; set; }
@@ -21,22 +21,23 @@ namespace Client
             _Random = new Random();
         }
 
-        // TODO: fix: ugly but necessary
         public void Step(IEvent e)
         {
-            switch (e)
+            if(e is ClientsAmazingRequestEvent ce)
             {
-                case  IRequestEvent re:
-                    Step(re);
-                    break;
-
-                case  IElevatorEvent ee:
-                    Step(ee);
-                    break;
+                Step(ce);
+            }
+            else if(e is ElevatorEvent ee)
+            {
+                Step(ee);
+            }
+            else
+            {
+                throw new Exception("Event is something different");
             }
         }
 
-        public void Step(ClientsAmazingRequestEvent e)
+        private void Step(ClientsAmazingRequestEvent e)
         {
             IElevatorView? freeElevator = _Elevators.Find(elevator => elevator.IsAvailable);
             if(freeElevator != null)
@@ -47,7 +48,7 @@ namespace Client
             //TODO: some list of unresolved requests or something
         }
 
-        public void Step(IElevatorEvent e)
+        private void Step(ElevatorEvent e)
         {
             IElevatorView elevator = e.Elevator;
             elevator.MoveTo(_Floors.GetFloorById(_Random.Next(0,9)));
@@ -132,9 +133,6 @@ namespace Client
                     ElevatorFactory.GetIElevatorView(20.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(0)),
                 }
             );
-
-            var e = ElevatorFactory.GetIElevatorView(20.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(0));
-            e.MoveTo(floors.GetFloorById(1));
 
             Building building = new(floors, elevatorSystem);
             ClientsElevatorIncredbleAlgorithm elevatorLogic = new(building);

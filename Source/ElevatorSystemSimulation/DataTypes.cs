@@ -98,6 +98,7 @@
     public enum Direction
     {
         Down = -1,
+        NoDirection = 0,
         Up = 1,
     }
 }

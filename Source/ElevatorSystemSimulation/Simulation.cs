@@ -61,6 +61,7 @@ namespace ElevatorSystemSimulation
             }
             else
             {
+                CurrentTime = e.WhenPlanned;
                 CurrentLogic.Step(e);
                 _ResetAfterStep();
             }
@@ -132,23 +133,19 @@ namespace ElevatorSystemSimulation
         }
 
         #endregion
+    }
 
-        #region ElevatorEvent
+    public struct ElevatorEvent : IEvent
+    {
+        public Seconds WhenPlanned { get; }
+        public IElevatorView Elevator { get; }
+        public Floor Destination { get; }
 
-        private struct ElevatorEvent : IEvent
+        public ElevatorEvent(IElevatorView elevator, Seconds whenPlanner, Floor destination)
         {
-            public Seconds WhenPlanned { get; }
-            public IElevatorView Elevator { get; }
-            public Floor Destination { get; }
-
-            public ElevatorEvent(IElevatorView elevator, Seconds whenPlanner, Floor destination)
-            {
-                Elevator = elevator;
-                WhenPlanned = whenPlanner;
-                Destination = destination;
-            }
+            Elevator = elevator;
+            WhenPlanned = whenPlanner;
+            Destination = destination;
         }
-
-        #endregion
     }
 }
