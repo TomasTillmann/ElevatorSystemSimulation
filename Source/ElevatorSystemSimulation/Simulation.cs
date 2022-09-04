@@ -1,6 +1,4 @@
-﻿using DataTypes;
-using Interfaces;
-using Model;
+﻿using ElevatorSystemSimulation.Interfaces;
 
 namespace ElevatorSystemSimulation
 {
@@ -8,18 +6,18 @@ namespace ElevatorSystemSimulation
     {
         private Calendar _Calendar { get; set; } = new();
 
-        protected List<IRequest> _Requests;
-        public List<IRequest> Requests
+        protected List<IRequestEvent> _Requests;
+        public List<IRequestEvent> Requests
         {
             get => _Requests;
             set
             {
                 _Requests = value;
-                _Requests.Sort((IRequest r1, IRequest r2) => r1.WhenPlanned.Value.CompareTo(r2.WhenPlanned.Value));
+                _Requests.Sort((IRequestEvent r1, IRequestEvent r2) => r1.WhenPlanned.Value.CompareTo(r2.WhenPlanned.Value));
             }
         }
         public Seconds CurrentTime { get; private set; }
-        public Statistics _Statistics { get; private set; } = new();
+        public Statistics Statistics { get; private set; } = new();
         public IElevatorLogic CurrentLogic { get; }
         public Building Building { get; }
         public Seconds TotalTime { get; }
@@ -30,7 +28,7 @@ namespace ElevatorSystemSimulation
             Building building,
             IElevatorLogic currentLogic,
             Seconds totalTime,
-            List<IRequest> requests)
+            List<IRequestEvent> requests)
         {
             CurrentLogic = currentLogic;
             Building = building;
@@ -42,14 +40,9 @@ namespace ElevatorSystemSimulation
 
         public void Run()
         {
-            foreach (IRequest request in Requests)
+            foreach (IEvent request in Requests)
             {
-                _Calendar.AddEvent(
-                    new RequestEvent(
-                        request.WhenPlanned,
-                        request
-                        )
-                );
+                _Calendar.AddEvent(request);
             }
 
             while (CurrentTime < TotalTime && !_TerminateSimulation)
@@ -87,111 +80,75 @@ namespace ElevatorSystemSimulation
             }
         }
 
-        private void PlanElevator(IElevator elevator, Seconds duration, Centimeters location)
+        private void PlanElevator(IElevatorView elevator, Seconds duration, Floor destination)
         {
-            _Calendar.AddEvent(new ElevatorEvent(elevator, CurrentTime + duration, location));
+            _Calendar.AddEvent(new ElevatorEvent(elevator, CurrentTime + duration, destination));
         }
 
-        private void UnplanElevator(IElevator elevator)
+        private void UnplanElevator(IElevatorView elevator)
         {
-
-        }
-    }
-
-    public struct ElevatorEvent : IEvent
-    {
-        public Seconds WhenPlanned { get; }
-        public IElevator Elevator { get; }
-        public Centimeters Destination { get; }
-
-        public ElevatorEvent(IElevator elevator, Seconds whenPlanner, Centimeters destination)
-        {
-            Elevator = elevator;
-            WhenPlanned = whenPlanner;
-            Destination = destination;
-        }
-    }
-
-    public struct RequestEvent : IEvent
-    {
-        public Seconds WhenPlanned { get; }
-        public IRequest Request { get; }
-
-        public RequestEvent(Seconds whenPlanned, IRequest request)
-        {
-            WhenPlanned = whenPlanned;
-            Request = request;
-        }
-    }
-
-    public struct Request : IRequest
-    {
-        public Floor Floor { get; }
-        public Seconds WhenPlanned { get; }
-
-        //public int ProbabilityToGenerate { get; set; }
-        //public int? NumberOfPersons { get; set; }
-        //public Floor? ToFloor { get; set; }
-        //public int? Priority { get; set; }
-        //public List<int>? AllowedElevators { get; set; }
-
-        public Request(Floor floor, Seconds whenPlanned)
-        {
-            Floor = floor;
-            WhenPlanned = whenPlanned;
-        }
-    }
-
-    internal class Calendar
-    {
-        private PriorityQueue<IEvent, Seconds> Events { get; }
-
-        public Calendar()
-        {
-            Events = new PriorityQueue<IEvent, Seconds>(new TimeComparer());
+            //TODO - implement
         }
 
-        public IEvent? GetEvent()
+        #region Calendar
+
+        private class Calendar
         {
-            if(Events.Count == 0)
+            private PriorityQueue<IEvent, Seconds> Events { get; }
+
+            public Calendar()
             {
-                return null;
+                Events = new PriorityQueue<IEvent, Seconds>(new TimeComparer());
             }
 
-            return Events.Dequeue();
-        }
-
-        public void AddEvent(IEvent e)
-        {
-            
-            Events.Enqueue(e, e.WhenPlanned);
-        }
-
-        public void Clear()
-        {
-            Events.Clear();
-        }
-
-        private class TimeComparer : Comparer<Seconds>
-        {
-            public override int Compare(Seconds x, Seconds y)
+            public IEvent? GetEvent()
             {
-                return x.Value.CompareTo(y.Value);
+                if(Events.Count == 0)
+                {
+                    return null;
+                }
+
+                return Events.Dequeue();
+            }
+
+            public void AddEvent(IEvent e)
+            {
+                
+                Events.Enqueue(e, e.WhenPlanned);
+            }
+
+            public void Clear()
+            {
+                Events.Clear();
+            }
+
+            private class TimeComparer : Comparer<Seconds>
+            {
+                public override int Compare(Seconds x, Seconds y)
+                {
+                    return x.Value.CompareTo(y.Value);
+                }
             }
         }
-    }
 
-    public class Generator
-    {
-        private Building _Building { get; set; }
-        public Generator(Building building)
+        #endregion
+
+        #region ElevatorEvent
+
+        private struct ElevatorEvent : IEvent
         {
-            _Building = building;
+            public Seconds WhenPlanned { get; }
+            public IElevatorView Elevator { get; }
+            public Floor Destination { get; }
+
+            public ElevatorEvent(IElevatorView elevator, Seconds whenPlanner, Floor destination)
+            {
+                Elevator = elevator;
+                WhenPlanned = whenPlanner;
+                Destination = destination;
+            }
         }
 
-        public List<IRequest> GenerateRequests()
-        {
-            return new();
-        }
+        #endregion
     }
 }

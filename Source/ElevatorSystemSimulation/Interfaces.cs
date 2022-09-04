@@ -1,78 +1,57 @@
-﻿using DataTypes;
-using Model;
-
-namespace Interfaces
+﻿namespace ElevatorSystemSimulation
 {
-    public interface IElevatorLogic
+    namespace Interfaces
     {
-        IBuilding Building { get; set; }
-        void Step(IEvent e);
-    }
+        public interface IElevatorLogic
+        {
+            Building Building { get; set; }
+            void Step(IEvent e);
+        }
 
-    public interface IElevatorSystem : IElevatorsStatusProvider
-    {
-        List<IElevator> Elevators { get; set; }
-    }
+        public interface IElevatorLogic<ClientsRequestEvent> : IElevatorLogic where ClientsRequestEvent : IRequestEvent
+        {
+            void Step(IElevatorEvent e);
+            void Step(ClientsRequestEvent e);
+        }
 
-    public interface IBuilding
-    {
-        IElevatorSystem ElevatorSystem { get; }
-        IFloors Floors { get; }
-    }
+        public interface IEvent
+        {
+            Seconds WhenPlanned { get; }
+        }
 
-    public interface IFloors
-    {
-        List<IFloor> Value { get; }
-    }
+        // client implements his own request event - this request event defines capabilities of the elevator system
+        public interface IRequestEvent : IEvent
+        {
+            Floor Floor { get; }
+        }
 
-    public interface IFloor
-    {
-        Centimeters Location { get; set; }
-        int FloorId { get; }
-        Centimeters Height { get; }
-        string? Name { get; }
-    }
+        public interface IElevatorEvent : IEvent
+        {
+            public IElevatorView Elevator { get; }
+            public Floor Destination { get; }
+        }
 
-    public interface IPopulation
-    {
+        public interface IElevatorActions
+        {
+            bool IsAvailable { get; set; }
+            void MoveTo(Floor? floor);
+            void Idle(Floor? floor);
+            void Load(Floor? floor);
+        }
 
-    }
+        public interface IPlannableElevator
+        {
+            Action<Elevator, Seconds, Floor>? PlanElevator { get; set; }
+            Action<Elevator>? UnplanElevator { get; set; }
+        }
 
-    public interface IEvent
-    {
-        Seconds WhenPlanned { get; }
-    }
+        public interface IElevatorView : IElevatorActions
+        {
+            //TODO - other stuff - like some elevator's parameters (speed, capacity, ... )
+        }
 
-    public interface IRequest 
-    {
-        Seconds WhenPlanned { get; }
-        //TODO other stuff
-    }
-
-    public interface IElevatorsStatusProvider
-    {
-
-    }
-
-    public interface IElevatorActions
-    {
-        void MoveTo(IFloor? floor);
-        void Idle();
-        void Load();
-    }
-
-    public interface IPlannableElevator
-    {
-        Action<Elevator, Seconds, Centimeters>? PlanElevator { get; set; }
-        Action<Elevator>? UnplanElevator { get; set; }
-        public bool IsPlanned { get; set; }
-    }
-
-    public interface IElevator : IElevatorActions
-    {
-    }
-
-    public interface IPlannableActionableElevator : IPlannableElevator, IElevator
-    {
+        public interface IPlannableActionableElevator : IPlannableElevator, IElevatorView
+        {
+        }
     }
 }

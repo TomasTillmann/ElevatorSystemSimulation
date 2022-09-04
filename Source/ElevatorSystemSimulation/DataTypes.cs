@@ -1,4 +1,4 @@
-﻿namespace DataTypes
+﻿namespace ElevatorSystemSimulation
 {
     public struct CentimetersPerSecond
     {
@@ -27,6 +27,23 @@
         public static Centimeters operator +(Centimeters m1, Centimeters m2) => new(m1.Value + m2.Value);
         public static Centimeters operator -(Centimeters m1, Centimeters m2) => new(m1.Value - m2.Value);
         public static Seconds operator /(Centimeters distance, CentimetersPerSecond velocity) => new(distance.Value / velocity.Value);
+        public static bool operator == (Centimeters c1, Centimeters c2) => c1.Value == c2.Value;
+        public static bool operator !=(Centimeters c1, Centimeters c2) => c1.Value != c2.Value;
+
+        public override bool Equals(object? o)
+        {
+            if(o is Centimeters c)
+            {
+                return Value == c.Value;
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
+        }
 
         #endregion
     }
@@ -76,14 +93,6 @@
         public DateTime ToDateTime { get; set; }
 
         // TODO add actual distribution representation
-    }
-
-    public enum ElevatorAction
-    {
-        MoveUp,
-        MoveDown,
-        Idle,
-        Depart,
     }
 
     public enum Direction

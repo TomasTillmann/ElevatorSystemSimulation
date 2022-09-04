@@ -1,47 +1,18 @@
-﻿using DataTypes;
-using Extensions;
-using Interfaces;
+﻿using ElevatorSystemSimulation.Extensions;
+using ElevatorSystemSimulation.Interfaces;
 
-namespace Model
+namespace ElevatorSystemSimulation
 {
-    public class Elevator : IElevator /*(client)*/, IPlannableActionableElevator /*(simulation)*/
+    public static class ElevatorFactory
     {
-        public Action<Elevator, Seconds, Centimeters>? PlanElevator { get; set; }
-        public Action<Elevator>? UnplanElevator { get; set; }
-        public bool IsPlanned { get; set; }
-        public CentimetersPerSecond TravelSpeed { get; }
-        public CentimetersPerSecond AccelerationDelaySpeed { get; }
-        public Seconds DepartingTime { get; }
-        public int Capacity { get; }
-        public Direction Direction { get; private set; }
-        public Centimeters Location { get; set; }
-        public Centimeters? maxFloorLocation { get; set; } 
-        public Centimeters? minFloorLocation { get; set; } 
-
-        private Elevator(
+        public static IElevatorView GetIElevatorView(
             CentimetersPerSecond travelSpeed,
             CentimetersPerSecond acceleratingTravelSpeed,
             Seconds departingTime,
             int capacity,
-            IFloor? startingFloor,
-            IFloor? maxFloorLocation = null,
-            IFloor? minFloorLocation = null)
-        {
-            TravelSpeed = travelSpeed;
-            AccelerationDelaySpeed = acceleratingTravelSpeed;
-            DepartingTime = departingTime;
-            Capacity = capacity;
-            Location = startingFloor != null ? startingFloor.Location : 0.ToCentimeters();
-        }
-
-        public static IElevator Get(
-            CentimetersPerSecond travelSpeed,
-            CentimetersPerSecond acceleratingTravelSpeed,
-            Seconds departingTime,
-            int capacity,
-            IFloor? startingFloor,
-            IFloor? maxFloorLocation = null,
-            IFloor? minFloorLocation = null)
+            Floor? startingFloor,
+            Floor? maxFloorLocation = null,
+            Floor? minFloorLocation = null)
         {
             return new Elevator(
             travelSpeed,
@@ -52,45 +23,97 @@ namespace Model
             maxFloorLocation = null,
             minFloorLocation = null);
         }
+    }
+
+    public class Elevator : IElevatorView /*(client)*/, IPlannableActionableElevator /*(simulation)*/
+    {
+        public Action<Elevator, Seconds, Floor>? PlanElevator { get; set; }
+        public Action<Elevator>? UnplanElevator { get; set; }
+        public bool IsAvailable { get; set; } = true;
+        public CentimetersPerSecond TravelSpeed { get; }
+        public CentimetersPerSecond AccelerationDelaySpeed { get; }
+        public Seconds DepartingTime { get; }
+        public int Capacity { get; }
+        public Direction Direction { get; private set; }
+        public Centimeters Location { get; set; }
+        public Centimeters? maxFloorLocation { get; set; }
+        public Centimeters? minFloorLocation { get; set; }
+
+        // client cant make instances directly
+        internal Elevator(
+            CentimetersPerSecond travelSpeed,
+            CentimetersPerSecond acceleratingTravelSpeed,
+            Seconds departingTime,
+            int capacity,
+            Floor? startingFloor,
+            Floor? maxFloorLocation = null,
+            Floor? minFloorLocation = null)
+        {
+            TravelSpeed = travelSpeed;
+            AccelerationDelaySpeed = acceleratingTravelSpeed;
+            DepartingTime = departingTime;
+            Capacity = capacity;
+            Location = startingFloor != null ? startingFloor.Location : 0.ToCentimeters();
+        }
 
         //TODO - floor in building dont like it - should be hiddne from client
-        public void MoveTo(IFloor? floor)
+        public void MoveTo(Floor? floor)
+        {
+            if (floor == null)
+            {
+                return;
+            }
+
+            SetDirection(floor.Location);
+            PlanMe(GetDistance(floor.Location) / TravelSpeed, floor);
+        }
+
+        public void Idle(Floor? floor)
         {
             if(floor == null)
             {
                 return;
             }
 
-            SetDirection(floor.Location);
-            PlanMe(GetDistance(floor.Location) / TravelSpeed, floor.Location);
-        }
-
-        public void Idle()
-        {
-            PlanMe(0.ToSeconds(), Location);
-        }
-
-        public void Load()
-        {
-            //TODO - IMPLEMENT: depart out + depart in time - maybe no one to depart out or no one to depart in on the floor 
-            PlanMe(DepartingTime, Location);
-        }
-
-        private void PlanMe(Seconds duration, Centimeters location)
-        {
-            if(PlanElevator == null)
+            if (Location != floor.Location)
             {
-                throw new Exception("PlanElevator function is not set.");
+                throw new Exception("Elevator cannot Idle. Elevators can Idle only when fully in a floor");
             }
 
-            PlanElevator(this, duration, location);
+            PlanMe(0.ToSeconds(), floor);
+        }
+
+        public void Load(Floor? floor)
+        {
+            if(floor == null)
+            {
+                return;
+            }
+
+            if (Location != floor.Location)
+            {
+                throw new Exception("Elevator cannot load people. Elevators can load people only when fully in a floor");
+            }
+
+            //TODO - IMPLEMENT: depart out + depart in time - maybe no one to depart out or no one to depart in on the floor 
+            PlanMe(DepartingTime, floor);
+        }
+
+        private void PlanMe(Seconds duration, Floor destination)
+        {
+            if (PlanElevator == null)
+            {
+                throw new Exception("Elevator cannot make this action. It is not in simulation yet.");
+            }
+
+            PlanElevator(this, duration, destination);
         }
 
         private void UnplanMe(Seconds duration, Centimeters location)
         {
-            if(UnplanElevator == null)
+            if (UnplanElevator == null)
             {
-                throw new Exception("UnplanElevator function is not set.");
+                throw new Exception("Elevator cannot make this action. It is not in simulation yet.");
             }
 
             UnplanElevator(this);
@@ -109,7 +132,7 @@ namespace Model
         }
     }
 
-    public class Floor : IFloor
+    public class Floor
     {
         public Centimeters Location { get; set; }
         public int FloorId { get; }
@@ -124,11 +147,11 @@ namespace Model
         }
     }
 
-    public class Building : IBuilding
+    public class Building
     {
-        public IFloors Floors { get; set; }
-        public IElevatorSystem ElevatorSystem { get; set; }
-        public IPopulation? Population { get; set; }
+        public Floors Floors { get; set; }
+        public ElevatorSystem ElevatorSystem { get; set; }
+        public Population? Population { get; set; }
 
         public Building(Floors floors, ElevatorSystem elevatorSystem, Population? population = null)
         {
@@ -138,17 +161,17 @@ namespace Model
         }
     }
 
-    public class Floors : IFloors
+    public class Floors
     {
-        public List<IFloor> Value { get; } = new();
+        public List<Floor> Value { get; } = new();
         public Centimeters InBetweenFloorsSpace { get; }
 
-        public Floors(List<IFloor> value, Centimeters inBetweenFloorsSpace)
+        public Floors(List<Floor> value, Centimeters inBetweenFloorsSpace)
         {
             InBetweenFloorsSpace = inBetweenFloorsSpace;
 
             // avoiding sorting value too
-            IFloor[] tempValue = new IFloor[value.Count]; 
+            Floor[] tempValue = new Floor[value.Count];
             value.CopyTo(tempValue);
             Value = tempValue.ToList();
             //
@@ -157,15 +180,16 @@ namespace Model
             SetFloorsLocation();
         }
 
-        public IFloor? GetFloorById(int floorId)
+        public Floor? GetFloorById(int floorId)
         {
             return Value.Find(floor => floor.FloorId == floorId);
         }
 
-        private void SetValue()
+        public Floor? GetFloorByLocation(Centimeters location)
         {
-
+            return Value.Find(floor => floor.Location == location);
         }
+
         private void SetFloorsLocation()
         {
             Centimeters totalHeight = 0.ToCentimeters();
@@ -179,11 +203,11 @@ namespace Model
         }
     }
 
-    public class ElevatorSystem : IElevatorSystem
+    public class ElevatorSystem
     {
-        public List<IElevator> Elevators { get; set; } = new();
+        public List<IElevatorView> Elevators { get; set; } = new();
 
-        public ElevatorSystem(List<IElevator> elevators)
+        public ElevatorSystem(List<IElevatorView> elevators)
         {
             Elevators = elevators;
         }
@@ -194,15 +218,18 @@ namespace Model
         public Centimeters LowestLocation { get; }
         public Centimeters HighestLocation { get; }
 
-        public ElevatorSystemInBuilding(List<IElevator> elevators, Centimeters lowestLocation, Centimeters highestLocation)
-        :base(elevators)
+        public ElevatorSystemInBuilding(List<IElevatorView> elevators, Centimeters lowestLocation, Centimeters highestLocation)
+        : base(elevators)
         {
             LowestLocation = lowestLocation;
             HighestLocation = highestLocation;
         }
     }
 
-    public class Population : IPopulation
+    //TODO: dont worry for now 
+    #region PopulationAndStatistics
+
+    public class Population
     {
         public List<PopulationDistribution> Distribution { get; set; }
         public int TotalPeopleCount { get; set; }
@@ -231,4 +258,6 @@ namespace Model
             }
         }
     }
+
+    #endregion
 }
