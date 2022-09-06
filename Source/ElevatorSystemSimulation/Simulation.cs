@@ -1,13 +1,16 @@
 ﻿using ElevatorSystemSimulation.Interfaces;
+using ElevatorSystemSimulation.Extensions;
 
 namespace ElevatorSystemSimulation
 {
     public class Simulation
     {
         private Calendar _Calendar { get; set; } = new();
+        private bool _TerminateSimulation;
+        private Seconds _LastStepTime = 0.ToSeconds();
 
         protected List<IRequestEvent> _Requests;
-        public List<IRequestEvent> Requests
+        private List<IRequestEvent> Requests
         {
             get => _Requests;
             set
@@ -16,12 +19,11 @@ namespace ElevatorSystemSimulation
                 _Requests.Sort((IRequestEvent r1, IRequestEvent r2) => r1.WhenPlanned.Value.CompareTo(r2.WhenPlanned.Value));
             }
         }
-        public Seconds CurrentTime { get; private set; }
+
+        public Seconds CurrentTime { get; private set; } = 0.ToSeconds();
         public IElevatorLogic CurrentLogic { get; }
         public Building Building { get; }
         public Seconds TotalTime { get; }
-
-        private bool _TerminateSimulation;
 
         public Simulation(
             Building building,
@@ -60,32 +62,43 @@ namespace ElevatorSystemSimulation
             }
             else
             {
+                _LastStepTime = CurrentTime;
                 CurrentTime = e.WhenPlanned;
+
+                SetElevatorsLocations(e);
                 CurrentLogic.Step(e);
-                _ResetAfterStep();
             }
         }
 
-        private void _ResetAfterStep()
+        private void SetElevatorsLocations(IEvent e)
         {
+            foreach(Elevator elevator in Building.ElevatorSystem.Elevators)
+            {
+                elevator.SetLocation(CurrentTime - _LastStepTime);
+            }
 
+            // This is necessary, because everything is rounded to seconds, hence the location might be a little bit off - FIX? measure in milliseconds
+            if(e is ElevatorEvent ee)
+            {
+                ee.Elevator.Location = ee.Destination.Location;
+            }
         }
 
         private void SetElevatorsIPlannableProperties()
         {
-            foreach (IPlannableElevator elevator in Building.ElevatorSystem.Elevators)
+            foreach (Elevator elevator in Building.ElevatorSystem.Elevators)
             {
                 elevator.PlanElevator = PlanElevator;
                 elevator.UnplanElevator = UnplanElevator;
             }
         }
 
-        private void PlanElevator(IElevatorView elevator, Seconds duration, Floor destination)
+        private void PlanElevator(Elevator elevator, Seconds duration, Floor destination)
         {
             _Calendar.AddEvent(new ElevatorEvent(elevator, CurrentTime + duration, destination));
         }
 
-        private void UnplanElevator(IElevatorView elevator)
+        private void UnplanElevator(Elevator elevator)
         {
             //TODO - implement
         }
@@ -137,14 +150,17 @@ namespace ElevatorSystemSimulation
     public struct ElevatorEvent : IEvent
     {
         public Seconds WhenPlanned { get; }
-        public IElevatorView Elevator { get; }
+        public Elevator Elevator { get; }
         public Floor Destination { get; }
 
-        public ElevatorEvent(IElevatorView elevator, Seconds whenPlanner, Floor destination)
+        public ElevatorEvent(Elevator elevator, Seconds whenPlanner, Floor destination)
         {
             Elevator = elevator;
             WhenPlanned = whenPlanner;
             Destination = destination;
         }
+
+        public override string ToString() => 
+            $"ElevatorEvent: \n WhenPlanned: {WhenPlanned} \n Elevator: {Elevator} \n Destination: {Destination}";
     }
 }

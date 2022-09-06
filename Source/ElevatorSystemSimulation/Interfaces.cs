@@ -19,27 +19,34 @@
             Floor Floor { get; }
         }
 
-        public interface IElevatorActions
-        {
-            bool IsAvailable { get; set; }
-            void MoveTo(Floor? floor);
-            void Idle(Floor? floor);
-            void Load(Floor? floor);
-        }
+        //public interface IElevatorActions
+        //{
+        //    bool IsIdle { get; set; }
+        //    void MoveTo(Floor? floor);
+        //    void Idle(Floor? floor);
+        //    void Load(Floor? floor);
+        //}
 
-        public interface IPlannableElevator
-        {
-            Action<Elevator, Seconds, Floor>? PlanElevator { get; set; }
-            Action<Elevator>? UnplanElevator { get; set; }
-        }
+        //public interface IPlannableElevator
+        //{
+        //    Action<Elevator, Seconds, Floor>? PlanElevator { get; set; }
+        //    Action<Elevator>? UnplanElevator { get; set; }
+        //}
 
-        public interface IElevatorView : IElevatorActions
-        {
-            //TODO - other stuff - like some elevator's parameters (speed, capacity, ... )
-        }
+        //public interface IElevatorView : IElevatorActions
+        //{
+        //    int Id { get; }
+        //    CentimetersPerSecond TravelSpeed { get; }
+        //    CentimetersPerSecond AccelerationDelaySpeed { get; }
+        //    Seconds DepartingTime { get; }
+        //    int Capacity { get; }
+        //}
 
-        public interface IPlannableActionableElevator : IPlannableElevator, IElevatorView
-        {
-        }
+        //public interface IPlannableActionableElevator : IPlannableElevator, IElevatorView
+        //{
+        //    Direction Direction { get; }
+        //    Centimeters Location { get; set; }
+        //    Seconds LastPlanned { get; set; }
+        //}
     }
 }

@@ -1,17 +1,19 @@
 ﻿using ElevatorSystemSimulation;
 using ElevatorSystemSimulation.Interfaces;
 using ElevatorSystemSimulation.Extensions;
+using ElevatorSystemSimulation.View;
 
 namespace Client
 {
     // Main logic - implements client - there will be available catalog of some logics
     public class ClientsElevatorIncredbleAlgorithm : IElevatorLogic
     {
-        private List<IElevatorView> _Elevators { get; set; }
+        private List<Elevator> _Elevators { get; set; }
         private Floors _Floors { get; set; }
         private Random _Random { get; }
 
         public Building Building { get; set; } 
+        public View? View { get; set; }
 
         public ClientsElevatorIncredbleAlgorithm(Building building)
         {
@@ -21,8 +23,11 @@ namespace Client
             _Random = new Random();
         }
 
+        //TODO: this is ugly - implement in abstract class maybe?
         public void Step(IEvent e)
         {
+            View?.State(e);
+
             if(e is ClientsAmazingRequestEvent ce)
             {
                 Step(ce);
@@ -39,7 +44,7 @@ namespace Client
 
         private void Step(ClientsAmazingRequestEvent e)
         {
-            IElevatorView? freeElevator = _Elevators.Find(elevator => elevator.IsAvailable);
+            Elevator? freeElevator = _Elevators.Find(elevator => elevator.IsIdle);
             if(freeElevator != null)
             {
                 freeElevator.MoveTo(e.Floor);
@@ -50,7 +55,7 @@ namespace Client
 
         private void Step(ElevatorEvent e)
         {
-            IElevatorView elevator = e.Elevator;
+            Elevator elevator = e.Elevator;
             elevator.MoveTo(_Floors.GetFloorById(_Random.Next(0,9)));
         }
     }
@@ -59,8 +64,8 @@ namespace Client
     // - IElevatorLogic - hence independent of the whole simulation -> very customizable elevator systems - no constraints basically
     public struct ClientsAmazingRequestEvent : IRequestEvent
     {
-        public Floor Floor { get; } 
         public Seconds WhenPlanned { get; } 
+        public Floor Floor { get; } 
         public Floor FloorDestination { get; }
 
         public ClientsAmazingRequestEvent(Floor floor, Seconds whenPlanned, Floor floorDestination)
@@ -69,6 +74,8 @@ namespace Client
             WhenPlanned = whenPlanned;
             FloorDestination = floorDestination;
         }
+
+        public override string ToString() => $"RequestEvent: \n WhenPlanned: {WhenPlanned} \n Floor: {Floor.Location} \n Destination: {FloorDestination}";
     }
 
     // Optional, but very useful
@@ -127,10 +134,10 @@ namespace Client
             );
 
             ElevatorSystem elevatorSystem = new ElevatorSystem(
-                new List<IElevatorView>()
+                new List<Elevator>()
                 {
-                    ElevatorFactory.GetIElevatorView(20.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(0)),
-                    ElevatorFactory.GetIElevatorView(20.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(0)),
+                    new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(0)),
+                    new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(0)),
                 }
             );
 
@@ -139,7 +146,11 @@ namespace Client
             ClientsAmazingGenerator generator = new(new Random());
             Seconds totalSimulationRunningTime = 10_000.ToSeconds();
 
-            Simulation simulation = new(building, elevatorLogic, totalSimulationRunningTime, generator.Generate(30, floors, totalSimulationRunningTime));
+            Simulation simulation = new(building, elevatorLogic, totalSimulationRunningTime, generator.Generate(10, floors, totalSimulationRunningTime));
+
+            //TODO: this visualizing is dirty - logic shouldnt care about visualizing
+            elevatorLogic.View = new View(simulation, Console.Out);
+
             simulation.Run();
         }
     }
