@@ -19,6 +19,7 @@ namespace ElevatorSystemSimulation
             {
                 foreach(Elevator elevator in Simulation.Building.ElevatorSystem.Elevators)
                 {
+                    Writer.WriteLine("Elevator: ");
                     Writer.WriteLine(elevator);
                 }
 
@@ -26,10 +27,12 @@ namespace ElevatorSystemSimulation
 
                 foreach(Floor floor in Simulation.Building.Floors.Value)
                 {
+                    Writer.WriteLine("Floor: ");
                     Writer.WriteLine(floor);
                 }
                 Writer.WriteLine();
 
+                Writer.WriteLine("Event: ");
                 Writer.WriteLine(e);
                 Writer.WriteLine();
                 Writer.WriteLine("Current Time: " + Simulation.CurrentTime);

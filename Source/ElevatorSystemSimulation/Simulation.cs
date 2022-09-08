@@ -161,6 +161,8 @@ namespace ElevatorSystemSimulation
         }
 
         public override string ToString() => 
-            $"ElevatorEvent: \n WhenPlanned: {WhenPlanned} \n Elevator: {Elevator} \n Destination: {Destination}";
+            $"WhenPlanned: {WhenPlanned}\n" +
+            $"Elevator: {Elevator}\n" +
+            $"Destination: {Destination}";
     }
 }

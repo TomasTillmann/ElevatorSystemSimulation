@@ -75,7 +75,10 @@ namespace Client
             FloorDestination = floorDestination;
         }
 
-        public override string ToString() => $"RequestEvent: \n WhenPlanned: {WhenPlanned} \n Floor: {Floor.Location} \n Destination: {FloorDestination}";
+        public override string ToString() => 
+            $"WhenPlanned: {WhenPlanned}\n" +
+            $"Floor: {Floor.Location}\n" +
+            $"Destination: {FloorDestination}";
     }
 
     // Optional, but very useful

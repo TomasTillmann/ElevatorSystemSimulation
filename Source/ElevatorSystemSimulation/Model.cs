@@ -75,11 +75,9 @@ namespace ElevatorSystemSimulation
             //TODO - IMPLEMENT: depart out + depart in time - maybe no one to depart out or no one to depart in on the floor 
             PlanMe(DepartingTime, floor);
         }
-        public override string ToString()
-        {
-            return "Elevator: \n" + "ElevatorId: " + Id + "\n" +
-            "ElevatorLocation: " + Location;
-        }
+        public override string ToString() => 
+            $"ElevatorId: {Id}\n" +
+            $"ElevatorLocation: {Location}";
 
 
         internal void SetLocation(Seconds stepDuration)
@@ -134,7 +132,9 @@ namespace ElevatorSystemSimulation
             Name = name;
         }
 
-        public override string ToString() => $"FloorId: {FloorId}, FloorLocation: {Location}";
+        public override string ToString() => 
+            $"FloorId: {FloorId}\n" +
+            $"FloorLocation: {Location}";
     }
 
     public class Building
