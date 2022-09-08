@@ -6,43 +6,27 @@ using ElevatorSystemSimulation.View;
 namespace Client
 {
     // Main logic - implements client - there will be available catalog of some logics
-    public class ClientsElevatorIncredbleAlgorithm : IElevatorLogic
+    public class ClientsElevatorIncredbleAlgorithm : ElevatorLogic<ClientsAmazingRequestEvent> 
     {
         private List<Elevator> _Elevators { get; set; }
         private Floors _Floors { get; set; }
         private Random _Random { get; }
 
-        public Building Building { get; set; } 
+        public override Building Building { get; set; } 
+
+        //TODO: dirty - will be deleted
         public View? View { get; set; }
 
         public ClientsElevatorIncredbleAlgorithm(Building building)
         {
             Building = building;
+
             _Elevators = building.ElevatorSystem.Elevators;
             _Floors = building.Floors;
             _Random = new Random();
         }
 
-        //TODO: this is ugly - implement in abstract class maybe?
-        public void Step(IEvent e)
-        {
-            View?.State(e);
-
-            if(e is ClientsAmazingRequestEvent ce)
-            {
-                Step(ce);
-            }
-            else if(e is ElevatorEvent ee)
-            {
-                Step(ee);
-            }
-            else
-            {
-                throw new Exception("Event is something different");
-            }
-        }
-
-        private void Step(ClientsAmazingRequestEvent e)
+        protected override void Step(ClientsAmazingRequestEvent e)
         {
             Elevator? freeElevator = _Elevators.Find(elevator => elevator.IsIdle);
             if(freeElevator != null)
@@ -53,7 +37,7 @@ namespace Client
             //TODO: some list of unresolved requests or something
         }
 
-        private void Step(ElevatorEvent e)
+        protected override void Step(ElevatorEvent e)
         {
             Elevator elevator = e.Elevator;
             elevator.MoveTo(_Floors.GetFloorById(_Random.Next(0,9)));
