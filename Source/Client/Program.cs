@@ -132,6 +132,25 @@ namespace Client
                     new Floor(7, 250.ToCentimeters()),
                     new Floor(8, 250.ToCentimeters()),
                     new Floor(9, 250.ToCentimeters()),
+                    new Floor(10, 250.ToCentimeters()),
+                    new Floor(11, 250.ToCentimeters()),
+                    new Floor(12, 250.ToCentimeters()),
+                    new Floor(13, 250.ToCentimeters()),
+                    new Floor(14, 250.ToCentimeters()),
+                    new Floor(15, 250.ToCentimeters()),
+                    new Floor(16, 250.ToCentimeters()),
+                    new Floor(17, 250.ToCentimeters()),
+                    new Floor(18, 250.ToCentimeters()),
+                    new Floor(19, 250.ToCentimeters()),
+                    new Floor(20, 250.ToCentimeters()),
+                    new Floor(21, 250.ToCentimeters()),
+                    new Floor(22, 250.ToCentimeters()),
+                    new Floor(23, 250.ToCentimeters()),
+                    new Floor(24, 250.ToCentimeters()),
+                    new Floor(25, 250.ToCentimeters()),
+                    new Floor(26, 250.ToCentimeters()),
+                    new Floor(27, 250.ToCentimeters()),
+                    new Floor(28, 250.ToCentimeters()),
                 },
                 10.ToCentimeters()
             );
@@ -147,9 +166,9 @@ namespace Client
             Building building = new(floors, elevatorSystem);
             ClientsElevatorIncredbleAlgorithm elevatorLogic = new(building);
             ClientsAmazingGenerator generator = new(new Random());
-            Seconds totalSimulationRunningTime = 10_000.ToSeconds();
+            Seconds totalSimulationRunningTime = 1000.ToSeconds();
 
-            Simulation simulation = new(building, elevatorLogic, totalSimulationRunningTime, generator.Generate(10, floors, totalSimulationRunningTime));
+            Simulation simulation = new(building, elevatorLogic, totalSimulationRunningTime, generator.Generate(60, floors, totalSimulationRunningTime));
 
             //TODO: this visualizing is dirty - logic shouldnt care about visualizing
             elevatorLogic.View = new View(simulation, Console.Out);
