@@ -77,7 +77,7 @@ namespace ElevatorSystemSimulation
                 elevator.SetLocation(CurrentTime - _LastStepTime);
             }
 
-            // This is necessary, because everything is rounded to seconds, hence the location might be a little bit off - FIX? measure in milliseconds
+            // This is necessary, because everything is rounded to seconds, hence the location might be a little bit off (this is the only affected place by rounding) - FIX? measure in milliseconds
             if(e is ElevatorEvent ee)
             {
                 ee.Elevator.Location = ee.Destination.Location;
@@ -95,7 +95,9 @@ namespace ElevatorSystemSimulation
 
         private void PlanElevator(Elevator elevator, Seconds duration, Floor destination)
         {
-            _Calendar.AddEvent(new ElevatorEvent(elevator, CurrentTime + duration, destination));
+            ElevatorEvent ee = new ElevatorEvent(elevator, CurrentTime + duration, destination);
+
+            _Calendar.AddEvent(ee);
         }
 
         private void UnplanElevator(Elevator elevator)

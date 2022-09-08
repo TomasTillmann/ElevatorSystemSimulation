@@ -2,13 +2,13 @@
 
 namespace ElevatorSystemSimulation
 {
-    public abstract class ElevatorLogic<ClientsRequest> : IElevatorLogic where ClientsRequest : IRequestEvent
+    public abstract class ElevatorLogic<RequestEvent> : IElevatorLogic where RequestEvent : IRequestEvent
     {
         public abstract Building Building { get; set; }
 
-        public  void Step(IEvent e)
+        public void Step(IEvent e)
         {
-            if(e is ClientsRequest ce)
+            if(e is RequestEvent ce)
             {
                 Step(ce);
             }
@@ -22,7 +22,7 @@ namespace ElevatorSystemSimulation
             }
         }
 
-        protected abstract void Step(ClientsRequest ce);
+        protected abstract void Step(RequestEvent ce);
         protected abstract void Step(ElevatorEvent ee);
     }
 }

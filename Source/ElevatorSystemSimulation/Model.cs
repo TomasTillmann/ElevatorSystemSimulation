@@ -10,7 +10,7 @@ namespace ElevatorSystemSimulation
         public int Id { get; }
         public Action<Elevator, Seconds, Floor>? PlanElevator { get; set; }
         public Action<Elevator>? UnplanElevator { get; set; }
-        public bool IsIdle => Direction == Direction.NoDirection;
+        public bool IsIdle { get; private set; } = true; 
         public CentimetersPerSecond TravelSpeed { get; }
         public CentimetersPerSecond AccelerationDelaySpeed { get; }
         public Seconds DepartingTime { get; }
@@ -41,6 +41,8 @@ namespace ElevatorSystemSimulation
                 return;
             }
 
+            IsIdle = false;
+
             SetDirection(floor.Location);
             PlanMe(GetDistance(floor.Location) / TravelSpeed, floor);
         }
@@ -54,8 +56,11 @@ namespace ElevatorSystemSimulation
 
             if (Location != floor.Location)
             {
-                throw new Exception("Elevator cannot Idle. Elevators can Idle only when fully in a floor");
+                throw new Exception("Elevator cannot Idle. Elevators can Idle only when fully in the floor where the elevator currently is.");
             }
+
+            IsIdle = true;
+
 
             PlanMe(0.ToSeconds(), floor);
         }
@@ -73,6 +78,9 @@ namespace ElevatorSystemSimulation
             }
 
             //TODO - IMPLEMENT: depart out + depart in time - maybe no one to depart out or no one to depart in on the floor 
+
+            IsIdle = false;
+
             PlanMe(DepartingTime, floor);
         }
         public override string ToString() => 

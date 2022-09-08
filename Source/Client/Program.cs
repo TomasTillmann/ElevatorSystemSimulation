@@ -20,7 +20,7 @@ namespace Client
         public ClientsElevatorIncredbleAlgorithm(Building building)
         {
             Building = building;
-
+ 
             _Elevators = building.ElevatorSystem.Elevators;
             _Floors = building.Floors;
             _Random = new Random();
