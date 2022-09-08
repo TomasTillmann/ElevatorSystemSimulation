@@ -12,7 +12,7 @@ namespace Client
         private Floors _Floors { get; set; }
         private Random _Random { get; }
 
-        public override Building Building { get; set; } 
+        protected override Building Building { get; set; } 
 
         //TODO: dirty - will be deleted
         public View? View { get; set; }
@@ -39,8 +39,14 @@ namespace Client
 
         protected override void Step(ElevatorEvent e)
         {
-            Elevator elevator = e.Elevator;
-            elevator.MoveTo(_Floors.GetFloorById(_Random.Next(0,9)));
+            if(Requests.Any(r => r.Floor == e.Destination))
+            {
+                e.Elevator.Load(e.Destination);
+            }
+            else
+            {
+                e.Elevator.MoveTo(_Floors.GetFloorById(_Random.Next(0,9)));
+            }
         }
     }
 

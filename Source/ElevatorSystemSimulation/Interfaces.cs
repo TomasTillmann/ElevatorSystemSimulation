@@ -4,8 +4,7 @@
     {
         public interface IElevatorLogic
         {
-            Building Building { get; set; }
-            void Step(IEvent e);
+            public void Step(IEvent e);
         }
 
         public interface IEvent

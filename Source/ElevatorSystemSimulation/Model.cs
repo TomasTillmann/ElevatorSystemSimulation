@@ -67,6 +67,7 @@ namespace ElevatorSystemSimulation
 
         public void Load(Floor? floor)
         {
+            //TODO - implement loading - need to delete requests that were served by loading
             if(floor == null)
             {
                 return;
