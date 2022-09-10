@@ -84,7 +84,7 @@ namespace ElevatorSystemSimulation
             // This is necessary, because everything is rounded to seconds, hence the location might be a little bit off (this is the only affected place by rounding) - FIX? measure in milliseconds
             if(e is ElevatorEvent ee)
             {
-                ee.Elevator.Location = ee.Destination.Location;
+                ee.Elevator.Location = ee.CurrentFloor.Location;
             }
         }
 
@@ -97,9 +97,9 @@ namespace ElevatorSystemSimulation
             }
         }
 
-        private void PlanElevator(Elevator elevator, Seconds duration, Floor destination)
+        private void PlanElevator(Elevator elevator, Seconds duration, Floor destination, ElevatorAction action)
         {
-            ElevatorEvent ee = new ElevatorEvent(elevator, CurrentTime + duration, destination);
+            ElevatorEvent ee = new ElevatorEvent(elevator, CurrentTime + duration, destination, action);
 
             _Calendar.AddEvent(ee);
         }
@@ -157,18 +157,20 @@ namespace ElevatorSystemSimulation
     {
         public Seconds WhenPlanned { get; }
         public Elevator Elevator { get; }
-        public Floor Destination { get; }
+        public Floor CurrentFloor { get; }
+        public ElevatorAction FinishedAction { get; }
 
-        public ElevatorEvent(Elevator elevator, Seconds whenPlanner, Floor destination)
+        public ElevatorEvent(Elevator elevator, Seconds whenPlanner, Floor destination, ElevatorAction finishedAction)
         {
             Elevator = elevator;
             WhenPlanned = whenPlanner;
-            Destination = destination;
+            CurrentFloor = destination;
+            FinishedAction = finishedAction;
         }
 
         public override string ToString() => 
             $"WhenPlanned: {WhenPlanned}\n" +
             $"Elevator: {Elevator}\n" +
-            $"Destination: {Destination}";
+            $"Destination: {CurrentFloor}";
     }
 }

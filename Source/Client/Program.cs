@@ -11,6 +11,7 @@ namespace Client
         private List<Elevator> _Elevators { get; set; }
         private Floors _Floors { get; set; }
         private Random _Random { get; }
+        private readonly Dictionary<ElevatorAction, Action<ElevatorEvent>> _DoAfterElevatorAction = new();
 
 
         //TODO: dirty - will be deleted
@@ -22,30 +23,87 @@ namespace Client
             _Elevators = building.ElevatorSystem.Elevators;
             _Floors = building.Floors;
             _Random = new Random();
+
+            _DoAfterElevatorAction[ElevatorAction.MoveTo] += StepAfterMove;
+            _DoAfterElevatorAction[ElevatorAction.UnloadAndLoad] += StepAfterUnloadAndLoad;
+            _DoAfterElevatorAction[ElevatorAction.Idle] += StepAfterIdle;
         }
 
         protected override void Step(ClientsAmazingRequestEvent e)
         {
             Elevator? freeElevator = _Elevators.Find(elevator => elevator.IsIdle);
+
             if(freeElevator != null)
             {
                 freeElevator.MoveTo(e.Floor);
             }
-
-            //TODO: some list of unresolved requests or something
         }
 
         protected override void Step(ElevatorEvent e)
         {
-            if(GetAllCurrentRequestEvents().Any(r => r.Floor == e.Destination))
+            _DoAfterElevatorAction[e.FinishedAction].Invoke(e);
+        }
+
+        //TODO - refactor and implement and run and test ...
+        private void StepAfterMove(ElevatorEvent e)
+        {
+            if(e.Elevator.AttendingRequests.Count > 0 || e.CurrentFloor.Requests.Count > 0)
             {
-                e.Elevator.UnloadAndLoad(e.Destination);
+                e.Elevator.UnloadAndLoad(e.CurrentFloor);
+            }
+            else if(GetAllCurrentRequestEvents().Any())
+            {
+                e.Elevator.MoveTo(GetClosestFloorWithRequest(e.Elevator));
             }
             else
             {
-                e.Elevator.MoveTo(_Floors.GetFloorById(_Random.Next(0,9)));
+                e.Elevator.Idle(e.CurrentFloor);
+
+                Elevator? freeElevator = _Elevators.Find(e => e.IsIdle);
+
+                if(freeElevator != null)
+                {
+                    freeElevator.MoveTo(GetClosestFloorWithRequest(freeElevator));
+                }
             }
         }
+
+        private void StepAfterUnloadAndLoad(ElevatorEvent e)
+        {
+            if (GetAllCurrentRequestEvents().Any())
+            {
+                Floor floor = GetClosestFloorWithRequest(e.Elevator);
+                e.Elevator.MoveTo(floor);
+            }
+            else
+            {
+                e.Elevator.Idle(e.CurrentFloor);
+
+                Elevator? freeElevator = _Elevators.Find(e => e.IsIdle);
+
+                if(freeElevator != null)
+                {
+                    freeElevator.MoveTo(GetClosestFloorWithRequest(freeElevator));
+                }
+            }
+        }
+
+        private void StepAfterIdle(ElevatorEvent e)
+        {
+            Elevator? freeElevator = _Elevators.Find(e => e.IsIdle);
+
+            if(freeElevator != null)
+            {
+                freeElevator.MoveTo(GetClosestFloorWithRequest(freeElevator));
+            }
+        }
+
+        private Floor GetClosestFloorWithRequest(Elevator elevator)
+        {
+            int i = _Random.Next(0, _Floors.Value.Count - 1);
+            return _Floors.Value[i];
+        }
+        //
     }
 
     // implements client - represents capabilities of the elevator system - used only in the clients logic

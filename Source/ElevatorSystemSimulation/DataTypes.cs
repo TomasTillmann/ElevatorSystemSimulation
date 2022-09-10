@@ -99,6 +99,13 @@
         #endregion
     }
 
+    public enum ElevatorAction
+    {
+        MoveTo,
+        UnloadAndLoad,
+        Idle,
+    }
+
     public enum Direction
     {
         Down = -1,

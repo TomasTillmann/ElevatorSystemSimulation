@@ -14,7 +14,7 @@ namespace ElevatorSystemSimulation
 
         #region SimulationPlanning
 
-        public Action<Elevator, Seconds, Floor>? PlanElevator { get; set; }
+        public Action<Elevator, Seconds, Floor, ElevatorAction>? PlanElevator { get; set; }
         public Action<Elevator>? UnplanElevator { get; set; }
         public bool IsIdle { get; private set; } = true; 
         public Direction Direction { get; private set; } = Direction.NoDirection;
@@ -59,7 +59,7 @@ namespace ElevatorSystemSimulation
             IsIdle = false;
 
             SetDirection(floor.Location);
-            PlanMe(GetDistance(floor.Location) / TravelSpeed, floor);
+            PlanMe(GetDistance(floor.Location) / TravelSpeed, floor, ElevatorAction.MoveTo);
         }
 
         public void Idle(Floor? floor)
@@ -77,7 +77,7 @@ namespace ElevatorSystemSimulation
             IsIdle = true;
 
 
-            PlanMe(0.ToSeconds(), floor);
+            PlanMe(0.ToSeconds(), floor, ElevatorAction.Idle);
         }
 
         public void UnloadAndLoad(Floor? floor)
@@ -100,7 +100,7 @@ namespace ElevatorSystemSimulation
             Unload(floor);
             Load(floor);
 
-            PlanMe(DepartingTime, floor);
+            PlanMe(DepartingTime, floor, ElevatorAction.UnloadAndLoad);
         }
 
         public override string ToString() => 
@@ -130,14 +130,14 @@ namespace ElevatorSystemSimulation
             }
         }
 
-        private void PlanMe(Seconds duration, Floor destination)
+        private void PlanMe(Seconds duration, Floor destination, ElevatorAction action)
         {
             if (PlanElevator == null)
             {
                 throw new Exception("Elevator cannot make this action. It is not in simulation yet.");
             }
 
-            PlanElevator(this, duration, destination);
+            PlanElevator(this, duration, destination, action);
         }
 
         private void UnplanMe(Seconds duration, Centimeters location)
