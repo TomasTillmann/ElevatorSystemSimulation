@@ -4,16 +4,18 @@ namespace ElevatorSystemSimulation
 {
     public abstract class ElevatorLogic<RequestEvent> : IElevatorLogic where RequestEvent : IRequestEvent
     {
-        private List<RequestEvent> _Requests { get; } = new();
+        public Building Building { get; }
 
-        protected abstract Building Building { get; set; }
-        protected IReadOnlyCollection<RequestEvent> Requests => _Requests;
+        public ElevatorLogic(Building building)
+        {
+            Building = building;
+        }
 
         public void Step(IEvent e)
         {
             if(e is RequestEvent ce)
             {
-                _Requests.Add(ce);
+                ce.Floor._Requests.Add(ce);
                 Step(ce);
             }
             else if(e is ElevatorEvent ee)
@@ -23,6 +25,17 @@ namespace ElevatorSystemSimulation
             else
             {
                 throw new Exception("Event is something different.");
+            }
+        }
+
+        public IEnumerable<RequestEvent> GetAllCurrentRequestEvents()
+        {
+            foreach(Floor floor in Building.Floors.Value)
+            {
+                foreach(RequestEvent requestEvent in floor.Requests)
+                {
+                    yield return requestEvent;
+                }
             }
         }
 

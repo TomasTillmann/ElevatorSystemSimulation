@@ -62,12 +62,16 @@ namespace ElevatorSystemSimulation
             }
             else
             {
-                _LastStepTime = CurrentTime;
-                CurrentTime = e.WhenPlanned;
-
+                SetCurrentTime(e.WhenPlanned);
                 SetElevatorsLocations(e);
                 CurrentLogic.Step(e);
             }
+        }
+
+        private void SetCurrentTime(Seconds whenPlanned)
+        {
+            _LastStepTime = CurrentTime;
+            CurrentTime = whenPlanned;
         }
 
         private void SetElevatorsLocations(IEvent e)

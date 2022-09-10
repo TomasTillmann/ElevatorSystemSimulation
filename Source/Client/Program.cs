@@ -12,15 +12,13 @@ namespace Client
         private Floors _Floors { get; set; }
         private Random _Random { get; }
 
-        protected override Building Building { get; set; } 
 
         //TODO: dirty - will be deleted
         public View? View { get; set; }
 
         public ClientsElevatorIncredbleAlgorithm(Building building)
+        :base(building)
         {
-            Building = building;
- 
             _Elevators = building.ElevatorSystem.Elevators;
             _Floors = building.Floors;
             _Random = new Random();
@@ -39,9 +37,9 @@ namespace Client
 
         protected override void Step(ElevatorEvent e)
         {
-            if(Requests.Any(r => r.Floor == e.Destination))
+            if(GetAllCurrentRequestEvents().Any(r => r.Floor == e.Destination))
             {
-                e.Elevator.Load(e.Destination);
+                e.Elevator.UnloadAndLoad(e.Destination);
             }
             else
             {
@@ -56,19 +54,19 @@ namespace Client
     {
         public Seconds WhenPlanned { get; } 
         public Floor Floor { get; } 
-        public Floor FloorDestination { get; }
+        public Floor Destination { get; }
 
-        public ClientsAmazingRequestEvent(Floor floor, Seconds whenPlanned, Floor floorDestination)
+        public ClientsAmazingRequestEvent(Floor floor, Seconds whenPlanned, Floor destination)
         {
             Floor = floor;
             WhenPlanned = whenPlanned;
-            FloorDestination = floorDestination;
+            Destination = destination;
         }
 
         public override string ToString() => 
             $"WhenPlanned: {WhenPlanned}\n" +
             $"Floor: {Floor.Location}\n" +
-            $"Destination: {FloorDestination}";
+            $"Destination: {Destination}";
     }
 
     // Optional, but very useful

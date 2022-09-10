@@ -5,18 +5,33 @@ namespace ElevatorSystemSimulation
 {
     public class Elevator
     {
-        private static int Counter = 0;
+        #region Identification
 
+        private static int Counter = 0;
         public int Id { get; }
+
+        #endregion
+
+        #region SimulationPlanning
+
         public Action<Elevator, Seconds, Floor>? PlanElevator { get; set; }
         public Action<Elevator>? UnplanElevator { get; set; }
         public bool IsIdle { get; private set; } = true; 
+        public Direction Direction { get; private set; } = Direction.NoDirection;
+        public Centimeters Location { get; set; }
+        public IReadOnlyCollection<IRequestEvent> AttendingRequests => AttendingRequests;
+        protected readonly List<IRequestEvent> _AttendingRequests  = new();
+
+        #endregion
+
+        #region Parameters
+
         public CentimetersPerSecond TravelSpeed { get; }
         public CentimetersPerSecond AccelerationDelaySpeed { get; }
         public Seconds DepartingTime { get; }
         public int Capacity { get; }
-        public Direction Direction { get; private set; } = Direction.NoDirection;
-        public Centimeters Location { get; set; }
+
+        #endregion
 
         public Elevator(
             CentimetersPerSecond travelSpeed,
@@ -65,7 +80,7 @@ namespace ElevatorSystemSimulation
             PlanMe(0.ToSeconds(), floor);
         }
 
-        public void Load(Floor? floor)
+        public void UnloadAndLoad(Floor? floor)
         {
             //TODO - implement loading - need to delete requests that were served by loading
             if(floor == null)
@@ -75,23 +90,44 @@ namespace ElevatorSystemSimulation
 
             if (Location != floor.Location)
             {
-                throw new Exception("Elevator cannot load people. Elevators can load people only when fully in a floor");
+                throw new Exception("Elevator cannot load people. Elevators can load people only when fully in a floor.");
             }
 
             //TODO - IMPLEMENT: depart out + depart in time - maybe no one to depart out or no one to depart in on the floor 
 
             IsIdle = false;
 
+            Unload(floor);
+            Load(floor);
+
             PlanMe(DepartingTime, floor);
         }
+
         public override string ToString() => 
             $"ElevatorId: {Id}\n" +
             $"ElevatorLocation: {Location}";
 
-
         internal void SetLocation(Seconds stepDuration)
         {
             Location += Direction * (TravelSpeed * stepDuration);
+        }
+
+        private void Unload(Floor floor)
+        {
+            _AttendingRequests.RemoveAll(r => r.Destination == floor);
+        }
+
+        private void Load(Floor floor)
+        {
+            // implicitly adding requests that are the longest in the floor
+
+            foreach(IRequestEvent request in floor.Requests)
+            {
+                if(_AttendingRequests.Count < Capacity)
+                {
+                    _AttendingRequests.Add(request);
+                }
+            }
         }
 
         private void PlanMe(Seconds duration, Floor destination)
@@ -132,6 +168,8 @@ namespace ElevatorSystemSimulation
         public Centimeters Location { get; set; }
         public int FloorId { get; }
         public Centimeters Height { get; }
+        public IReadOnlyCollection<IRequestEvent> Requests => _Requests; 
+        internal List<IRequestEvent> _Requests { get; } = new();
         public string? Name { get; }
 
         public Floor(int floorId, Centimeters height, string? name = null)

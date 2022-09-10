@@ -16,6 +16,7 @@
         public interface IRequestEvent : IEvent
         {
             Floor Floor { get; }
+            Floor Destination { get; }
         }
 
         //public interface IElevatorActions
