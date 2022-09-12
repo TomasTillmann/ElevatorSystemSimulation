@@ -5,7 +5,9 @@ VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElevatorSystemSimulation", "ElevatorSystemSimulation.csproj", "{D9F3C424-872C-4718-B592-7B19A4C40803}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "..\Client\Client.csproj", "{D28B9FFC-E447-4321-B5C2-DFFB52ACC466}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "..\Client\Client.csproj", "{D28B9FFC-E447-4321-B5C2-DFFB52ACC466}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI", "..\UI\UI.csproj", "{30359D8C-066F-461D-853D-229D9452A153}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{D28B9FFC-E447-4321-B5C2-DFFB52ACC466}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D28B9FFC-E447-4321-B5C2-DFFB52ACC466}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D28B9FFC-E447-4321-B5C2-DFFB52ACC466}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30359D8C-066F-461D-853D-229D9452A153}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30359D8C-066F-461D-853D-229D9452A153}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30359D8C-066F-461D-853D-229D9452A153}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30359D8C-066F-461D-853D-229D9452A153}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -52,7 +52,7 @@ namespace ElevatorSystemSimulation
             }
         }
 
-        private void Step()
+        public void Step()
         {
             IEvent? e = _Calendar.GetEvent();
 
