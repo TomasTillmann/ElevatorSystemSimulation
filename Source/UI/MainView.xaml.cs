@@ -15,12 +15,9 @@ using System.Windows.Shapes;
 
 namespace UI
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainView : UserControl
     {
-        public MainWindow()
+        public MainView()
         {
             InitializeComponent();
         }
