@@ -5,21 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:UI"
              xmlns:elevatorSystemSimulation="clr-namespace:ElevatorSystemSimulation;assembly=ElevatorSystemSimulation"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             mc:Ignorable="d">
 
     <UserControl.DataContext>
         <local:MainViewModel/>
     </UserControl.DataContext>
 
     <UserControl.Resources>
-        <DataTemplate DataType="{x:Type elevatorSystemSimulation:Elevator}">
-            <StackPanel>
-                <TextBlock>
-                    ELEVATOR
-                </TextBlock>
-            </StackPanel>
-        </DataTemplate>
+        <local:AdderConverter x:Key="adderConverter"/>
     </UserControl.Resources>
 
     <StackPanel>
@@ -27,16 +20,22 @@
             <Button Command="{Binding StepCommand}" Content="STEP" Height="50" Width="200" Margin="10"/>
         </StackPanel>
 
-        <StackPanel Background="WhiteSmoke">
-            <ItemsControl ItemsSource="{Binding Elevators}">
-                <!--TODO - 2D graphics-->
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-            </ItemsControl>
-        </StackPanel>
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <StackPanel Height="10000">
+                <Canvas x:Name="canvas"
+                        Background="NavajoWhite"
+                        Width="{Binding Width, ElementName=buildingView, Converter={StaticResource adderConverter}, ConverterParameter=50}"
+                        Height="{Binding Height, ElementName=buildingView, Converter={StaticResource adderConverter}, ConverterParameter=20}">
+
+                    <local:BuildingView x:Name="buildingView"
+                                        Elevators="{Binding Elevators}"
+                                        Floors="{Binding Floors}"
+                                        Width="400"
+                                        Height="10000"/>
+
+                </Canvas>
+            </StackPanel>
+        </ScrollViewer>
     </StackPanel>
 
 </UserControl>
