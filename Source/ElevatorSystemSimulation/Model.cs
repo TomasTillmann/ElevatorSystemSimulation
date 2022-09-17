@@ -199,11 +199,11 @@ namespace ElevatorSystemSimulation
     public class Floors
     {
         public List<Floor> Value { get; } = new();
-        public Centimeters InBetweenFloorsSpace { get; }
+        //public Centimeters InBetweenFloorsSpace { get; }
 
         public Floors(List<Floor> value, Centimeters inBetweenFloorsSpace)
         {
-            InBetweenFloorsSpace = inBetweenFloorsSpace;
+            //InBetweenFloorsSpace = inBetweenFloorsSpace;
 
             // avoiding sorting value too
             foreach(Floor floor in value)
@@ -229,7 +229,7 @@ namespace ElevatorSystemSimulation
             {
                 floor.Location = totalHeight;
                 totalHeight += floor.Height;
-                totalHeight += InBetweenFloorsSpace;
+                //totalHeight += InBetweenFloorsSpace;
             }
         }
     }

@@ -23,6 +23,12 @@ namespace UI
         public List<FloorViewModel> Floors { get => (List<FloorViewModel>)GetValue(FloorsProperty); set => SetValue(FloorsProperty, value); }
         public static readonly DependencyProperty FloorsProperty = DependencyProperty.Register("Floors", typeof(List<FloorViewModel>), typeof(MainViewModel));
 
+        public List<SettingItem> Settings { get => (List<SettingItem>)GetValue(SettingsProperty); set => SetValue(SettingsProperty, value); }
+        public static readonly DependencyProperty SettingsProperty = DependencyProperty.Register("Settings", typeof(List<SettingItem>), typeof(MainViewModel));
+
+        public double BuildingScale { get { return (double)GetValue(BuildingScaleProperty); } set { SetValue(BuildingScaleProperty, value); } }
+        public static readonly DependencyProperty BuildingScaleProperty = DependencyProperty.Register("Scale", typeof(double), typeof(MainViewModel), new PropertyMetadata(0.5));
+
         public MainViewModel()
         {
             _Simulation = GetSimulation();
@@ -42,16 +48,16 @@ namespace UI
                     new Floor(3, 250.ToCentimeters()),
                     new Floor(4, 250.ToCentimeters()),
                     new Floor(5, 250.ToCentimeters()),
-                    //new Floor(6, 250.ToCentimeters()),
-                    //new Floor(7, 250.ToCentimeters()),
-                    //new Floor(8, 250.ToCentimeters()),
-                    //new Floor(9, 250.ToCentimeters()),
-                    //new Floor(10, 250.ToCentimeters()),
-                    //new Floor(11, 250.ToCentimeters()),
-                    //new Floor(12, 250.ToCentimeters()),
-                    //new Floor(13, 250.ToCentimeters()),
-                    //new Floor(14, 250.ToCentimeters()),
-                    //new Floor(15, 250.ToCentimeters()),
+                    new Floor(6, 250.ToCentimeters()),
+                    new Floor(7, 250.ToCentimeters()),
+                    new Floor(8, 250.ToCentimeters()),
+                    new Floor(9, 250.ToCentimeters()),
+                    new Floor(10, 250.ToCentimeters()),
+                    new Floor(11, 250.ToCentimeters()),
+                    new Floor(12, 250.ToCentimeters()),
+                    new Floor(13, 250.ToCentimeters()),
+                    new Floor(14, 250.ToCentimeters()),
+                    new Floor(15, 250.ToCentimeters()),
                     //new Floor(16, 250.ToCentimeters()),
                     //new Floor(17, 250.ToCentimeters()),
                     //new Floor(18, 250.ToCentimeters()),
@@ -73,7 +79,9 @@ namespace UI
                 new List<Elevator>()
                 {
                     new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(0)),
-                    new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(0)),
+                    new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(15)),
+                    new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(14)),
+                    new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(2)),
                 }
             );
 
@@ -108,18 +116,27 @@ namespace UI
     }
     public class ElevatorViewModel : ViewModelBase<Elevator>
     {
+        public Centimeters Location { get; } 
         public ElevatorViewModel(Elevator elevator)
         : base(elevator)
         {
+            Location = elevator.Location;
         }
     }
 
     public class FloorViewModel : ViewModelBase<Floor>
     {
+        public Centimeters Height { get; }
         public FloorViewModel(Floor floor)
         :base(floor)
         {
+            Height = floor.Height;
         }
+    }
+
+    public class SettingItem
+    {
+
     }
 
     public class AdderConverter : IValueConverter

@@ -15,27 +15,48 @@
         <local:AdderConverter x:Key="adderConverter"/>
     </UserControl.Resources>
 
-    <StackPanel>
-        <StackPanel Background="white" Margin="0 0 0 10">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Bottom" Background="WhiteSmoke" Margin="0 0 0 10">
             <Button Command="{Binding StepCommand}" Content="STEP" Height="50" Width="200" Margin="10"/>
         </StackPanel>
 
-        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-            <StackPanel Height="10000">
-                <Canvas x:Name="canvas"
-                        Background="NavajoWhite"
-                        Width="{Binding Width, ElementName=buildingView, Converter={StaticResource adderConverter}, ConverterParameter=50}"
-                        Height="{Binding Height, ElementName=buildingView, Converter={StaticResource adderConverter}, ConverterParameter=20}">
+        <Grid DockPanel.Dock="Top">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="6*"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-                    <local:BuildingView x:Name="buildingView"
-                                        Elevators="{Binding Elevators}"
-                                        Floors="{Binding Floors}"
-                                        Width="400"
-                                        Height="10000"/>
+                <Grid Grid.Column="0"
+                      x:Name="canvas"
+                      Background="NavajoWhite">
+                    <ScrollViewer  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <Viewbox Stretch="Uniform">
+                            <local:BuildingView x:Name="buildingView"
+                                                Margin="0,50,0,0"
+                                                Background="Gray"
+                                                Scale="{Binding BuildingScale}"
+                                                HorizontalAlignment="center"
+                                                VerticalAlignment="center"
+                                                Elevators="{Binding Elevators}"
+                                                Floors="{Binding Floors}"
+                                                ElevatorViewWidth="70"
+                                                ElevatorViewHeight="110"/>
+                        </Viewbox>
+                    </ScrollViewer>
+                </Grid>
 
-                </Canvas>
-            </StackPanel>
-        </ScrollViewer>
-    </StackPanel>
+                <GridSplitter Grid.Column="1" Width="10" HorizontalAlignment="Stretch"/>
+
+                <Grid Grid.Column="2">
+                    <StackPanel>
+                        <TextBlock Text="Settings" Margin="30,10,0,10" FontSize="21"/>
+                        <ItemsControl ItemsSource="{Binding Settings}"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Grid>
+    </DockPanel>
 
 </UserControl>
