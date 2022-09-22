@@ -15,6 +15,7 @@ namespace UI
 {
     public class MainViewModel : DependencyObject
     {
+        // Model
         private Simulation _Simulation { get; }
 
         public List<ElevatorViewModel> Elevators { get => (List<ElevatorViewModel>)GetValue(ElevatorsProperty); set => SetValue(ElevatorsProperty, value); }
@@ -37,8 +38,17 @@ namespace UI
             Floors = _Simulation.Building.Floors.Value.Select(f => new FloorViewModel(f)).ToList();
         }
 
+        public void Step()
+        {
+            _Simulation.Step();
+
+            UpdateElevatorViewModels();
+            UpdateFloorViewModels();
+        }
+
         private Simulation GetSimulation()
         {
+            // Mock Data
             Floors floors = new(
                 new List<Floor>()
                 {
@@ -58,19 +68,19 @@ namespace UI
                     new Floor(13, 250.ToCentimeters()),
                     new Floor(14, 250.ToCentimeters()),
                     new Floor(15, 250.ToCentimeters()),
-                    //new Floor(16, 250.ToCentimeters()),
-                    //new Floor(17, 250.ToCentimeters()),
-                    //new Floor(18, 250.ToCentimeters()),
-                    //new Floor(19, 250.ToCentimeters()),
-                    //new Floor(20, 250.ToCentimeters()),
-                    //new Floor(21, 250.ToCentimeters()),
-                    //new Floor(22, 250.ToCentimeters()),
-                    //new Floor(23, 250.ToCentimeters()),
-                    //new Floor(24, 250.ToCentimeters()),
-                    //new Floor(25, 250.ToCentimeters()),
-                    //new Floor(26, 250.ToCentimeters()),
-                    //new Floor(27, 250.ToCentimeters()),
-                    //new Floor(28, 250.ToCentimeters()),
+                    new Floor(16, 250.ToCentimeters()),
+                    new Floor(17, 250.ToCentimeters()),
+                    new Floor(18, 250.ToCentimeters()),
+                    new Floor(19, 250.ToCentimeters()),
+                    new Floor(20, 250.ToCentimeters()),
+                    new Floor(21, 250.ToCentimeters()),
+                    new Floor(22, 250.ToCentimeters()),
+                    new Floor(23, 250.ToCentimeters()),
+                    new Floor(24, 250.ToCentimeters()),
+                    new Floor(25, 250.ToCentimeters()),
+                    new Floor(26, 250.ToCentimeters()),
+                    new Floor(27, 250.ToCentimeters()),
+                    new Floor(28, 250.ToCentimeters()),
                 },
                 10.ToCentimeters()
             );
@@ -82,6 +92,9 @@ namespace UI
                     new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(15)),
                     new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(14)),
                     new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(2)),
+                    new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(2)),
+                    //new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(2)),
+                    //new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(2)),
                 }
             );
 
@@ -91,33 +104,35 @@ namespace UI
             Seconds totalSimulationRunningTime = 1000.ToSeconds();
 
             return new(building, elevatorLogic, totalSimulationRunningTime, generator.Generate(60, floors, totalSimulationRunningTime));
+            //
         }
 
-        #region Commands
-
-        #region SimulationStep
-
-        public ICommand StepCommand => _stepCommand ??= new CommandHandler(Step, CanStep);
-        private ICommand? _stepCommand;
-
-        private bool CanStep() => true;
-
-        private void Step()
+        private void UpdateElevatorViewModels()
         {
-            if (CanStep())
+            int i = 0;
+            foreach(ElevatorViewModel elevatorViewModel in Elevators)
             {
-                _Simulation.Step();
+                Elevator elevator = _Simulation.Building.ElevatorSystem.Elevators[i++];
+                elevatorViewModel.Location = elevator.Location;
+                elevatorViewModel.PeopleCount = elevator.AttendingRequests.Count;
             }
         }
 
-        #endregion
-
-        #endregion
+        private void UpdateFloorViewModels()
+        {
+            int i = 0;
+            foreach(FloorViewModel floorViewModel in Floors)
+            {
+                Floor floor = _Simulation.Building.Floors.Value[i++];
+                floorViewModel.Requests = floor.Requests;
+            }
+        }
     }
+
     public class ElevatorViewModel : ViewModelBase<Elevator>
     {
-        public Centimeters Location { get; } 
-        public int PeopleCount { get; }
+        public Centimeters Location { get; set; } 
+        public int PeopleCount { get; set; }
         public ElevatorViewModel(Elevator elevator)
         : base(elevator)
         {
@@ -128,8 +143,8 @@ namespace UI
 
     public class FloorViewModel : ViewModelBase<Floor>
     {
-        public Centimeters Height { get; }
-        public IReadOnlyCollection<IRequestEvent> Requests { get; } 
+        public Centimeters Height { get; set; }
+        public IReadOnlyCollection<IRequestEvent> Requests { get; set; } 
 
         public FloorViewModel(Floor floor)
 

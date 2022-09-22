@@ -14,15 +14,16 @@
     </UserControl.Resources>
 
     <Grid>
-        <Canvas x:Name="surroundings"
+        <Viewbox Stretch="Uniform">
+            <Canvas x:Name="surroundings"
                 Background="{Binding Background, ElementName=root}"
                 Panel.ZIndex="-1000">
 
-            <Canvas.LayoutTransform>
-                <ScaleTransform ScaleX="{Binding Scale, ElementName=root}" ScaleY="{Binding Scale, ElementName=root}" />
-            </Canvas.LayoutTransform>
+                <Canvas.LayoutTransform>
+                    <ScaleTransform ScaleX="{Binding Scale, ElementName=root}" ScaleY="{Binding Scale, ElementName=root}" />
+                </Canvas.LayoutTransform>
 
-            <Border BorderThickness="2,2,2,0"
+                <Border BorderThickness="2,2,2,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     BorderBrush="Black"
@@ -30,9 +31,10 @@
                     Canvas.Left="{Binding BuildingVerticalLocation, ElementName=root}"
                     Canvas.Bottom="{Binding BuildingHorizontalLocation, ElementName=root}">
 
-                <Canvas x:Name="building"
+                    <Canvas x:Name="building"
                         Background="{Binding BuildingBackground, ElementName=root}"/>
-            </Border>
-        </Canvas>
+                </Border>
+            </Canvas>
+        </Viewbox>
     </Grid>
 </UserControl>

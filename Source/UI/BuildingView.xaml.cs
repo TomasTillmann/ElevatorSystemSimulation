@@ -23,6 +23,7 @@ namespace UI
 
         private List<ElevatorView> _ElevatorViews;
         private List<FloorView> _FloorViews;
+        private List<RequestView> _RequestViews = new();
 
         public List<ElevatorViewModel> Elevators { get => (List<ElevatorViewModel>)GetValue(ElevatorsProperty); set => SetValue(ElevatorsProperty, value); }
         public static readonly DependencyProperty ElevatorsProperty = DependencyProperty.Register("Elevators", typeof(List<ElevatorViewModel>), typeof(BuildingView), new FrameworkPropertyMetadata(null, OnFloorsOrElevatorsChanged));
@@ -51,12 +52,12 @@ namespace UI
         public BuildingView()
         {
             InitializeComponent();
-            InitBuilding();
+            Init();
 
             PreviewMouseWheel += OnPreviewMouseWheelMoving; 
         }
 
-        public void InitBuilding()
+        public void Init()
         {
             if(Elevators == null || Floors == null)
             {
@@ -87,6 +88,12 @@ namespace UI
             DrawRequests();
             DrawFloorSeparators();
             DrawGround();
+        }
+
+        public void UpdateViewAfterStep()
+        {
+            UpdateElevators();
+            UpdateRequests();
         }
 
         private void DrawBuilding()
@@ -144,7 +151,7 @@ namespace UI
             double horizontalPosition = BuildingHorizontalLocation; 
             for(int i = 0; i < Floors.Count; i++)
             {
-                RequestView onFloorRequestsView = new()
+                RequestView requestViewOnFloor = new()
                 {
                     Text = Floors[i].Requests.Count.ToString(),
                     TextHeight = ElevatorViewHeight,
@@ -153,11 +160,13 @@ namespace UI
                     FloorWidth = ElevatorViewWidth + WallMargin
                 };
 
-                surroundings.Children.Add(onFloorRequestsView);
-                Canvas.SetLeft(onFloorRequestsView, BuildingVerticalLocation + building.Width);
-                Canvas.SetBottom(onFloorRequestsView, horizontalPosition);
-                Panel.SetZIndex(onFloorRequestsView, -1);
+                surroundings.Children.Add(requestViewOnFloor);
+                Canvas.SetLeft(requestViewOnFloor, BuildingVerticalLocation + building.Width);
+                Canvas.SetBottom(requestViewOnFloor, horizontalPosition);
+                Panel.SetZIndex(requestViewOnFloor, -1);
                 horizontalPosition += ElevatorViewHeight + WallMargin;
+
+                _RequestViews.Add(requestViewOnFloor);
             }
         }
 
@@ -190,6 +199,27 @@ namespace UI
 
             surroundings.Children.Add(ground);
             Canvas.SetBottom(ground, 0);
+        }
+
+        private void UpdateElevators()
+        {
+            int i = 0;
+            foreach(ElevatorView elevatorView in _ElevatorViews)
+            {
+                ElevatorViewModel elevatorViewModel = Elevators[i++]; 
+                Canvas.SetBottom(elevatorView, GetElevatorsViewVerticalLocation(elevatorViewModel, Floors[0].Height)); //TODO - get floor height better way - for now all floors have the same height
+                elevatorView.PeopleCount = elevatorViewModel.PeopleCount;
+            }
+        }
+
+
+        private void UpdateRequests()
+        {
+            int i = 0;
+            foreach(RequestView request in _RequestViews)
+            {
+                request.Text = Floors[i++].Requests.Count.ToString();
+            }
         }
 
         private double GetElevatorsViewVerticalLocation(ElevatorViewModel elevatorViewModel, Centimeters floorHeight)
@@ -238,7 +268,7 @@ namespace UI
         {
             if(d is BuildingView buildingView)
             {
-                buildingView.InitBuilding();
+                buildingView.Init();
             }
         }
     }

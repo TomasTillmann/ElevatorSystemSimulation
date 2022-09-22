@@ -1,6 +1,8 @@
-﻿namespace UI
+﻿using System.Windows;
+
+namespace UI
 {
-    public class ViewModelBase<TModel>
+    public abstract class ViewModelBase<TModel> : DependencyObject
     {
         protected TModel Model { get; }
 
