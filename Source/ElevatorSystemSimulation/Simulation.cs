@@ -24,6 +24,7 @@ namespace ElevatorSystemSimulation
         public IElevatorLogic CurrentLogic { get; }
         public Building Building { get; }
         public Seconds TotalTime { get; }
+        public int StepCount { get; private set; }
 
         public Simulation(
             Building building,
@@ -35,17 +36,14 @@ namespace ElevatorSystemSimulation
             Building = building;
             TotalTime = totalTime;
 
-            _Requests = requests; 
+            _Requests = requests;
+
+            _Calendar.Init(_Requests);
             SetElevatorsIPlannableProperties();
         }
 
         public void Run()
         {
-            foreach (IEvent request in Requests)
-            {
-                _Calendar.AddEvent(request);
-            }
-
             while (CurrentTime < TotalTime && !_TerminateSimulation)
             {
                 Step();
@@ -54,6 +52,7 @@ namespace ElevatorSystemSimulation
 
         public void Step()
         {
+            StepCount += 1;
             IEvent? e = _Calendar.GetEvent();
 
             if(e == null)
@@ -66,6 +65,19 @@ namespace ElevatorSystemSimulation
                 SetElevatorsLocations(e);
                 CurrentLogic.Step(e);
             }
+        }
+
+        public void Restart()
+        {
+            Building.ElevatorSystem.Elevators.ForEach(elevator => elevator.Restart());
+            Building.Floors.Value.ForEach(floor => floor.Restart());
+
+            CurrentTime = 0.ToSeconds();
+            _LastStepTime = 0.ToSeconds();
+            StepCount = 0;
+
+            _Calendar.Clear();
+            _Calendar.Init(_Requests);
         }
 
         private void SetCurrentTime(Seconds whenPlanned)
@@ -139,6 +151,14 @@ namespace ElevatorSystemSimulation
             public void Clear()
             {
                 Events.Clear();
+            }
+
+            public void Init(IEnumerable<IRequestEvent> requests)
+            {
+                foreach (IEvent request in requests)
+                {
+                    AddEvent(request);
+                }
             }
 
             private class TimeComparer : Comparer<Seconds>

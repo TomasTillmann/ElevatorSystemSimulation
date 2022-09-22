@@ -87,6 +87,7 @@ namespace UI
             DrawElevators();
             DrawRequests();
             DrawFloorSeparators();
+            DrawFloorIds();
             DrawGround();
         }
 
@@ -142,6 +143,7 @@ namespace UI
                 building.Children.Add(elevatorView);
                 Canvas.SetBottom(elevatorView, GetElevatorsViewVerticalLocation(elevatorViewModel, Floors[0].Height)); //TODO - get floor height better way - for now all floors have the same height
                 Canvas.SetLeft(elevatorView, WallMargin + horizontalPosition);
+                Panel.SetZIndex(elevatorView, 1000);
                 horizontalPosition += ElevatorViewWidth + WallMargin;
             }
         }
@@ -201,6 +203,27 @@ namespace UI
             Canvas.SetBottom(ground, 0);
         }
 
+        private void DrawFloorIds()
+        {
+            double verticalShift = 2 * WallMargin + ElevatorViewHeight / 2;
+            for(int i = 0; i < Floors.Count; i++)
+            {
+                TextBox id = new()
+                {
+                    Text = Floors[i].Id.ToString(),
+                    Background = new SolidColorBrush(Colors.Transparent),
+                    FontSize = 20,
+                    BorderBrush = new SolidColorBrush(Colors.Transparent),
+                };
+
+                surroundings.Children.Add(id);
+                Canvas.SetLeft(id, BuildingHorizontalLocation + (surroundings.Width - building.Width) / 2 - 6 * WallMargin);
+                Canvas.SetBottom(id, verticalShift);
+                verticalShift += ElevatorViewHeight + WallMargin;
+
+            }
+        }
+
         private void UpdateElevators()
         {
             int i = 0;
@@ -211,7 +234,6 @@ namespace UI
                 elevatorView.PeopleCount = elevatorViewModel.PeopleCount;
             }
         }
-
 
         private void UpdateRequests()
         {
@@ -270,6 +292,11 @@ namespace UI
             {
                 buildingView.Init();
             }
+        }
+
+        public void Update(object sender, RoutedEventArgs e)
+        {
+            UpdateViewAfterStep();
         }
     }
 

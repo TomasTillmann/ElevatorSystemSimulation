@@ -18,9 +18,17 @@ namespace UI
 {
     public partial class MainView : UserControl
     {
+        public new MainViewModel DataContext => (MainViewModel)base.DataContext;
+
         public MainView()
         {
             InitializeComponent();
+
+            stepButton.Click += DataContext.Step;
+            stepButton.Click += buildingView.Update;
+
+            restartButton.Click += DataContext.Restart;
+            restartButton.Click += buildingView.Update;
         }
     }
 }
