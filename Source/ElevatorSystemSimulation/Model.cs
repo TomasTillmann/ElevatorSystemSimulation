@@ -19,7 +19,7 @@ namespace ElevatorSystemSimulation
         public bool IsIdle { get; private set; } = true; 
         public Direction Direction { get; private set; } = Direction.NoDirection;
         public Centimeters Location { get; set; }
-        public IReadOnlyCollection<IRequestEvent> AttendingRequests => AttendingRequests;
+        public IReadOnlyCollection<IRequestEvent> AttendingRequests => _AttendingRequests;
         protected readonly List<IRequestEvent> _AttendingRequests  = new();
 
         #endregion

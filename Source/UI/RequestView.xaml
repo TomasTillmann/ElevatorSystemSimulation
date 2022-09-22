@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="UI.RequestView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:UI"
+             mc:Ignorable="d" 
+             x:Name="root">
+    <Grid ToolTip="Number of people waiting on the floor">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0"
+             Height="{Binding TextHeight, ElementName=root}"
+             Width="{Binding TextWidth, ElementName=root}">
+            <TextBox Text="{Binding Text, ElementName=root}"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     FontSize="40">
+            </TextBox>
+        </Border>
+
+        <Rectangle Grid.Row="1" Fill="Gold"
+                   Height="{Binding FloorHeight, ElementName=root}"
+                   Width="{Binding FloorWidth, ElementName=root}"/>
+    </Grid>
+</UserControl>

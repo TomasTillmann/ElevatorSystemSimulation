@@ -117,20 +117,26 @@ namespace UI
     public class ElevatorViewModel : ViewModelBase<Elevator>
     {
         public Centimeters Location { get; } 
+        public int PeopleCount { get; }
         public ElevatorViewModel(Elevator elevator)
         : base(elevator)
         {
             Location = elevator.Location;
+            PeopleCount = elevator.AttendingRequests.Count;
         }
     }
 
     public class FloorViewModel : ViewModelBase<Floor>
     {
         public Centimeters Height { get; }
+        public IReadOnlyCollection<IRequestEvent> Requests { get; } 
+
         public FloorViewModel(Floor floor)
+
         :base(floor)
         {
             Height = floor.Height;
+            Requests = floor.Requests;
         }
     }
 
@@ -139,6 +145,7 @@ namespace UI
 
     }
 
+    #region Converters
     public class AdderConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -161,4 +168,5 @@ namespace UI
             return value;
         }
     }
+    #endregion
 }

@@ -8,6 +8,17 @@
              d:DesignHeight="450" d:DesignWidth="800"
              x:Name="root">
 
-    <Rectangle Width="{Binding Width, ElementName=root}" Height="{Binding Height, ElementName=root}" Fill="LightGray"/>
+    <Grid ToolTip="Number of people in the elevator">
+        <Border BorderBrush="Black" BorderThickness="1.5" CornerRadius="2">
+            <Rectangle Width="{Binding Width, ElementName=root}"
+                       Height="{Binding Height, ElementName=root}"
+                       Fill="LightGray">
+            </Rectangle>
+        </Border>
+        <TextBlock Text="{Binding PeopleCount, ElementName=root}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontSize="40"/>
+    </Grid>
 
 </UserControl>

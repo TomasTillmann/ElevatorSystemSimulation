@@ -20,6 +20,9 @@ namespace UI
     /// </summary>
     public partial class ElevatorView : UserControl
     {
+        public int PeopleCount { get { return (int)GetValue(PeopleCountProperty); } set { SetValue(PeopleCountProperty, value); } }
+        public static readonly DependencyProperty PeopleCountProperty = DependencyProperty.Register("PeopleCount", typeof(int), typeof(ElevatorView), new PropertyMetadata(0));
+
         public ElevatorView()
         {
             InitializeComponent();

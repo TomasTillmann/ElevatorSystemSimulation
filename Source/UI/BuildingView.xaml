@@ -6,11 +6,33 @@
              xmlns:local="clr-namespace:UI"
              mc:Ignorable="d"
              x:Name="root">
+
+    <UserControl.Resources>
+        <local:DividerConverter x:Key="dividerConverter"/>
+        <local:AdderConverter x:Key="adderConverter"/>
+        <local:GetLeftLocationFromCenterConverter x:Key="getLeftLocationFromCenterConverter"/>
+    </UserControl.Resources>
+
     <Grid>
-        <Canvas x:Name="building">
+        <Canvas x:Name="surroundings"
+                Background="{Binding Background, ElementName=root}"
+                Panel.ZIndex="-1000">
+
             <Canvas.LayoutTransform>
                 <ScaleTransform ScaleX="{Binding Scale, ElementName=root}" ScaleY="{Binding Scale, ElementName=root}" />
             </Canvas.LayoutTransform>
+
+            <Border BorderThickness="2,2,2,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BorderBrush="Black"
+                    Panel.ZIndex="10"
+                    Canvas.Left="{Binding BuildingVerticalLocation, ElementName=root}"
+                    Canvas.Bottom="{Binding BuildingHorizontalLocation, ElementName=root}">
+
+                <Canvas x:Name="building"
+                        Background="{Binding BuildingBackground, ElementName=root}"/>
+            </Border>
         </Canvas>
     </Grid>
 </UserControl>
