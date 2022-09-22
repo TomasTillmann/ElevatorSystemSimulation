@@ -27,6 +27,7 @@
               Background="SkyBlue">
             <ScrollViewer  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <Grid>
+                    <TextBlock Text="{Binding StepCount, StringFormat={}Step Count: {0}}" FontSize="20" Margin="20"/>
                     <local:BuildingView x:Name="buildingView"
                                         Margin="0,50,0,0"
                                         Background="SkyBlue"
@@ -45,14 +46,22 @@
         <GridSplitter Grid.Column="1" Width="10" HorizontalAlignment="Stretch"/>
 
         <DockPanel Grid.Column="2">
-            <DockPanel DockPanel.Dock="Bottom" Background="FloralWhite">
-                <Button DockPanel.Dock="Right"
-                        Command="{Binding StepCommand}"
-                        Content="STEP"
-                        Height="30"
-                        Width="200"
-                        Margin="10"/>
-            </DockPanel>
+            <Grid DockPanel.Dock="Bottom" Background="FloralWhite" Height="40">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                    <RepeatButton Grid.Column="0" 
+                                  x:Name="stepButton"
+                                  Content="Step"
+                                  Margin="6"/>
+
+                    <Button Grid.Column="1"
+                            x:Name="restartButton"
+                            Content="Restart"
+                            Margin="6"/>
+            </Grid>
 
             <StackPanel>
                 <TextBlock Text="Settings" Margin="30,10,0,10" FontSize="21"/>

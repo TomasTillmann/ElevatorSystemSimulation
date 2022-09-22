@@ -12,7 +12,7 @@ namespace ElevatorSystemSimulation
 
         #endregion
 
-        #region SimulationPlanning
+        #region Simulation
 
         public Action<Elevator, Seconds, Floor, ElevatorAction>? PlanElevator { get; set; }
         public Action<Elevator>? UnplanElevator { get; set; }
@@ -21,6 +21,14 @@ namespace ElevatorSystemSimulation
         public Centimeters Location { get; set; }
         public IReadOnlyCollection<IRequestEvent> AttendingRequests => _AttendingRequests;
         protected readonly List<IRequestEvent> _AttendingRequests  = new();
+
+        public void Restart()
+        {
+            Location = 0.ToCentimeters();
+            IsIdle = true;
+            Direction = Direction.NoDirection;
+            _AttendingRequests.Clear();
+        }
 
         #endregion
 
@@ -165,12 +173,27 @@ namespace ElevatorSystemSimulation
 
     public class Floor
     {
-        public Centimeters Location { get; set; }
+        #region Identification
+
         public int FloorId { get; }
-        public Centimeters Height { get; }
+        public string? Name { get; }
+
+        #endregion
+
+        #region Simulation
+
         public IReadOnlyCollection<IRequestEvent> Requests => _Requests; 
         internal List<IRequestEvent> _Requests { get; } = new();
-        public string? Name { get; }
+
+        public void Restart()
+        {
+            _Requests.Clear();
+        }
+
+        #endregion
+
+        public Centimeters Height { get; }
+        public Centimeters Location { get; set; }
 
         public Floor(int floorId, Centimeters height, string? name = null)
         {

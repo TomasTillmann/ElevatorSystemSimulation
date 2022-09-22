@@ -1,6 +1,5 @@
 ﻿using ElevatorSystemSimulation;
 using ElevatorSystemSimulation.Extensions;
-using ElevatorSystemSimulation.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -30,6 +29,9 @@ namespace UI
         public double BuildingScale { get { return (double)GetValue(BuildingScaleProperty); } set { SetValue(BuildingScaleProperty, value); } }
         public static readonly DependencyProperty BuildingScaleProperty = DependencyProperty.Register("Scale", typeof(double), typeof(MainViewModel), new PropertyMetadata(0.5));
 
+        public int StepCount { get { return (int)GetValue(StepCountProperty); } set { SetValue(StepCountProperty, value); } }
+        public static readonly DependencyProperty StepCountProperty = DependencyProperty.Register("StepCount", typeof(int), typeof(MainViewModel));
+
         public MainViewModel()
         {
             _Simulation = GetSimulation();
@@ -41,7 +43,16 @@ namespace UI
         public void Step()
         {
             _Simulation.Step();
+            StepCount = _Simulation.StepCount;
 
+            UpdateElevatorViewModels();
+            UpdateFloorViewModels();
+        }
+
+        public void Restart()
+        {
+            _Simulation.Restart();
+            StepCount = 0;
             UpdateElevatorViewModels();
             UpdateFloorViewModels();
         }
@@ -62,25 +73,25 @@ namespace UI
                     new Floor(7, 250.ToCentimeters()),
                     new Floor(8, 250.ToCentimeters()),
                     new Floor(9, 250.ToCentimeters()),
-                    new Floor(10, 250.ToCentimeters()),
-                    new Floor(11, 250.ToCentimeters()),
-                    new Floor(12, 250.ToCentimeters()),
-                    new Floor(13, 250.ToCentimeters()),
-                    new Floor(14, 250.ToCentimeters()),
-                    new Floor(15, 250.ToCentimeters()),
-                    new Floor(16, 250.ToCentimeters()),
-                    new Floor(17, 250.ToCentimeters()),
-                    new Floor(18, 250.ToCentimeters()),
-                    new Floor(19, 250.ToCentimeters()),
-                    new Floor(20, 250.ToCentimeters()),
-                    new Floor(21, 250.ToCentimeters()),
-                    new Floor(22, 250.ToCentimeters()),
-                    new Floor(23, 250.ToCentimeters()),
-                    new Floor(24, 250.ToCentimeters()),
-                    new Floor(25, 250.ToCentimeters()),
-                    new Floor(26, 250.ToCentimeters()),
-                    new Floor(27, 250.ToCentimeters()),
-                    new Floor(28, 250.ToCentimeters()),
+                    //new Floor(10, 250.ToCentimeters()),
+                    //new Floor(11, 250.ToCentimeters()),
+                    //new Floor(12, 250.ToCentimeters()),
+                    //new Floor(13, 250.ToCentimeters()),
+                    //new Floor(14, 250.ToCentimeters()),
+                    //new Floor(15, 250.ToCentimeters()),
+                    //new Floor(16, 250.ToCentimeters()),
+                    //new Floor(17, 250.ToCentimeters()),
+                    //new Floor(18, 250.ToCentimeters()),
+                    //new Floor(19, 250.ToCentimeters()),
+                    //new Floor(20, 250.ToCentimeters()),
+                    //new Floor(21, 250.ToCentimeters()),
+                    //new Floor(22, 250.ToCentimeters()),
+                    //new Floor(23, 250.ToCentimeters()),
+                    //new Floor(24, 250.ToCentimeters()),
+                    //new Floor(25, 250.ToCentimeters()),
+                    //new Floor(26, 250.ToCentimeters()),
+                    //new Floor(27, 250.ToCentimeters()),
+                    //new Floor(28, 250.ToCentimeters()),
                 },
                 10.ToCentimeters()
             );
@@ -89,11 +100,11 @@ namespace UI
                 new List<Elevator>()
                 {
                     new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(0)),
-                    new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(15)),
+                    new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(0)),
                     new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(14)),
                     new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(2)),
                     new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(2)),
-                    //new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(2)),
+                    new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(2)),
                     //new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(2)),
                 }
             );
@@ -127,31 +138,15 @@ namespace UI
                 floorViewModel.Requests = floor.Requests;
             }
         }
-    }
 
-    public class ElevatorViewModel : ViewModelBase<Elevator>
-    {
-        public Centimeters Location { get; set; } 
-        public int PeopleCount { get; set; }
-        public ElevatorViewModel(Elevator elevator)
-        : base(elevator)
+        public void Step(object sender, RoutedEventArgs e)
         {
-            Location = elevator.Location;
-            PeopleCount = elevator.AttendingRequests.Count;
+            Step();
         }
-    }
 
-    public class FloorViewModel : ViewModelBase<Floor>
-    {
-        public Centimeters Height { get; set; }
-        public IReadOnlyCollection<IRequestEvent> Requests { get; set; } 
-
-        public FloorViewModel(Floor floor)
-
-        :base(floor)
+        public void Restart(object sender, RoutedEventArgs e)
         {
-            Height = floor.Height;
-            Requests = floor.Requests;
+            Restart();
         }
     }
 
@@ -161,6 +156,7 @@ namespace UI
     }
 
     #region Converters
+
     public class AdderConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
