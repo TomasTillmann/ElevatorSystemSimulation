@@ -54,6 +54,7 @@ namespace ElevatorSystemSimulation
 
         public void Step()
         {
+            StepCount += 1;
             IEvent? e = _Calendar.GetEvent();
 
             // update state
@@ -71,6 +72,19 @@ namespace ElevatorSystemSimulation
                 SetElevatorsLocations(e);
                 CurrentLogic.Step(e);
             }
+        }
+
+        public void Restart()
+        {
+            Building.ElevatorSystem.Elevators.ForEach(elevator => elevator.Restart());
+            Building.Floors.Value.ForEach(floor => floor.Restart());
+
+            CurrentTime = 0.ToSeconds();
+            _LastStepTime = 0.ToSeconds();
+            StepCount = 0;
+
+            _Calendar.Clear();
+            _Calendar.Init(_Requests);
         }
 
         public void Restart()
@@ -160,6 +174,14 @@ namespace ElevatorSystemSimulation
             public void Clear()
             {
                 Events.Clear();
+            }
+
+            public void Init(IEnumerable<IRequestEvent> requests)
+            {
+                foreach (IEvent request in requests)
+                {
+                    AddEvent(request);
+                }
             }
 
             public void Init(IEnumerable<IRequestEvent> requests)
