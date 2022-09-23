@@ -1,4 +1,6 @@
-﻿using ElevatorSystemSimulation;
+﻿using Client;
+using ElevatorSystemSimulation;
+using ElevatorSystemSimulation.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -49,6 +51,9 @@ namespace UI
         public double BuildingHorizontalLocation { get { return (double)GetValue(BuildingHorizontalLocationProperty); } set { SetValue(BuildingHorizontalLocationProperty, value); } }
         public static readonly DependencyProperty BuildingHorizontalLocationProperty = DependencyProperty.Register("BuildingHorizontalLocation", typeof(double), typeof(BuildingView));
 
+        public IEvent? LastEvent { get { return (IEvent)GetValue(LastEventProperty); } set { SetValue(LastEventProperty, value); } }
+        public static readonly DependencyProperty LastEventProperty = DependencyProperty.Register("LastEvent", typeof(IEvent), typeof(BuildingView));
+
         public BuildingView()
         {
             InitializeComponent();
@@ -95,6 +100,7 @@ namespace UI
         {
             UpdateElevators();
             UpdateRequests();
+            ShowWhereIsLastEvent();
         }
 
         private void DrawBuilding()
@@ -231,7 +237,9 @@ namespace UI
             {
                 ElevatorViewModel elevatorViewModel = Elevators[i++]; 
                 Canvas.SetBottom(elevatorView, GetElevatorsViewVerticalLocation(elevatorViewModel, Floors[0].Height)); //TODO - get floor height better way - for now all floors have the same height
+
                 elevatorView.PeopleCount = elevatorViewModel.PeopleCount;
+                elevatorView.Background = ElevatorView.DefaultBackground;
             }
         }
 
@@ -241,6 +249,22 @@ namespace UI
             foreach(RequestView request in _RequestViews)
             {
                 request.Text = Floors[i++].Requests.Count.ToString();
+                request.Background = RequestView.DefaultBackground;
+            }
+        }
+
+        private void ShowWhereIsLastEvent()
+        {
+            if(LastEvent is BasicRequestEvent requestEvent)
+            {
+                int floor = requestEvent.EventLocation.Id;
+                _RequestViews[floor].Background = new SolidColorBrush(Colors.LightGreen);
+            }
+
+            if(LastEvent is ElevatorEvent elevatorEvent)
+            {
+                int elevator = elevatorEvent.Elevator.Id;
+                _ElevatorViews[elevator].Background = new SolidColorBrush(Colors.LightGreen);
             }
         }
 

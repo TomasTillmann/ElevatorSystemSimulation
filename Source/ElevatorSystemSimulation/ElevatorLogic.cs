@@ -15,7 +15,7 @@ namespace ElevatorSystemSimulation
         {
             if(e is RequestEvent ce)
             {
-                ce.Floor._Requests.Add(ce);
+                ce.EventLocation._Requests.Add(ce);
                 Step(ce);
             }
             else if(e is ElevatorEvent ee)

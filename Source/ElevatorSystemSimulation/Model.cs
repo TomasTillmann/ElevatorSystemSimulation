@@ -7,7 +7,7 @@ namespace ElevatorSystemSimulation
     {
         #region Identification
 
-        private static int Counter = 0;
+        private static int _Counter = 0;
         public int Id { get; }
 
         #endregion
@@ -54,7 +54,7 @@ namespace ElevatorSystemSimulation
             Capacity = capacity;
             Location = startingFloor != null ? startingFloor.Location : 0.ToCentimeters();
 
-            Id = ++Counter;
+            Id = _Counter++;
         }
 
         public void MoveTo(Floor? floor)
@@ -180,7 +180,9 @@ namespace ElevatorSystemSimulation
     {
         #region Identification
 
-        public int FloorId { get; }
+        private static int _Counter = 0;
+
+        public int Id { get; }
         public string? Name { get; }
 
         #endregion
@@ -200,15 +202,15 @@ namespace ElevatorSystemSimulation
         public Centimeters Height { get; }
         public Centimeters Location { get; set; }
 
-        public Floor(int floorId, Centimeters height, string? name = null)
+        public Floor(Centimeters height, string? name = null)
         {
-            FloorId = floorId;
+            Id = _Counter++;
             Height = height;
             Name = name;
         }
 
         public override string ToString() => 
-            $"FloorId: {FloorId}\n" +
+            $"FloorId: {Id}\n" +
             $"FloorLocation: {Location}";
     }
 
@@ -240,13 +242,13 @@ namespace ElevatorSystemSimulation
             }
             //
 
-            Value.Sort((f1, f2) => f1.FloorId.CompareTo(f2.FloorId));
+            Value.Sort((f1, f2) => f1.Id.CompareTo(f2.Id));
             SetFloorsLocation();
         }
 
         public Floor? GetFloorById(int floorId)
         {
-            return Value.Find(floor => floor.FloorId == floorId);
+            return Value.Find(floor => floor.Id == floorId);
         }
 
         private void SetFloorsLocation()

@@ -6,19 +6,19 @@ namespace Client
     public struct BasicRequestEvent : IRequestEvent
     {
         public Seconds WhenPlanned { get; } 
-        public Floor Floor { get; } 
+        public Floor EventLocation { get; } 
         public Floor Destination { get; }
 
-        public BasicRequestEvent(Floor floor, Seconds whenPlanned, Floor destination)
+        public BasicRequestEvent(Floor eventLocation, Seconds whenPlanned, Floor destination)
         {
-            Floor = floor;
+            EventLocation = eventLocation;
             WhenPlanned = whenPlanned;
             Destination = destination;
         }
 
         public override string ToString() => 
             $"WhenPlanned: {WhenPlanned}\n" +
-            $"Floor: {Floor.Location}\n" +
+            $"Floor: {EventLocation.Location}\n" +
             $"Destination: {Destination}";
     }
 }

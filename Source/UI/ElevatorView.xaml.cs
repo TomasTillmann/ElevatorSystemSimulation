@@ -23,9 +23,13 @@ namespace UI
         public int PeopleCount { get { return (int)GetValue(PeopleCountProperty); } set { SetValue(PeopleCountProperty, value); } }
         public static readonly DependencyProperty PeopleCountProperty = DependencyProperty.Register("PeopleCount", typeof(int), typeof(ElevatorView), new PropertyMetadata(0));
 
+        public static readonly SolidColorBrush DefaultBackground = new SolidColorBrush(Colors.LightGray);
+
         public ElevatorView()
         {
             InitializeComponent();
+
+            Background = DefaultBackground;
         }
     }
 }

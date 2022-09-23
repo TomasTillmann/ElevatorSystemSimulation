@@ -32,6 +32,8 @@ namespace UI
         public double TextWidth { get { return (double)GetValue(TextWidthProperty); } set { SetValue(TextWidthProperty, value); } }
         public static readonly DependencyProperty TextWidthProperty = DependencyProperty.Register("TextWidth", typeof(double), typeof(RequestView));
 
+        public readonly static SolidColorBrush DefaultBackground = new SolidColorBrush(Colors.Transparent);
+
         public RequestView()
         {
             InitializeComponent();

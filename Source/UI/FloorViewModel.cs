@@ -16,7 +16,7 @@ namespace UI
         {
             Height = floor.Height;
             Requests = floor.Requests;
-            Id = floor.FloorId;
+            Id = floor.Id;
         }
     }
 }

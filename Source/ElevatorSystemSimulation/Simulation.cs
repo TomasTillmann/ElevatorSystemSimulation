@@ -105,7 +105,7 @@ namespace ElevatorSystemSimulation
             // This is necessary, because everything is rounded to seconds, hence the location might be a little bit off (this is the only affected place by rounding) - FIX? measure in milliseconds
             if(e is ElevatorEvent ee)
             {
-                ee.Elevator.Location = ee.CurrentFloor.Location;
+                ee.Elevator.Location = ee.EventLocation.Location;
             }
         }
 
@@ -186,20 +186,20 @@ namespace ElevatorSystemSimulation
     {
         public Seconds WhenPlanned { get; }
         public Elevator Elevator { get; }
-        public Floor CurrentFloor { get; }
+        public Floor EventLocation { get; }
         public ElevatorAction FinishedAction { get; }
 
-        public ElevatorEvent(Elevator elevator, Seconds whenPlanner, Floor destination, ElevatorAction finishedAction)
+        public ElevatorEvent(Elevator elevator, Seconds whenPlanner, Floor eventLocation, ElevatorAction finishedAction)
         {
             Elevator = elevator;
             WhenPlanned = whenPlanner;
-            CurrentFloor = destination;
+            EventLocation = eventLocation;
             FinishedAction = finishedAction;
         }
 
         public override string ToString() => 
             $"WhenPlanned: {WhenPlanned}\n" +
             $"Elevator: {Elevator}\n" +
-            $"Destination: {CurrentFloor}";
+            $"Destination: {EventLocation}";
     }
 }

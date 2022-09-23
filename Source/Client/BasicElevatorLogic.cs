@@ -27,7 +27,7 @@ namespace Client
 
             if(freeElevator != null)
             {
-                freeElevator.MoveTo(e.Floor);
+                freeElevator.MoveTo(e.EventLocation);
             }
         }
 
@@ -39,9 +39,9 @@ namespace Client
         //TODO - refactor and implement and run and test ...
         private void StepAfterMove(ElevatorEvent e)
         {
-            if(e.Elevator.AttendingRequests.Count > 0 || e.CurrentFloor.Requests.Count > 0)
+            if(e.Elevator.AttendingRequests.Count > 0 || e.EventLocation.Requests.Count > 0)
             {
-                e.Elevator.UnloadAndLoad(e.CurrentFloor);
+                e.Elevator.UnloadAndLoad(e.EventLocation);
             }
             else if(GetAllCurrentRequestEvents().Any())
             {
@@ -49,7 +49,7 @@ namespace Client
             }
             else
             {
-                e.Elevator.Idle(e.CurrentFloor);
+                e.Elevator.Idle(e.EventLocation);
 
                 Elevator? freeElevator = _Elevators.Find(e => e.IsIdle);
 
@@ -75,7 +75,7 @@ namespace Client
             }
             else
             {
-                e.Elevator.Idle(e.CurrentFloor);
+                e.Elevator.Idle(e.EventLocation);
 
                 Elevator? freeElevator = _Elevators.Find(e => e.IsIdle);
 
@@ -104,12 +104,12 @@ namespace Client
             // it will choose the closest floor - hungry approach
             foreach (BasicRequestEvent request in GetAllCurrentRequestEvents())
             {
-                int distance = Math.Abs((request.Floor.Location - elevator.Location).Value);
+                int distance = Math.Abs((request.EventLocation.Location - elevator.Location).Value);
 
                 if (distance < minDistance)
                 {
                     minDistance = distance;
-                    floorToGo = request.Floor;
+                    floorToGo = request.EventLocation;
                 }
             }
 
@@ -124,7 +124,7 @@ namespace Client
             // it will choose the closest floor - hungry approach
             foreach(BasicRequestEvent request in e.Elevator.AttendingRequests)
             {
-                int distance = Math.Abs(request.Destination.FloorId - e.CurrentFloor.FloorId);
+                int distance = Math.Abs(request.Destination.Id - e.EventLocation.Id);
 
                 if(distance < minDistance)
                 {
