@@ -79,19 +79,6 @@ namespace ElevatorSystemSimulation
             Building.ElevatorSystem.Elevators.ForEach(elevator => elevator.Restart());
             Building.Floors.Value.ForEach(floor => floor.Restart());
 
-            CurrentTime = 0.ToSeconds();
-            _LastStepTime = 0.ToSeconds();
-            StepCount = 0;
-
-            _Calendar.Clear();
-            _Calendar.Init(_Requests);
-        }
-
-        public void Restart()
-        {
-            Building.ElevatorSystem.Elevators.ForEach(elevator => elevator.Restart());
-            Building.Floors.Value.ForEach(floor => floor.Restart());
-
             // restart state
             CurrentTime = 0.ToSeconds();
             _LastStepTime = 0.ToSeconds();
@@ -174,14 +161,6 @@ namespace ElevatorSystemSimulation
             public void Clear()
             {
                 Events.Clear();
-            }
-
-            public void Init(IEnumerable<IRequestEvent> requests)
-            {
-                foreach (IEvent request in requests)
-                {
-                    AddEvent(request);
-                }
             }
 
             public void Init(IEnumerable<IRequestEvent> requests)
