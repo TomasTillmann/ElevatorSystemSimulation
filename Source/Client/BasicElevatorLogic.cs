@@ -1,20 +1,16 @@
 ﻿using ElevatorSystemSimulation;
-using ElevatorSystemSimulation.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace UI
+namespace Client
 {
-    public class ClientsElevatorLogic : ElevatorLogic<ClientsRequestEvent>
+    public class BasicElevatorLogic : ElevatorLogic<BasicRequestEvent> 
     {
         private List<Elevator> _Elevators { get; set; }
         private Floors _Floors { get; set; }
         private Random _Random { get; }
         private readonly Dictionary<ElevatorAction, Action<ElevatorEvent>> _DoAfterElevatorAction = new();
 
-        public ClientsElevatorLogic(Building building)
-        : base(building)
+        public BasicElevatorLogic(Building building)
+        :base(building)
         {
             _Elevators = building.ElevatorSystem.Elevators;
             _Floors = building.Floors;
@@ -25,11 +21,11 @@ namespace UI
             _DoAfterElevatorAction.Add(ElevatorAction.Idle, StepAfterIdle);
         }
 
-        protected override void Step(ClientsRequestEvent e)
+        protected override void Step(BasicRequestEvent e)
         {
             Elevator? freeElevator = _Elevators.Find(elevator => elevator.IsIdle);
 
-            if (freeElevator != null)
+            if(freeElevator != null)
             {
                 freeElevator.MoveTo(e.Floor);
             }
@@ -40,13 +36,14 @@ namespace UI
             _DoAfterElevatorAction[e.FinishedAction].Invoke(e);
         }
 
+        //TODO - refactor and implement and run and test ...
         private void StepAfterMove(ElevatorEvent e)
         {
-            if (e.Elevator.AttendingRequests.Count > 0 || e.CurrentFloor.Requests.Count > 0)
+            if(e.Elevator.AttendingRequests.Count > 0 || e.CurrentFloor.Requests.Count > 0)
             {
                 e.Elevator.UnloadAndLoad(e.CurrentFloor);
             }
-            else if (GetAllCurrentRequestEvents().Any())
+            else if(GetAllCurrentRequestEvents().Any())
             {
                 e.Elevator.MoveTo(GetClosestFloorWithRequest(e.Elevator));
             }
@@ -56,7 +53,7 @@ namespace UI
 
                 Elevator? freeElevator = _Elevators.Find(e => e.IsIdle);
 
-                if (freeElevator != null)
+                if(freeElevator != null)
                 {
                     freeElevator.MoveTo(GetClosestFloorWithRequest(freeElevator));
                 }
@@ -65,7 +62,13 @@ namespace UI
 
         private void StepAfterUnloadAndLoad(ElevatorEvent e)
         {
-            if (GetAllCurrentRequestEvents().Any())
+            if(e.Elevator.AttendingRequests.Count > 0)
+            {
+                // serve the requests
+                Floor  floor = GetNextFloorByRequestToServe(e);
+                e.Elevator.MoveTo(floor);
+            }
+            else if (GetAllCurrentRequestEvents().Any())
             {
                 Floor floor = GetClosestFloorWithRequest(e.Elevator);
                 e.Elevator.MoveTo(floor);
@@ -76,7 +79,7 @@ namespace UI
 
                 Elevator? freeElevator = _Elevators.Find(e => e.IsIdle);
 
-                if (freeElevator != null)
+                if(freeElevator != null)
                 {
                     freeElevator.MoveTo(GetClosestFloorWithRequest(freeElevator));
                 }
@@ -87,7 +90,7 @@ namespace UI
         {
             Elevator? freeElevator = _Elevators.Find(e => e.IsIdle);
 
-            if (freeElevator != null)
+            if(freeElevator != null)
             {
                 freeElevator.MoveTo(GetClosestFloorWithRequest(freeElevator));
             }
@@ -95,62 +98,43 @@ namespace UI
 
         private Floor GetClosestFloorWithRequest(Elevator elevator)
         {
-            int i = _Random.Next(0, _Floors.Value.Count - 1);
-            return _Floors.Value[i];
-        }
-    }
+            int minDistance = int.MaxValue;
+            Floor floorToGo = null;
 
-    public struct ClientsRequestEvent : IRequestEvent
-    {
-        public Seconds WhenPlanned { get; }
-        public Floor Floor { get; }
-        public Floor Destination { get; }
-
-        // more properties potentially goes here
-
-        public ClientsRequestEvent(Floor floor, Seconds whenPlanned, Floor destination)
-        {
-            Floor = floor;
-            WhenPlanned = whenPlanned;
-            Destination = destination;
-        }
-
-        public override string ToString() =>
-            $"WhenPlanned: {WhenPlanned}\n" +
-            $"Floor: {Floor.Location}\n" +
-            $"Destination: {Destination}";
-    }
-
-    public class ClientsRequestGenerator
-    {
-        private readonly Random _Random;
-        public ClientsRequestGenerator(Random random)
-        {
-            _Random = random;
-        }
-
-        public List<IRequestEvent> Generate(int count, Floors floors, Seconds maxPlannedTime)
-        {
-            List<IRequestEvent> requests = new();
-
-            for (int i = 0; i < count; i++)
+            // it will choose the closest floor - hungry approach
+            foreach (BasicRequestEvent request in GetAllCurrentRequestEvents())
             {
-                requests.Add(
-                    new ClientsRequestEvent(
-                        GetRandomFloor(floors),
-                        new Seconds(_Random.Next(0, maxPlannedTime.Value)),
-                        GetRandomFloor(floors)
-                    )
-                );
+                int distance = Math.Abs((request.Floor.Location - elevator.Location).Value);
+
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    floorToGo = request.Floor;
+                }
             }
 
-            return requests;
+            return floorToGo;
         }
 
-        private Floor GetRandomFloor(Floors floors)
+        private Floor GetNextFloorByRequestToServe(ElevatorEvent e)
         {
-            int randomIndex = _Random.Next(0, floors.Value.Count - 1);
-            return floors.Value[randomIndex];
+            int minDistance = int.MaxValue;
+            Floor floorToGo = null;
+
+            // it will choose the closest floor - hungry approach
+            foreach(BasicRequestEvent request in e.Elevator.AttendingRequests)
+            {
+                int distance = Math.Abs(request.Destination.FloorId - e.CurrentFloor.FloorId);
+
+                if(distance < minDistance)
+                {
+                    minDistance = distance;
+                    floorToGo = request.Destination;
+                }
+            }
+
+            return floorToGo;
         }
+        //
     }
 }

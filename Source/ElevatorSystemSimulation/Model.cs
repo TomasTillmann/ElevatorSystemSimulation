@@ -84,7 +84,7 @@ namespace ElevatorSystemSimulation
 
             IsIdle = true;
 
-
+            Direction = Direction.NoDirection;
             PlanMe(0.ToSeconds(), floor, ElevatorAction.Idle);
         }
 
@@ -108,6 +108,7 @@ namespace ElevatorSystemSimulation
             Unload(floor);
             Load(floor);
 
+            Direction = Direction.NoDirection;
             PlanMe(DepartingTime, floor, ElevatorAction.UnloadAndLoad);
         }
 
@@ -129,13 +130,17 @@ namespace ElevatorSystemSimulation
         {
             // implicitly adding requests that are the longest in the floor
 
+            int numOfRemoved = 0;
             foreach(IRequestEvent request in floor.Requests)
             {
                 if(_AttendingRequests.Count < Capacity)
                 {
                     _AttendingRequests.Add(request);
+                    numOfRemoved++;
                 }
             }
+
+            floor._Requests.RemoveRange(0, numOfRemoved);
         }
 
         private void PlanMe(Seconds duration, Floor destination, ElevatorAction action)

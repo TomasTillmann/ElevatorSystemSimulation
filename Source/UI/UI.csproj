@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Client\Client.csproj" />
     <ProjectReference Include="..\ElevatorSystemSimulation\ElevatorSystemSimulation.csproj" />
   </ItemGroup>
 
