@@ -6,16 +6,16 @@
              xmlns:local="clr-namespace:UI"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
-             x:Name="root">
+             x:Name="elevatorView">
 
     <Grid ToolTip="Number of people in the elevator">
         <Border BorderBrush="Black" BorderThickness="1.5" CornerRadius="2">
-            <Rectangle Width="{Binding Width, ElementName=root}"
-                       Height="{Binding Height, ElementName=root}"
+            <Rectangle Width="{Binding Width, ElementName=elevatorView}"
+                       Height="{Binding Height, ElementName=elevatorView}"
                        Fill="LightGray">
             </Rectangle>
         </Border>
-        <TextBlock Text="{Binding PeopleCount, ElementName=root}"
+        <TextBlock Text="{Binding PeopleCount, ElementName=elevatorView}"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    FontSize="40"/>

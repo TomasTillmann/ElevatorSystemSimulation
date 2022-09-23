@@ -5,16 +5,16 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:UI"
              mc:Ignorable="d" 
-             x:Name="root">
+             x:Name="requestView">
     <Grid ToolTip="Number of people waiting on the floor">
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition/>
         </Grid.RowDefinitions>
         <Border Grid.Row="0"
-             Height="{Binding TextHeight, ElementName=root}"
-             Width="{Binding TextWidth, ElementName=root}">
-            <TextBox Text="{Binding Text, ElementName=root}"
+             Height="{Binding TextHeight, ElementName=requestView}"
+             Width="{Binding TextWidth, ElementName=requestView}">
+            <TextBox Text="{Binding Text, ElementName=requestView}"
                      HorizontalAlignment="Center"
                      VerticalAlignment="Center"
                      Background="Transparent"
@@ -24,7 +24,7 @@
         </Border>
 
         <Rectangle Grid.Row="1" Fill="Gold"
-                   Height="{Binding FloorHeight, ElementName=root}"
-                   Width="{Binding FloorWidth, ElementName=root}"/>
+                   Height="{Binding FloorHeight, ElementName=requestView}"
+                   Width="{Binding FloorWidth, ElementName=requestView}"/>
     </Grid>
 </UserControl>

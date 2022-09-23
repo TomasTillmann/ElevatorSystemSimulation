@@ -41,9 +41,9 @@
 
         public override bool Equals(object? o)
         {
-            if(o is Centimeters c)
+            if(o is Centimeters centimeters)
             {
-                return Value == c.Value;
+                return Value == centimeters.Value;
             }
 
             return false;
@@ -86,7 +86,7 @@
         {
             if (o is Seconds seconds)
             {
-                return Equals((Seconds)o);
+                return Value == seconds.Value; 
             }
 
             return false;

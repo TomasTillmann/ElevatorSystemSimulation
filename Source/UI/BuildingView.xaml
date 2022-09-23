@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:UI"
              mc:Ignorable="d"
-             x:Name="root">
+             x:Name="buildingView">
 
     <UserControl.Resources>
         <local:DividerConverter x:Key="dividerConverter"/>
@@ -16,11 +16,11 @@
     <Grid>
         <Viewbox Stretch="Uniform">
             <Canvas x:Name="surroundings"
-                Background="{Binding Background, ElementName=root}"
+                Background="{Binding Background, ElementName=buildingView}"
                 Panel.ZIndex="-1000">
 
                 <Canvas.LayoutTransform>
-                    <ScaleTransform ScaleX="{Binding Scale, ElementName=root}" ScaleY="{Binding Scale, ElementName=root}" />
+                    <ScaleTransform ScaleX="{Binding Scale, ElementName=buildingView}" ScaleY="{Binding Scale, ElementName=buildingView}" />
                 </Canvas.LayoutTransform>
 
                 <Border BorderThickness="2,2,2,0"
@@ -28,11 +28,11 @@
                     VerticalAlignment="Center"
                     BorderBrush="Black"
                     Panel.ZIndex="10"
-                    Canvas.Left="{Binding BuildingVerticalLocation, ElementName=root}"
-                    Canvas.Bottom="{Binding BuildingHorizontalLocation, ElementName=root}">
+                    Canvas.Left="{Binding BuildingVerticalLocation, ElementName=buildingView}"
+                    Canvas.Bottom="{Binding BuildingHorizontalLocation, ElementName=buildingView}">
 
                     <Canvas x:Name="building"
-                        Background="{Binding BuildingBackground, ElementName=root}"/>
+                        Background="{Binding BuildingBackground, ElementName=buildingView}"/>
                 </Border>
             </Canvas>
         </Viewbox>

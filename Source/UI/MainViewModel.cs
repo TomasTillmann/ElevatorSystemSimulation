@@ -1,5 +1,6 @@
 ﻿using ElevatorSystemSimulation;
 using ElevatorSystemSimulation.Extensions;
+using ElevatorSystemSimulation.Interfaces;
 using Client;
 using System;
 using System.Collections.Generic;
@@ -33,6 +34,9 @@ namespace UI
         public int CurrentTime { get { return (int)GetValue(CurrentTimeProperty); } set { SetValue(CurrentTimeProperty, value); } }
         public static readonly DependencyProperty CurrentTimeProperty = DependencyProperty.Register("CurrentTime", typeof(int), typeof(MainViewModel));
 
+        public IEvent? LastEvent { get { return (IEvent)GetValue(LastEventProperty); } set { SetValue(LastEventProperty, value); } }
+        public static readonly DependencyProperty LastEventProperty = DependencyProperty.Register("LastEvent", typeof(IEvent), typeof(MainViewModel));
+
         public MainViewModel()
         {
             _Simulation = GetSimulation();
@@ -46,6 +50,7 @@ namespace UI
             _Simulation.Step();
             StepCount = _Simulation.StepCount;
             CurrentTime = _Simulation.CurrentTime.Value;
+            LastEvent = _Simulation.LastEvent;
 
             UpdateElevatorViewModels();
             UpdateFloorViewModels();
@@ -56,6 +61,7 @@ namespace UI
             _Simulation.Restart();
             StepCount = 0;
             CurrentTime = 0;
+            LastEvent = null;
 
             UpdateElevatorViewModels();
             UpdateFloorViewModels();
@@ -98,7 +104,34 @@ namespace UI
         }
     }
 
-    #region Converters
+    #region Helpers
+
+    public class EventTemplateSelector : DataTemplateSelector 
+    {
+        public DataTemplate? ElevatorEventTemplate { get; set; }
+        public DataTemplate? BasicRequestEventTemplate { get; set; } 
+        public DataTemplate? NoEventTemplate { get; set; }
+
+        public override DataTemplate? SelectTemplate(object item, DependencyObject container)
+        {
+            if(item is ElevatorEvent)
+            {
+                return ElevatorEventTemplate;
+            }
+
+            if(item is BasicRequestEvent)
+            {
+                return BasicRequestEventTemplate;
+            }
+
+            if(item is null)
+            {
+                return NoEventTemplate;
+            }
+
+            return null;
+        }
+    }
 
     public class AdderConverter : IValueConverter
     {
@@ -122,5 +155,6 @@ namespace UI
             return value;
         }
     }
+
     #endregion
 }

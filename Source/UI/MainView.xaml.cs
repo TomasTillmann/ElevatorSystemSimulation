@@ -19,6 +19,8 @@ namespace UI
     public partial class MainView : UserControl
     {
         public new MainViewModel DataContext => (MainViewModel)base.DataContext;
+        public double SidePanelScale { get { return (double)GetValue(SidePanelScaleProperty); } set { SetValue(SidePanelScaleProperty, value); } }
+        public static readonly DependencyProperty SidePanelScaleProperty = DependencyProperty.Register("SidePanelScale", typeof(double), typeof(BuildingView), new PropertyMetadata(1.0));
 
         public MainView()
         {
@@ -27,8 +29,43 @@ namespace UI
             stepButton.Click += DataContext.Step;
             stepButton.Click += buildingView.Update;
 
+            sidePanel.PreviewMouseWheel += OnPreviewMouseWheelMoving;
+
             restartButton.Click += DataContext.Restart;
             restartButton.Click += buildingView.Update;
         }
+
+        #region SidePanelScaling
+        private void OnPreviewMouseWheelMoving(object sender, MouseWheelEventArgs e)
+        {
+            if (Keyboard.Modifiers != ModifierKeys.Control)
+                return;
+
+            if (e.Delta < 0)
+            {
+                if (SidePanelScale >= 0.2)
+                {
+                    double scale = SidePanelScale - 0.1;
+                    if (scale >= 0.01)
+                    {
+                        SidePanelScale = scale;
+                    }
+                }
+                else
+                {
+                    double scale = SidePanelScale - 0.05;
+                    if (scale >= 0.01)
+                    {
+                        SidePanelScale = scale;
+                    }
+                }
+
+            }
+            else if (e.Delta > 0)
+            {
+                SidePanelScale += 0.1;
+            }
+        }
+        #endregion
     }
 }

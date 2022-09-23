@@ -25,6 +25,8 @@ namespace ElevatorSystemSimulation
         public Building Building { get; }
         public Seconds TotalTime { get; }
         public int StepCount { get; private set; }
+        public IEvent? LastEvent { get; private set; }
+        public bool IsOver => _TerminateSimulation;
 
         public Simulation(
             Building building,
@@ -52,8 +54,12 @@ namespace ElevatorSystemSimulation
 
         public void Step()
         {
-            StepCount += 1;
             IEvent? e = _Calendar.GetEvent();
+
+            // update state
+            StepCount += 1;
+            LastEvent = e;
+            //
 
             if(e == null)
             {
@@ -72,9 +78,12 @@ namespace ElevatorSystemSimulation
             Building.ElevatorSystem.Elevators.ForEach(elevator => elevator.Restart());
             Building.Floors.Value.ForEach(floor => floor.Restart());
 
+            // restart state
             CurrentTime = 0.ToSeconds();
             _LastStepTime = 0.ToSeconds();
             StepCount = 0;
+            LastEvent = null;
+            //
 
             _Calendar.Clear();
             _Calendar.Init(_Requests);
