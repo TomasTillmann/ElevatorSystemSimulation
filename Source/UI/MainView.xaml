@@ -16,6 +16,8 @@
 
     <UserControl.Resources>
         <local:AdderConverter x:Key="adderConverter"/>
+        <local:ZeroToCollapsedConverter x:Key="zeroToCollapsedConverter"/>
+        <local:NullToCollapsedConverter x:Key="nullToCollapsedConverter"/>
     </UserControl.Resources>
 
     <Grid>
@@ -28,7 +30,7 @@
         <Grid Grid.Column="0"
               Background="SkyBlue">
 
-            <StackPanel>
+            <StackPanel Panel.ZIndex="2000">
                 <TextBlock Text="{Binding StepCount, StringFormat={}Step Count: {0}}" FontSize="20" Margin="20,20,0,0"/>
                 <TextBlock Text="{Binding CurrentTime, StringFormat={}Current Time: {0} s}" FontSize="20" Margin="20,10,0,0"/>
             </StackPanel>
@@ -79,67 +81,80 @@
                 </Grid>
             </Grid>
 
-            <StackPanel x:Name="sidePanel">
-                <StackPanel.Resources>
-                    <DataTemplate x:Key="iRequestEventTemplate">
-                        <StackPanel Margin="0,5,0,5">
-                            <TextBlock Text="Request" FontSize="16"/>
-                            <TextBlock Text="{Binding EventLocation.Id, StringFormat={}From floor: {0}}" FontSize="14"/>
-                            <TextBlock Text="{Binding Destination.Id, StringFormat={}To floor: {0}}" FontSize="14"/>
-                        </StackPanel>
-                    </DataTemplate>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="sidePanel">
+                    <StackPanel.Resources>
+                        <DataTemplate x:Key="iRequestEventTemplate">
+                            <StackPanel Margin="0,5,0,5">
+                                <TextBlock Text="Request" FontSize="16"/>
+                                <TextBlock Text="{Binding EventLocation.Id, StringFormat={}From floor: {0}}" FontSize="14"/>
+                                <TextBlock Text="{Binding Destination.Id, StringFormat={}To floor: {0}}" FontSize="14"/>
+                            </StackPanel>
+                        </DataTemplate>
 
-                    <DataTemplate x:Key="elevatorTemplate" DataType="{x:Type es:Elevator}">
-                        <StackPanel>
-                            <TextBlock Text="Elevator" FontSize="16"/>
-                            <TextBlock Text="{Binding Id, StringFormat={}Elevator Id: {0}}" FontSize="14"/>
-                            <TextBlock Text="{Binding Direction, StringFormat={}Direction: {0}}" FontSize="14"/>
+                        <DataTemplate x:Key="elevatorTemplate" DataType="{x:Type es:Elevator}">
+                            <StackPanel>
+                                <TextBlock Text="Elevator" FontSize="16"/>
+                                <TextBlock Text="{Binding Id, StringFormat={}Elevator Id: {0}}" FontSize="14"/>
+                                <TextBlock Text="{Binding Direction, StringFormat={}Direction: {0}}" FontSize="14"/>
 
-                            <TextBlock Text="Active Requests" Margin="0,10,0,0" FontSize="16"/>
-                            <ItemsControl ItemsSource="{Binding AttendingRequests}" ItemTemplate="{StaticResource iRequestEventTemplate}"/>
-                        </StackPanel>
-                    </DataTemplate>
+                                <TextBlock Text="Active Requests" Margin="0,10,0,0" FontSize="16" Visibility="{Binding AttendingRequests.Count, Converter={StaticResource zeroToCollapsedConverter}}"/>
+                                <ItemsControl ItemsSource="{Binding AttendingRequests}" ItemTemplate="{StaticResource iRequestEventTemplate}"/>
+                            </StackPanel>
+                        </DataTemplate>
 
-                    <DataTemplate x:Key="elevatorEventTemplate" DataType="{x:Type es:ElevatorEvent}">
-                        <StackPanel Margin="20,0,0,0">
-                            <TextBlock Text="Elevator Event" FontSize="18" Margin="0,0,0,5"/>
-                            <TextBlock Text="Info" FontSize="16"/>
-                            <TextBlock Text="{Binding FinishedAction, StringFormat={}Finished Action: {0}}" FontSize="14"/>
-                            <TextBlock Text="{Binding EventLocation.Id, StringFormat={}Floor Id: {0}}" FontSize="14"/>
-                            <ContentControl Content="{Binding Elevator}" ContentTemplate="{StaticResource elevatorTemplate}"
-                                            Margin="0,10,0,0"/>
-                        </StackPanel>
-                    </DataTemplate>
+                        <DataTemplate x:Key="elevatorEventTemplate" DataType="{x:Type es:ElevatorEvent}">
+                            <StackPanel Margin="20,0,0,0">
+                                <TextBlock Text="Elevator Event" FontSize="25" Margin="0,20,0,5"/>
+                                <TextBlock Text="Info" FontSize="16"/>
+                                <TextBlock Text="{Binding FinishedAction, StringFormat={}Finished Action: {0}}" FontSize="14"/>
+                                <TextBlock Text="{Binding EventLocation.Id, StringFormat={}Floor Id: {0}}" FontSize="14"/>
+                                <ContentControl Content="{Binding Elevator}" ContentTemplate="{StaticResource elevatorTemplate}"
+                                                Margin="0,10,0,0"/>
+                            </StackPanel>
+                        </DataTemplate>
 
-                    <DataTemplate x:Key="basicRequestEventTemplate" DataType="{x:Type client:BasicRequestEvent}">
-                        <StackPanel Margin="20,0,0,0">
-                            <TextBlock Text="Basic Request Event" Margin="0,0,0,5" FontSize="18"/>
-                            <TextBlock Text="{Binding EventLocation.Id, StringFormat={}From floor: {0}}" FontSize="14"/>
-                            <TextBlock Text="{Binding Destination.Id, StringFormat={}To floor: {0}}" FontSize="14"/>
-                        </StackPanel>
-                    </DataTemplate>
+                        <DataTemplate x:Key="basicRequestEventTemplate" DataType="{x:Type client:BasicRequestEvent}">
+                            <StackPanel Margin="20,0,0,0">
+                                <TextBlock Text="Basic Request Event" Margin="0,20,0,5" FontSize="25"/>
+                                <TextBlock Text="{Binding EventLocation.Id, StringFormat={}From floor: {0}}" FontSize="14"/>
+                                <TextBlock Text="{Binding Destination.Id, StringFormat={}To floor: {0}}" FontSize="14"/>
+                            </StackPanel>
+                        </DataTemplate>
 
-                    <DataTemplate x:Key="noEventTemplate">
-                        <StackPanel Margin="20,0,0,0">
-                            <TextBlock Text="No Event" FontSize="18"/>
-                        </StackPanel>
-                    </DataTemplate>
+                        <DataTemplate x:Key="noEventTemplate">
+                            <StackPanel Margin="20,20,0,0">
+                                <TextBlock Text="No Event" FontSize="25"/>
+                            </StackPanel>
+                        </DataTemplate>
 
-                    <local:EventTemplateSelector x:Key="eventTemplateSelector"
-                                                   ElevatorEventTemplate="{StaticResource elevatorEventTemplate}"
-                                                   BasicRequestEventTemplate="{StaticResource basicRequestEventTemplate}"
-                                                   NoEventTemplate="{StaticResource noEventTemplate}"/>
-                </StackPanel.Resources>
-                <StackPanel.LayoutTransform>
-                    <ScaleTransform ScaleX="{Binding SidePanelScale, ElementName=mainView}" ScaleY="{Binding SidePanelScale, ElementName=mainView}" />
-                </StackPanel.LayoutTransform>
+                        <DataTemplate x:Key="lastActionTemplate" DataType="{x:Type es:ElevatorEvent}">
+                            <StackPanel Margin="20,0,0,0">
+                                <TextBlock Text="Last Action" Margin="0,10,0,10" FontSize="25"/>
+                                <TextBlock Text="Info" FontSize="16"/>
+                                <TextBlock Text="{Binding FinishedAction, StringFormat={}Planned Action: {0}}" FontSize="14"/>
+                                <TextBlock Text="{Binding EventLocation.Id, StringFormat={}To Floor: {0}}" FontSize="14"/>
+                                <TextBlock Text="{Binding WhenPlanned, StringFormat={}When Planned: {0}}" FontSize="14"/>
+                                <ContentControl Content="{Binding Elevator}" ContentTemplate="{StaticResource elevatorTemplate}"
+                                                Margin="0,10,0,0"/>
+                            </StackPanel>
+                        </DataTemplate>
 
-                <TextBlock Text="Additional Info" Margin="20,10,0,10" FontSize="25"/>
+                        <local:EventTemplateSelector x:Key="eventTemplateSelector"
+                                                       ElevatorEventTemplate="{StaticResource elevatorEventTemplate}"
+                                                       BasicRequestEventTemplate="{StaticResource basicRequestEventTemplate}"
+                                                       NoEventTemplate="{StaticResource noEventTemplate}"/>
+                    </StackPanel.Resources>
+                    <StackPanel.LayoutTransform>
+                        <ScaleTransform ScaleX="{Binding SidePanelScale, ElementName=mainView}" ScaleY="{Binding SidePanelScale, ElementName=mainView}" />
+                    </StackPanel.LayoutTransform>
 
-                <ContentControl ContentTemplateSelector="{StaticResource eventTemplateSelector}"
-                                  Content="{Binding LastEvent}"/>
+                    <ContentControl ContentTemplateSelector="{StaticResource eventTemplateSelector}"
+                                      Content="{Binding LastEvent}"/>
 
-            </StackPanel>
+                    <ContentControl Content="{Binding LastAction}" ContentTemplate="{StaticResource lastActionTemplate}" Visibility="{Binding LastAction, Converter={StaticResource nullToCollapsedConverter}}"/>
+                </StackPanel>
+            </ScrollViewer>
         </DockPanel>
     </Grid>
 </UserControl>

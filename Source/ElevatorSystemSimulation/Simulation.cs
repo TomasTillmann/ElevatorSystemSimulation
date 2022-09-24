@@ -8,6 +8,7 @@ namespace ElevatorSystemSimulation
         private Calendar _Calendar { get; set; } = new();
         private bool _TerminateSimulation;
         private Seconds _LastStepTime = 0.ToSeconds();
+        private bool _DidClientMadeAction;
 
         protected List<IRequestEvent> _Requests;
         private List<IRequestEvent> Requests
@@ -26,6 +27,7 @@ namespace ElevatorSystemSimulation
         public Seconds TotalTime { get; }
         public int StepCount { get; private set; }
         public IEvent? LastEvent { get; private set; }
+        public IEvent? LastAction { get; private set; }
         public bool IsOver => _TerminateSimulation;
 
         public Simulation(
@@ -56,7 +58,7 @@ namespace ElevatorSystemSimulation
         {
             IEvent? e = _Calendar.GetEvent();
 
-            // update state
+            // update state before step
             StepCount += 1;
             LastEvent = e;
             //
@@ -71,6 +73,11 @@ namespace ElevatorSystemSimulation
                 SetElevatorsLocations(e);
 
                 CurrentLogic.Step(e);
+
+                // update state after step
+                LastAction = _DidClientMadeAction ? LastAction : null;
+                _DidClientMadeAction = false;
+                //
             }
         }
 
@@ -84,6 +91,7 @@ namespace ElevatorSystemSimulation
             _LastStepTime = 0.ToSeconds();
             StepCount = 0;
             LastEvent = null;
+            LastAction = null;
             //
 
             _Calendar.Clear();
@@ -121,7 +129,9 @@ namespace ElevatorSystemSimulation
 
         private void PlanElevator(Elevator elevator, Seconds duration, Floor destination, ElevatorAction action)
         {
+            _DidClientMadeAction = true;
             ElevatorEvent ee = new ElevatorEvent(elevator, CurrentTime + duration, destination, action);
+            LastAction = ee;
 
             _Calendar.AddEvent(ee);
         }
