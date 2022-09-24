@@ -27,29 +27,6 @@ namespace Client
                     new Floor(250.ToCentimeters()),
                     new Floor(250.ToCentimeters()),
                     new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
-                    new Floor(250.ToCentimeters()),
                 },
                 10.ToCentimeters()
             );
@@ -57,10 +34,9 @@ namespace Client
             ElevatorSystem elevatorSystem = new ElevatorSystem(
                 new List<Elevator>()
                 {
-                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(0)),
-                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(0)),
-                    new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(14)),
-                    new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10, floors.GetFloorById(14)),
+                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
+                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
+                    new Elevator(100.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
                 }
             );
 

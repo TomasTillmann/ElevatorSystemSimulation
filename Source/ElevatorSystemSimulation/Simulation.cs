@@ -54,7 +54,6 @@ namespace ElevatorSystemSimulation
 
         public void Step()
         {
-            StepCount += 1;
             IEvent? e = _Calendar.GetEvent();
 
             // update state

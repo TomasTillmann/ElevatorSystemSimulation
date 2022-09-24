@@ -45,14 +45,13 @@ namespace ElevatorSystemSimulation
             CentimetersPerSecond travelSpeed,
             CentimetersPerSecond acceleratingTravelSpeed,
             Seconds departingTime,
-            int capacity,
-            Floor? startingFloor)
+            int capacity)
         {
             TravelSpeed = travelSpeed;
             AccelerationDelaySpeed = acceleratingTravelSpeed;
             DepartingTime = departingTime;
             Capacity = capacity;
-            Location = startingFloor != null ? startingFloor.Location : 0.ToCentimeters();
+            Location = 0.ToCentimeters();
 
             Id = _Counter++;
         }

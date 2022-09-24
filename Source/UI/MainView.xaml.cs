@@ -29,6 +29,9 @@ namespace UI
             stepButton.Click += DataContext.Step;
             stepButton.Click += buildingView.Update;
 
+            stepBackButton.Click += DataContext.StepBack;
+            stepBackButton.Click += buildingView.Update;
+
             sidePanel.PreviewMouseWheel += OnPreviewMouseWheelMoving;
 
             restartButton.Click += DataContext.Restart;
