@@ -26,6 +26,7 @@ namespace ElevatorSystemSimulation
         public Seconds TotalTime { get; }
         public int StepCount { get; private set; }
         public IEvent? LastEvent { get; private set; }
+        public IEvent? LastAction { get; private set; }
         public bool IsOver => _TerminateSimulation;
 
         public Simulation(
@@ -84,6 +85,7 @@ namespace ElevatorSystemSimulation
             _LastStepTime = 0.ToSeconds();
             StepCount = 0;
             LastEvent = null;
+            LastAction = null;
             //
 
             _Calendar.Clear();
@@ -122,6 +124,7 @@ namespace ElevatorSystemSimulation
         private void PlanElevator(Elevator elevator, Seconds duration, Floor destination, ElevatorAction action)
         {
             ElevatorEvent ee = new ElevatorEvent(elevator, CurrentTime + duration, destination, action);
+            LastAction = ee;
 
             _Calendar.AddEvent(ee);
         }

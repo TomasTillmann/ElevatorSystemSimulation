@@ -45,6 +45,9 @@ namespace UI
         public IEvent? LastEvent { get { return (IEvent)GetValue(LastEventProperty); } set { SetValue(LastEventProperty, value); } }
         public static readonly DependencyProperty LastEventProperty = DependencyProperty.Register("LastEvent", typeof(IEvent), typeof(MainViewModel));
 
+        public IEvent? LastAction { get { return (IEvent?)GetValue(LastActionProperty); } set { SetValue(LastActionProperty, value); } }
+        public static readonly DependencyProperty LastActionProperty = DependencyProperty.Register("LastAction", typeof(IEvent), typeof(MainViewModel));
+
         public MainViewModel()
         {
             _Simulation = GetSimulation();
@@ -103,6 +106,7 @@ namespace UI
             StepCount = _Simulation.StepCount;
             CurrentTime = _Simulation.CurrentTime.Value;
             LastEvent = _Simulation.LastEvent;
+            LastAction = _Simulation.LastAction;
 
             UpdateElevatorViewModels();
             UpdateFloorViewModels();
@@ -136,6 +140,7 @@ namespace UI
             StepCount = currentSnapshot.StepCount;
             CurrentTime = currentSnapshot.CurrentTime;
             LastEvent = currentSnapshot.LastEvent;
+            LastAction = currentSnapshot.LastAction;
 
             UpdateElevatorViewModelsFromSnapshot();
             UpdateFloorViewModelsFromSnapshot();
@@ -201,7 +206,7 @@ namespace UI
                     .ToList()))
                 .ToList();
 
-            return new SimulationSnapshot(StepCount, CurrentTime, LastEvent, elevatorSnapshots, floorSnapshots);
+            return new SimulationSnapshot(StepCount, CurrentTime, LastEvent, LastAction, elevatorSnapshots, floorSnapshots);
         }
 
         private struct SimulationSnapshot
@@ -209,14 +214,16 @@ namespace UI
             public int StepCount { get; }
             public int CurrentTime { get; }
             public IEvent? LastEvent { get; }
+            public IEvent? LastAction { get; }
             public List<ElevatorSnapshot> ElevatorSnapshots { get; }
             public List<FloorSnapshot> FloorSnapshots { get; }
 
-            public SimulationSnapshot(int stepCount, int currentTime, IEvent? lastEvent, List<ElevatorSnapshot> elevatorSnapshots, List<FloorSnapshot> floorSnapshots)
+            public SimulationSnapshot(int stepCount, int currentTime, IEvent? lastEvent, IEvent? lastAction, List<ElevatorSnapshot> elevatorSnapshots, List<FloorSnapshot> floorSnapshots)
             {
                 StepCount = stepCount;
                 CurrentTime = currentTime;
                 LastEvent = lastEvent;
+                LastAction = lastAction;
                 ElevatorSnapshots = elevatorSnapshots;
                 FloorSnapshots = floorSnapshots;
             }
@@ -296,6 +303,42 @@ namespace UI
             }
 
             return value;
+        }
+    }
+
+    public class ZeroToCollapsedConverter : IValueConverter
+    {
+        public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if(value is int numericValue)
+            {
+                return numericValue == 0 ? Visibility.Collapsed : Visibility.Visible;
+            }
+
+            return Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class NullToCollapsedConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if(value is null)
+            {
+                return Visibility.Collapsed;
+            }
+
+            return Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 
