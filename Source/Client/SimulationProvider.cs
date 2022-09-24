@@ -41,7 +41,7 @@ namespace Client
             );
 
             Building building = new(floors, elevatorSystem);
-            BasicElevatorLogic elevatorLogic = new(building);
+            SCAN elevatorLogic = new(building);
             BasicRequestsGenerator generator = new(new Random(420));
             Seconds totalSimulationRunningTime = 1000.ToSeconds();
 

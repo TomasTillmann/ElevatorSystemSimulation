@@ -63,6 +63,11 @@ namespace ElevatorSystemSimulation
                 return;
             }
 
+            if (!IsIdle)
+            {
+                UnplanMe();
+            }
+
             IsIdle = false;
 
             SetDirection(floor.Location);
@@ -81,6 +86,11 @@ namespace ElevatorSystemSimulation
                 throw new Exception("Elevator cannot Idle. Elevators can Idle only when fully in the floor where the elevator currently is.");
             }
 
+            if (!IsIdle)
+            {
+                UnplanMe();
+            }
+
             IsIdle = true;
 
             Direction = Direction.NoDirection;
@@ -89,7 +99,6 @@ namespace ElevatorSystemSimulation
 
         public void UnloadAndLoad(Floor? floor)
         {
-            //TODO - implement loading - need to delete requests that were served by loading
             if(floor == null)
             {
                 return;
@@ -98,6 +107,11 @@ namespace ElevatorSystemSimulation
             if (Location != floor.Location)
             {
                 throw new Exception("Elevator cannot load people. Elevators can load people only when fully in a floor.");
+            }
+
+            if (!IsIdle)
+            {
+                UnplanMe();
             }
 
             //TODO - IMPLEMENT: depart out + depart in time - maybe no one to depart out or no one to depart in on the floor 
@@ -152,7 +166,7 @@ namespace ElevatorSystemSimulation
             PlanElevator(this, duration, destination, action);
         }
 
-        private void UnplanMe(Seconds duration, Centimeters location)
+        private void UnplanMe()
         {
             if (UnplanElevator == null)
             {
@@ -189,7 +203,9 @@ namespace ElevatorSystemSimulation
         #region Simulation
 
         public IReadOnlyCollection<IRequestEvent> Requests => _Requests; 
+
         internal List<IRequestEvent> _Requests { get; } = new();
+        internal readonly List<Elevator> PlannedElevators = new();
 
         public void Restart()
         {

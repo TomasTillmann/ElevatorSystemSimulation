@@ -2,20 +2,12 @@
 
 namespace Client
 {
-    public class BasicElevatorLogic : ElevatorLogic<BasicRequestEvent> 
+    public class SCAN : ElevatorLogic<BasicRequestEvent> 
     {
-        private List<Elevator> _Elevators { get; set; }
-        private Floors _Floors { get; set; }
-        private Random _Random { get; }
-        private readonly Dictionary<ElevatorAction, Action<ElevatorEvent>> _DoAfterElevatorAction = new();
-
-        public BasicElevatorLogic(Building building)
+        // WIP
+        public SCAN(Building building)
         :base(building)
         {
-            _Elevators = building.ElevatorSystem.Elevators;
-            _Floors = building.Floors;
-            _Random = new Random();
-
             _DoAfterElevatorAction.Add(ElevatorAction.MoveTo, StepAfterMove);
             _DoAfterElevatorAction.Add(ElevatorAction.UnloadAndLoad, StepAfterUnloadAndLoad);
             _DoAfterElevatorAction.Add(ElevatorAction.Idle, StepAfterIdle);
@@ -23,11 +15,15 @@ namespace Client
 
         protected override void Step(BasicRequestEvent e)
         {
-            Elevator? freeElevator = _Elevators.Find(elevator => elevator.IsIdle);
+            Elevator? freeElevator = Elevators.Find(elevator => elevator.IsIdle);
 
             if(freeElevator != null)
             {
                 freeElevator.MoveTo(e.EventLocation);
+            }
+            else
+            {
+                Elevators[0].MoveTo(e.EventLocation);
             }
         }
 
@@ -36,7 +32,6 @@ namespace Client
             _DoAfterElevatorAction[e.FinishedAction].Invoke(e);
         }
 
-        //TODO - refactor and implement and run and test ...
         private void StepAfterMove(ElevatorEvent e)
         {
             if(e.Elevator.AttendingRequests.Count > 0 || e.EventLocation.Requests.Count > 0)
@@ -51,7 +46,7 @@ namespace Client
             {
                 e.Elevator.Idle(e.EventLocation);
 
-                Elevator? freeElevator = _Elevators.Find(e => e.IsIdle);
+                Elevator? freeElevator = Elevators.Find(e => e.IsIdle);
 
                 if(freeElevator != null)
                 {
@@ -64,7 +59,6 @@ namespace Client
         {
             if(e.Elevator.AttendingRequests.Count > 0)
             {
-                // serve the requests
                 Floor  floor = GetNextFloorByRequestToServe(e);
                 e.Elevator.MoveTo(floor);
             }
@@ -77,7 +71,7 @@ namespace Client
             {
                 e.Elevator.Idle(e.EventLocation);
 
-                Elevator? freeElevator = _Elevators.Find(e => e.IsIdle);
+                Elevator? freeElevator = Elevators.Find(e => e.IsIdle);
 
                 if(freeElevator != null)
                 {
@@ -88,7 +82,7 @@ namespace Client
 
         private void StepAfterIdle(ElevatorEvent e)
         {
-            Elevator? freeElevator = _Elevators.Find(e => e.IsIdle);
+            Elevator? freeElevator = Elevators.Find(e => e.IsIdle);
 
             if(freeElevator != null)
             {
@@ -101,7 +95,6 @@ namespace Client
             int minDistance = int.MaxValue;
             Floor floorToGo = null;
 
-            // it will choose the closest floor - hungry approach
             foreach (BasicRequestEvent request in GetAllCurrentRequestEvents())
             {
                 int distance = Math.Abs((request.EventLocation.Location - elevator.Location).Value);
@@ -121,7 +114,6 @@ namespace Client
             int minDistance = int.MaxValue;
             Floor floorToGo = null;
 
-            // it will choose the closest floor - hungry approach
             foreach(BasicRequestEvent request in e.Elevator.AttendingRequests)
             {
                 int distance = Math.Abs(request.Destination.Id - e.EventLocation.Id);
@@ -135,6 +127,5 @@ namespace Client
 
             return floorToGo;
         }
-        //
     }
 }

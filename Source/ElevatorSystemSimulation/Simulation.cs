@@ -56,28 +56,15 @@ namespace ElevatorSystemSimulation
 
         public void Step()
         {
-            IEvent? e = _Calendar.GetEvent();
-
-            // update state before step
-            StepCount += 1;
-            LastEvent = e;
-            //
-
-            if(e == null)
+            if(_Calendar.TryGetEvent(out IEvent? e))
             {
-                _TerminateSimulation = true;
+                UpdateStateBeforeStep(e);
+                CurrentLogic.Step(e);
+                UpdateStateAfterStep();
             }
             else
             {
-                SetCurrentTime(e.WhenPlanned);
-                SetElevatorsLocations(e);
-
-                CurrentLogic.Step(e);
-
-                // update state after step
-                LastAction = _DidClientMadeAction ? LastAction : null;
-                _DidClientMadeAction = false;
-                //
+                _TerminateSimulation = true;
             }
         }
 
@@ -131,46 +118,84 @@ namespace ElevatorSystemSimulation
         {
             _DidClientMadeAction = true;
             ElevatorEvent ee = new ElevatorEvent(elevator, CurrentTime + duration, destination, action);
+
             LastAction = ee;
+
+            if(ee.FinishedAction == ElevatorAction.MoveTo)
+            {
+                ee.EventLocation.PlannedElevators.Add(ee.Elevator);
+            }
 
             _Calendar.AddEvent(ee);
         }
 
         private void UnplanElevator(Elevator elevator)
         {
-            //TODO - implement
+            _Calendar.RemoveElevatorEvent(elevator);
+        }
+
+        private void UpdateStateBeforeStep(IEvent e)
+        {
+            SetCurrentTime(e.WhenPlanned);
+            SetElevatorsLocations(e);
+
+            if (e is ElevatorEvent ee)
+            {
+                if (ee.FinishedAction == ElevatorAction.UnloadAndLoad)
+                {
+                    ee.EventLocation.PlannedElevators.Remove(ee.Elevator);
+                }
+            }
+
+            StepCount += 1;
+            LastEvent = e;
+        }
+
+        private void UpdateStateAfterStep()
+        {
+            LastAction = _DidClientMadeAction ? LastAction : null;
+            _DidClientMadeAction = false;
         }
 
         #region Calendar
 
+        //TODO - implement better - its terribly slow like this - at worst O(n) is possible via Linked list
+        // Priority Queue is not sufficient, want to remove specific events
         private class Calendar
         {
-            private PriorityQueue<IEvent, Seconds> Events { get; }
+            private readonly List<(IEvent Event, Seconds WhenPlanned)> _Events = new();
 
-            public Calendar()
+            public bool TryGetEvent(out IEvent? e)
             {
-                Events = new PriorityQueue<IEvent, Seconds>(new TimeComparer());
-            }
-
-            public IEvent? GetEvent()
-            {
-                if(Events.Count == 0)
+                if(_Events.Count == 0)
                 {
-                    return null;
+                    e = null;
+                    return false;
                 }
 
-                return Events.Dequeue();
+                var entry = _Events.OrderBy((entry) => entry.WhenPlanned.Value).First();
+                _Events.Remove(entry);
+                e = entry.Event;
+
+                return true; 
             }
 
             public void AddEvent(IEvent e)
             {
-                
-                Events.Enqueue(e, e.WhenPlanned);
+                _Events.Add((e, e.WhenPlanned));
             }
 
-            public void Clear()
+            public void RemoveElevatorEvent(Elevator elevator)
             {
-                Events.Clear();
+                for(int i = 0; i < _Events.Count; i++)
+                {
+                    var entry = _Events[i];
+                    if(entry.Event is ElevatorEvent ee && ee.Elevator.Id == elevator.Id)
+                    {
+                        _Events.RemoveAt(i);
+                        break;
+                    }
+                }
             }
 
             public void Init(IEnumerable<IRequestEvent> requests)
@@ -179,6 +204,11 @@ namespace ElevatorSystemSimulation
                 {
                     AddEvent(request);
                 }
+            }
+
+            public void Clear()
+            {
+                _Events.Clear();
             }
 
             private class TimeComparer : Comparer<Seconds>

@@ -1,10 +1,14 @@
 ﻿using ElevatorSystemSimulation.Interfaces;
+using ElevatorSystemSimulation.Extensions;
 
 namespace ElevatorSystemSimulation
 {
     public abstract class ElevatorLogic<RequestEvent> : IElevatorLogic where RequestEvent : IRequestEvent
     {
-        public Building Building { get; }
+        protected Building Building { get; }
+        protected List<Elevator> Elevators => Building.ElevatorSystem.Elevators;
+        protected List<Floor> Floors => Building.Floors.Value;
+        protected Dictionary<ElevatorAction, Action<ElevatorEvent>> _DoAfterElevatorAction { get; } = new();
 
         public ElevatorLogic(Building building)
         {
@@ -28,7 +32,7 @@ namespace ElevatorSystemSimulation
             }
         }
 
-        public IEnumerable<RequestEvent> GetAllCurrentRequestEvents()
+        protected IEnumerable<RequestEvent> GetAllCurrentRequestEvents()
         {
             foreach(Floor floor in Building.Floors.Value)
             {
@@ -37,6 +41,44 @@ namespace ElevatorSystemSimulation
                     yield return requestEvent;
                 }
             }
+        }
+
+        protected List<Elevator> GetClosestElevators(Floor floor)
+        {
+            Centimeters minDistance = 0.ToCentimeters();
+            List<Elevator> closestElevators = new();
+
+            foreach(Elevator elevator in Elevators)
+            {
+                if(elevator.Location - floor.Location < minDistance)
+                {
+                    minDistance = elevator.Location - floor.Location;
+                    closestElevators.Clear();
+                    closestElevators.Add(elevator);
+                }
+                else if(elevator.Location - floor.Location == minDistance)
+                {
+                    closestElevators.Add(elevator);
+                }
+            }
+
+            return closestElevators;
+        }
+
+        protected Floor? ToWhereIsPlanned(Elevator elevator)
+        {
+            foreach(Floor floor in Floors)
+            {
+                foreach(Elevator plannedElevator in floor.PlannedElevators)
+                {
+                    if(elevator == plannedElevator)
+                    {
+                        return floor;
+                    }
+                }
+            }
+
+            return null;
         }
 
         protected abstract void Step(RequestEvent ce);

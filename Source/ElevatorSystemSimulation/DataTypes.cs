@@ -34,6 +34,8 @@
         public static bool operator == (Centimeters c1, Centimeters c2) => c1.Value == c2.Value;
         public static bool operator !=(Centimeters c1, Centimeters c2) => c1.Value != c2.Value;
         public static Centimeters operator *(Direction direction, Centimeters c) => new((int)direction * c.Value);
+        public static bool operator <(Centimeters c1, Centimeters c2) => c1.Value < c2.Value;
+        public static bool operator >(Centimeters c1, Centimeters c2) => c1.Value > c2.Value;
 
         #endregion
 
