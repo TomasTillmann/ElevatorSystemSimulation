@@ -70,6 +70,7 @@ namespace ElevatorSystemSimulation
             {
                 SetCurrentTime(e.WhenPlanned);
                 SetElevatorsLocations(e);
+
                 CurrentLogic.Step(e);
             }
         }

@@ -52,20 +52,28 @@
 
         <DockPanel Grid.Column="2">
             <Grid DockPanel.Dock="Bottom" Background="FloralWhite" Height="40">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+                <Grid HorizontalAlignment="Right" Margin="0,0,10,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="80"/>
+                    </Grid.ColumnDefinitions>
 
                     <RepeatButton Grid.Column="0" 
-                                  x:Name="stepButton"
-                                  Content="Step"
-                                  Margin="6"/>
+                                      x:Name="stepBackButton"
+                                      Content="Step Back"
+                                      Margin="6"/>
 
-                    <Button Grid.Column="1"
+                    <RepeatButton Grid.Column="1" 
+                                      x:Name="stepButton"
+                                      Content="Step"
+                                      Margin="6"/>
+
+                    <Button Grid.Column="2"
                             x:Name="restartButton"
                             Content="Restart"
                             Margin="6"/>
+                </Grid>
             </Grid>
 
             <StackPanel x:Name="sidePanel">
@@ -109,7 +117,9 @@
                     </DataTemplate>
 
                     <DataTemplate x:Key="noEventTemplate">
-                        <TextBlock Text="No Event"/>
+                        <StackPanel Margin="20,0,0,0">
+                            <TextBlock Text="No Event" FontSize="18"/>
+                        </StackPanel>
                     </DataTemplate>
 
                     <local:EventTemplateSelector x:Key="eventTemplateSelector"
@@ -123,7 +133,7 @@
 
                 <TextBlock Text="Additional Info" Margin="20,10,0,10" FontSize="25"/>
 
-                <ContentPresenter ContentTemplateSelector="{StaticResource eventTemplateSelector}"
+                <ContentControl ContentTemplateSelector="{StaticResource eventTemplateSelector}"
                                   Content="{Binding LastEvent}"/>
 
             </StackPanel>
