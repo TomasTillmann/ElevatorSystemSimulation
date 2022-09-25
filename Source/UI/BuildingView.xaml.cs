@@ -51,8 +51,8 @@ namespace UI
         public double BuildingHorizontalLocation { get { return (double)GetValue(BuildingHorizontalLocationProperty); } set { SetValue(BuildingHorizontalLocationProperty, value); } }
         public static readonly DependencyProperty BuildingHorizontalLocationProperty = DependencyProperty.Register("BuildingHorizontalLocation", typeof(double), typeof(BuildingView));
 
-        public IEvent? LastEvent { get { return (IEvent)GetValue(LastEventProperty); } set { SetValue(LastEventProperty, value); } }
-        public static readonly DependencyProperty LastEventProperty = DependencyProperty.Register("LastEvent", typeof(IEvent), typeof(BuildingView));
+        public IEventViewModel? LastEvent { get { return (IEventViewModel?)GetValue(LastEventProperty); } set { SetValue(LastEventProperty, value); } }
+        public static readonly DependencyProperty LastEventProperty = DependencyProperty.Register("LastEvent", typeof(IEventViewModel), typeof(BuildingView));
 
         public BuildingView()
         {
@@ -255,13 +255,13 @@ namespace UI
 
         private void ShowWhereIsLastEvent()
         {
-            if(LastEvent is BasicRequestEvent requestEvent)
+            if(LastEvent is BasicRequestEventViewModel requestEvent)
             {
                 int floor = requestEvent.EventLocation.Id;
                 _RequestViews[floor].Background = new SolidColorBrush(Colors.LightGreen);
             }
 
-            if(LastEvent is ElevatorEvent elevatorEvent)
+            if(LastEvent is ElevatorEventViewModel elevatorEvent)
             {
                 int elevator = elevatorEvent.Elevator.Id;
                 _ElevatorViews[elevator].Background = new SolidColorBrush(Colors.LightGreen);

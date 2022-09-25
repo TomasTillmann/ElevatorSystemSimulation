@@ -92,7 +92,7 @@
                             </StackPanel>
                         </DataTemplate>
 
-                        <DataTemplate x:Key="elevatorTemplate" DataType="{x:Type es:Elevator}">
+                        <DataTemplate x:Key="elevatorTemplate" DataType="{x:Type local:ElevatorViewModel}">
                             <StackPanel>
                                 <TextBlock Text="Elevator" FontSize="16"/>
                                 <TextBlock Text="{Binding Id, StringFormat={}Elevator Id: {0}}" FontSize="14"/>
@@ -103,7 +103,7 @@
                             </StackPanel>
                         </DataTemplate>
 
-                        <DataTemplate x:Key="elevatorEventTemplate" DataType="{x:Type es:ElevatorEvent}">
+                        <DataTemplate x:Key="elevatorEventTemplate" DataType="{x:Type local:ElevatorEventViewModel}">
                             <StackPanel Margin="20,0,0,0">
                                 <TextBlock Text="Elevator Event" FontSize="25" Margin="0,20,0,5"/>
                                 <TextBlock Text="Info" FontSize="16"/>
@@ -114,7 +114,7 @@
                             </StackPanel>
                         </DataTemplate>
 
-                        <DataTemplate x:Key="basicRequestEventTemplate" DataType="{x:Type client:BasicRequestEvent}">
+                        <DataTemplate x:Key="basicRequestEventTemplate" DataType="{x:Type local:BasicRequestEventViewModel}">
                             <StackPanel Margin="20,0,0,0">
                                 <TextBlock Text="Basic Request Event" Margin="0,20,0,5" FontSize="25"/>
                                 <TextBlock Text="{Binding EventLocation.Id, StringFormat={}From floor: {0}}" FontSize="14"/>
@@ -128,7 +128,7 @@
                             </StackPanel>
                         </DataTemplate>
 
-                        <DataTemplate x:Key="lastActionTemplate" DataType="{x:Type es:ElevatorEvent}">
+                        <DataTemplate x:Key="lastActionTemplate" DataType="{x:Type local:ElevatorEventViewModel}">
                             <StackPanel Margin="20,0,0,0">
                                 <TextBlock Text="Last Action" Margin="0,10,0,10" FontSize="25"/>
                                 <TextBlock Text="Info" FontSize="16"/>

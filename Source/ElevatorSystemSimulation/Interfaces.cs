@@ -17,7 +17,6 @@
             void Restart();
         }
 
-        // client implements his own request event - this request event defines capabilities of the elevator system
         public interface IRequestEvent : IEvent
         {
             Floor Destination { get; }

@@ -42,11 +42,11 @@ namespace UI
         public int CurrentTime { get { return (int)GetValue(CurrentTimeProperty); } set { SetValue(CurrentTimeProperty, value); } }
         public static readonly DependencyProperty CurrentTimeProperty = DependencyProperty.Register("CurrentTime", typeof(int), typeof(MainViewModel));
 
-        public IEvent? LastEvent { get { return (IEvent)GetValue(LastEventProperty); } set { SetValue(LastEventProperty, value); } }
-        public static readonly DependencyProperty LastEventProperty = DependencyProperty.Register("LastEvent", typeof(IEvent), typeof(MainViewModel));
+        public IEventViewModel? LastEvent { get { return (IEventViewModel?)GetValue(LastEventProperty); } set { SetValue(LastEventProperty, value); } }
+        public static readonly DependencyProperty LastEventProperty = DependencyProperty.Register("LastEvent", typeof(IEventViewModel), typeof(MainViewModel));
 
-        public IEvent? LastAction { get { return (IEvent?)GetValue(LastActionProperty); } set { SetValue(LastActionProperty, value); } }
-        public static readonly DependencyProperty LastActionProperty = DependencyProperty.Register("LastAction", typeof(IEvent), typeof(MainViewModel));
+        public IEventViewModel? LastAction { get { return (IEventViewModel?)GetValue(LastActionProperty); } set { SetValue(LastActionProperty, value); } }
+        public static readonly DependencyProperty LastActionProperty = DependencyProperty.Register("LastAction", typeof(IEventViewModel), typeof(MainViewModel));
 
         public MainViewModel()
         {
@@ -55,7 +55,7 @@ namespace UI
             Elevators = _Simulation.Building.ElevatorSystem.Elevators.Select(e => new ElevatorViewModel(e)).ToList();
             Floors = _Simulation.Building.Floors.Value.Select(f => new FloorViewModel(f)).ToList();
 
-            _History.Add(GetSimulationSnapshot());
+            _History.Add(GetSnapshot());
             _CurrentSnapshotPointer++;
         }
 
@@ -64,36 +64,33 @@ namespace UI
             if(_CurrentSnapshotPointer == _History.Count - 1)
             {
                 _Simulation.Step();
-                UpdateViewModel();
+                UpdateThisViewModel();
 
-                _History.Add(GetSimulationSnapshot());
+                _History.Add(GetSnapshot());
                 _CurrentSnapshotPointer++;
             }
             else
             {
                 _CurrentSnapshotPointer++;
-                UpdateViewModelFromSnapshot();
+                UpdateThisViewModelFromSnapshot();
             }
         }
 
         public void StepBack()
         {
             _CurrentSnapshotPointer = _CurrentSnapshotPointer == 0 ? _CurrentSnapshotPointer : _CurrentSnapshotPointer - 1;
-            UpdateViewModelFromSnapshot();
+            UpdateThisViewModelFromSnapshot();
         }
 
         public void Restart()
         {
             _Simulation.Restart();
 
-            UpdateViewModel();
+            UpdateThisViewModel();
 
             _History.Clear();
-            _History.Add(GetSimulationSnapshot());
+            _History.Add(GetSnapshot());
             _CurrentSnapshotPointer = 0;
-
-            UpdateElevatorViewModels();
-            UpdateFloorViewModels();
         }
 
         private Simulation GetSimulation()
@@ -101,12 +98,12 @@ namespace UI
             return SimulationProvider.GetSimulation();
         }
 
-        private void UpdateViewModel()
+        private void UpdateThisViewModel()
         {
             StepCount = _Simulation.StepCount;
             CurrentTime = _Simulation.CurrentTime.Value;
-            LastEvent = _Simulation.LastEvent;
-            LastAction = _Simulation.LastAction;
+            UpdateLastEvent();
+            UpdateLastAction();
 
             UpdateElevatorViewModels();
             UpdateFloorViewModels();
@@ -133,41 +130,36 @@ namespace UI
             }
         }
 
-        private void UpdateViewModelFromSnapshot()
+        private void UpdateLastEvent()
         {
-            SimulationSnapshot currentSnapshot = _History[_CurrentSnapshotPointer];
-
-            StepCount = currentSnapshot.StepCount;
-            CurrentTime = currentSnapshot.CurrentTime;
-            LastEvent = currentSnapshot.LastEvent;
-            LastAction = currentSnapshot.LastAction;
-
-            UpdateElevatorViewModelsFromSnapshot();
-            UpdateFloorViewModelsFromSnapshot();
-        }
-
-        private void UpdateElevatorViewModelsFromSnapshot()
-        {
-            SimulationSnapshot currentSnapshot = _History[_CurrentSnapshotPointer];
-
-            int i = 0;
-            foreach (ElevatorViewModel elevatorViewModel in Elevators)
+            if(_Simulation.LastEvent is ElevatorEvent elevatorEvent)
             {
-                ElevatorSnapshot elevatorSnapshot = currentSnapshot.ElevatorSnapshots[i++];
-                elevatorViewModel.Location = elevatorSnapshot.Location;
-                elevatorViewModel.PeopleCount = elevatorSnapshot.PeopleCount;
+                LastEvent = new ElevatorEventViewModel(elevatorEvent);
             }
+            else if (_Simulation.LastEvent is BasicRequestEvent requestEvent)
+            {
+                LastEvent = new BasicRequestEventViewModel(requestEvent);
+            }
+            else
+            {
+                LastEvent = null;
+            }
+
         }
 
-        private void UpdateFloorViewModelsFromSnapshot()
+        private void UpdateLastAction()
         {
-            SimulationSnapshot currentSnapshot = _History[_CurrentSnapshotPointer];
-
-            int i = 0;
-            foreach(FloorViewModel floorViewModel in Floors)
+            if(_Simulation.LastAction is ElevatorEvent elevatorEvent)
             {
-                FloorSnapshot floorSnapshot = currentSnapshot.FloorSnapshots[i++];
-                floorViewModel.Requests = floorSnapshot.RequestSnapshots.Select(r => (IRequestEvent)r).ToList();        //HACK - not very clean
+                LastAction = new ElevatorEventViewModel(elevatorEvent);
+            }
+            else if (_Simulation.LastAction is BasicRequestEvent requestEvent)
+            {
+                LastAction= new BasicRequestEventViewModel(requestEvent);
+            }
+            else
+            {
+                LastAction = null;
             }
         }
 
@@ -192,66 +184,58 @@ namespace UI
 
         #region History
 
-        private SimulationSnapshot GetSimulationSnapshot()
+        private SimulationSnapshot GetSnapshot()
         {
-            List<ElevatorSnapshot> elevatorSnapshots =
-                Elevators
-                .Select(e => new ElevatorSnapshot(e.PeopleCount, e.Location)).ToList();
+            List<ElevatorViewModel> elevatorSnapshots = new(Elevators.Count);
+            Elevators.ForEach(elevator => elevatorSnapshots.Add(elevator.Clone()));
 
-            List<FloorSnapshot> floorSnapshots =
-                Floors
-                .Select(f => new FloorSnapshot(
-                    f.Requests
-                    .Select(r => (BasicRequestEvent)r)          //HACK - not very clean - Could be some different requestEvent in the future
-                    .ToList()))
-                .ToList();
+            List<FloorViewModel> floorSnapshots = new(Floors.Count);
+            Floors.ForEach(floor => floorSnapshots.Add(floor.Clone()));
 
-            return new SimulationSnapshot(StepCount, CurrentTime, LastEvent, LastAction, elevatorSnapshots, floorSnapshots);
+            return new SimulationSnapshot(StepCount, CurrentTime, LastEvent?.Clone() as IEventViewModel, LastAction?.Clone() as IEventViewModel, elevatorSnapshots, floorSnapshots);
         }
 
-        private struct SimulationSnapshot
+        private void UpdateThisViewModelFromSnapshot()
         {
-            public int StepCount { get; }
-            public int CurrentTime { get; }
-            public IEvent? LastEvent { get; }
-            public IEvent? LastAction { get; }
-            public List<ElevatorSnapshot> ElevatorSnapshots { get; }
-            public List<FloorSnapshot> FloorSnapshots { get; }
+            SimulationSnapshot currentSnapshot = _History[_CurrentSnapshotPointer];
 
-            public SimulationSnapshot(int stepCount, int currentTime, IEvent? lastEvent, IEvent? lastAction, List<ElevatorSnapshot> elevatorSnapshots, List<FloorSnapshot> floorSnapshots)
+            StepCount = currentSnapshot.StepCount;
+            CurrentTime = currentSnapshot.CurrentTime;
+            LastEvent = currentSnapshot.LastEvent;
+            LastAction = currentSnapshot.LastAction;
+
+            for (int i = 0; i < Elevators.Count; i++)
             {
-                StepCount = stepCount;
-                CurrentTime = currentTime;
-                LastEvent = lastEvent;
-                LastAction = lastAction;
-                ElevatorSnapshots = elevatorSnapshots;
-                FloorSnapshots = floorSnapshots;
+                Elevators[i] = currentSnapshot.ElevatorSnapshots[i];
             }
-        }
 
-        private struct ElevatorSnapshot
-        {
-            public int PeopleCount { get; }
-            public Centimeters Location { get; }
-
-            public ElevatorSnapshot(int peopleCount, Centimeters location)
+            for (int i = 0; i < Floors.Count; i++)
             {
-                PeopleCount = peopleCount;
-                Location = location;
-            }
-        }
-
-        private struct FloorSnapshot
-        {
-            public List<BasicRequestEvent> RequestSnapshots { get; }
-
-            public FloorSnapshot(List<BasicRequestEvent> requestSnapshots)
-            {
-                RequestSnapshots = requestSnapshots;
+                Floors[i] = currentSnapshot.FloorSnapshots[i];
             }
         }
 
         #endregion
+    }
+
+    public struct SimulationSnapshot
+    {
+        public int StepCount { get; }
+        public int CurrentTime { get; }
+        public IEventViewModel? LastEvent { get; }
+        public IEventViewModel? LastAction { get; }
+        public List<ElevatorViewModel> ElevatorSnapshots { get; }
+        public List<FloorViewModel> FloorSnapshots { get; }
+
+        public SimulationSnapshot(int stepCount, int currentTime, IEventViewModel? lastEvent, IEventViewModel? lastAction, List<ElevatorViewModel> elevatorSnapshots, List<FloorViewModel> floorSnapshots)
+        {
+            StepCount = stepCount;
+            CurrentTime = currentTime;
+            LastEvent = lastEvent;
+            LastAction = lastAction;
+            ElevatorSnapshots = elevatorSnapshots;
+            FloorSnapshots = floorSnapshots;
+        }
     }
 
     #region Helpers
@@ -264,12 +248,12 @@ namespace UI
 
         public override DataTemplate? SelectTemplate(object item, DependencyObject container)
         {
-            if(item is ElevatorEvent)
+            if(item is ElevatorEventViewModel)
             {
                 return ElevatorEventTemplate;
             }
 
-            if(item is BasicRequestEvent)
+            if(item is BasicRequestEventViewModel)
             {
                 return BasicRequestEventTemplate;
             }

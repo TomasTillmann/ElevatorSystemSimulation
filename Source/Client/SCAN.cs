@@ -68,7 +68,7 @@ namespace Client
         {
             if(e.Elevator.AttendingRequests.Count > 0)
             {
-                Floor  floor = GetNextFloorByRequestToServe(e);
+                Floor? floor = GetNextFloorByRequestToServe(e);
                 e.Elevator.MoveTo(floor);
             }
             else if (GetAllCurrentRequestEvents().Any())
@@ -93,7 +93,7 @@ namespace Client
         }
 
 
-        private Floor GetNextFloorByRequestToServe(ElevatorEvent e)
+        private Floor? GetNextFloorByRequestToServe(ElevatorEvent e)
         {
             if(e.Elevator.LastDirection == Direction.Up)
             {
@@ -102,7 +102,7 @@ namespace Client
                 {
                     floors = GetClosestFloorsWithRequest(e.Elevator); //TODO - requests that wait the longest
                 }
-                return floors.First();
+                return floors.FirstOrDefault();
             }
             else if(e.Elevator.LastDirection == Direction.Down)
             {
@@ -111,7 +111,7 @@ namespace Client
                 {
                     floors = GetClosestFloorsWithRequest(e.Elevator); //TODO - requests that wait the longest
                 }
-                return floors.First();
+                return floors.FirstOrDefault();
             }
             else
             {
