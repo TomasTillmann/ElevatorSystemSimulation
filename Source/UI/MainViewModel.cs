@@ -63,6 +63,11 @@ namespace UI
         {
             if(_CurrentSnapshotPointer == _History.Count - 1)
             {
+                if (_Simulation.IsOver)
+                {
+                    return;
+                }
+
                 _Simulation.Step();
                 UpdateThisViewModel();
 

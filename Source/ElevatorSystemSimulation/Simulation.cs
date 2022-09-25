@@ -6,7 +6,6 @@ namespace ElevatorSystemSimulation
     public class Simulation : IRestartable
     {
         private Calendar _Calendar { get; set; } = new();
-        private bool _TerminateSimulation;
         private Seconds _LastStepTime = 0.ToSeconds();
         private bool _DidClientMadeAction;
 
@@ -28,7 +27,7 @@ namespace ElevatorSystemSimulation
         public int StepCount { get; private set; }
         public IEvent? LastEvent { get; private set; }
         public IEvent? LastAction { get; private set; }
-        public bool IsOver => _TerminateSimulation;
+        public bool IsOver { get; private set; }
 
         public Simulation(
             Building building,
@@ -48,7 +47,7 @@ namespace ElevatorSystemSimulation
 
         public void Run()
         {
-            while (CurrentTime < TotalTime && !_TerminateSimulation)
+            while (CurrentTime < TotalTime && !IsOver)
             {
                 Step();
             }
@@ -56,6 +55,11 @@ namespace ElevatorSystemSimulation
 
         public void Step()
         {
+            if (IsOver)
+            {
+                return;
+            }
+
             if(_Calendar.TryGetEvent(out IEvent? e))
             {
                 UpdateStateBeforeStep(e);
@@ -64,7 +68,7 @@ namespace ElevatorSystemSimulation
             }
             else
             {
-                _TerminateSimulation = true;
+                IsOver = true;
             }
         }
 
@@ -74,6 +78,7 @@ namespace ElevatorSystemSimulation
             Building.Floors.Value.ForEach(floor => floor.Restart());
 
             // restart state
+            IsOver = false;
             CurrentTime = 0.ToSeconds();
             _LastStepTime = 0.ToSeconds();
             StepCount = 0;
