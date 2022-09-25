@@ -35,9 +35,11 @@ namespace ElevatorSystemSimulation
         protected abstract void Step(RequestEvent ce);
         protected abstract void Step(ElevatorEvent ee);
 
-        protected virtual IEnumerable<RequestEvent> GetAllCurrentRequestEvents()
+        protected virtual IEnumerable<RequestEvent> GetAllCurrentRequestEvents(Predicate<Floor>? filter = null)
         {
-            foreach(Floor floor in Building.Floors.Value)
+            filter = filter ?? new Predicate<Floor>(f => true);
+
+            foreach(Floor floor in Building.Floors.Value.Where(f => filter(f)))
             {
                 foreach(RequestEvent requestEvent in floor.Requests)
                 {
@@ -46,22 +48,57 @@ namespace ElevatorSystemSimulation
             }
         }
 
+        protected virtual List<Floor> GetClosestFloorsWithRequest(Elevator elevator, Predicate<Floor>? floorFilter = null, Predicate<RequestEvent>? requestFilter = null)
+        {
+            floorFilter = floorFilter ?? new Predicate<Floor>(f => true);
+            requestFilter = requestFilter ?? new Predicate<RequestEvent>(r => true);
+
+            int minDistance = int.MaxValue;
+            List<Floor> closestFloors = new();
+
+            foreach (RequestEvent request in GetAllCurrentRequestEvents().Where(r => requestFilter(r)))
+            {
+                if (!floorFilter(request.EventLocation))
+                {
+                    continue;
+                }
+
+                int distance = Math.Abs((request.EventLocation.Location - elevator.Location).Value);
+
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    closestFloors.Clear();
+                    closestFloors.Add(request.EventLocation);
+                }
+                else if(distance == minDistance)
+                {
+                    closestFloors.Add(request.EventLocation);
+                }
+            }
+
+            return closestFloors;
+        }
+
+        /// There is always at least one element returned if no filter is used
         protected virtual List<Elevator> GetClosestElevators(Floor floor, Predicate<Elevator>? filter = null)
         {
             filter = filter ?? new Predicate<Elevator>(e => true);
 
-            Centimeters minDistance = 0.ToCentimeters();
+            int minDistance = int.MaxValue;
             List<Elevator> closestElevators = new();
 
             foreach(Elevator elevator in Elevators.Where(e => filter(e)))
             {
-                if(elevator.Location - floor.Location < minDistance)
+                int distance = Math.Abs((elevator.Location - floor.Location).Value);
+
+                if(distance < minDistance)
                 {
-                    minDistance = elevator.Location - floor.Location;
+                    minDistance = distance; 
                     closestElevators.Clear();
                     closestElevators.Add(elevator);
                 }
-                else if(elevator.Location - floor.Location == minDistance)
+                else if(distance == minDistance)
                 {
                     closestElevators.Add(elevator);
                 }

@@ -3,7 +3,7 @@ using ElevatorSystemSimulation.Extensions;
 
 namespace ElevatorSystemSimulation
 {
-    public class Simulation
+    public class Simulation : IRestartable
     {
         private Calendar _Calendar { get; set; } = new();
         private bool _TerminateSimulation;
@@ -123,7 +123,7 @@ namespace ElevatorSystemSimulation
 
             if(ee.FinishedAction == ElevatorAction.MoveTo)
             {
-                ee.EventLocation.PlannedElevators.Add(ee.Elevator);
+                ee.EventLocation._PlannedElevators.Add(ee.Elevator);
             }
 
             _Calendar.AddEvent(ee);
@@ -143,7 +143,7 @@ namespace ElevatorSystemSimulation
             {
                 if (ee.FinishedAction == ElevatorAction.UnloadAndLoad)
                 {
-                    ee.EventLocation.PlannedElevators.Remove(ee.Elevator);
+                    ee.EventLocation._PlannedElevators.Remove(ee.Elevator);
                 }
             }
 

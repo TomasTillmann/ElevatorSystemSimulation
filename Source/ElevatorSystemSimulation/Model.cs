@@ -3,7 +3,7 @@ using ElevatorSystemSimulation.Interfaces;
 
 namespace ElevatorSystemSimulation
 {
-    public class Elevator
+    public class Elevator : IRestartable
     {
         #region Identification
 
@@ -15,18 +15,21 @@ namespace ElevatorSystemSimulation
         #region Simulation
 
         public Action<Elevator, Seconds, Floor, ElevatorAction>? PlanElevator { get; set; }
+        public Centimeters Location { get; set; }
         public Action<Elevator>? UnplanElevator { get; set; }
-        public bool IsIdle { get; private set; } = true; 
         public Direction Direction { get; private set; } = Direction.NoDirection;
         public Direction? LastDirection { get; private set; } = null; 
-        public Centimeters Location { get; set; }
+        public Floor? PlannedTo { get; private set; }
+
+        public bool IsIdle => PlannedTo is null;
+
         public IReadOnlyCollection<IRequestEvent> AttendingRequests => _AttendingRequests;
         protected readonly List<IRequestEvent> _AttendingRequests  = new();
 
         public void Restart()
         {
             Location = 0.ToCentimeters();
-            IsIdle = true;
+            PlannedTo = null;
             Direction = Direction.NoDirection;
             LastDirection = null;
             _AttendingRequests.Clear();
@@ -70,7 +73,7 @@ namespace ElevatorSystemSimulation
                 UnplanMe();
             }
 
-            IsIdle = false;
+            PlannedTo = floor;
 
             LastDirection = Direction;
             Direction = (floor.Location - Location).Value > 0
@@ -97,7 +100,7 @@ namespace ElevatorSystemSimulation
                 UnplanMe();
             }
 
-            IsIdle = true;
+            PlannedTo = null;
 
             LastDirection = Direction;
             Direction = Direction.NoDirection;
@@ -123,7 +126,7 @@ namespace ElevatorSystemSimulation
 
             //TODO - IMPLEMENT: depart out + depart in time - maybe no one to depart out or no one to depart in on the floor 
 
-            IsIdle = false;
+            PlannedTo = floor;
 
             Unload(floor);
             Load(floor);
@@ -190,7 +193,7 @@ namespace ElevatorSystemSimulation
         }
     }
 
-    public class Floor
+    public class Floor : IRestartable
     {
         #region Identification
 
@@ -204,9 +207,10 @@ namespace ElevatorSystemSimulation
         #region Simulation
 
         public IReadOnlyCollection<IRequestEvent> Requests => _Requests; 
+        internal readonly List<IRequestEvent> _Requests = new();
 
-        internal List<IRequestEvent> _Requests { get; } = new();
-        internal readonly List<Elevator> PlannedElevators = new();
+        public IReadOnlyCollection<Elevator> PlannedElevators => _PlannedElevators;
+        internal readonly List<Elevator> _PlannedElevators = new();
 
         public void Restart()
         {

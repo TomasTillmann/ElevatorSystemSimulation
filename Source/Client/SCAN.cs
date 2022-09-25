@@ -8,23 +8,33 @@ namespace Client
         public SCAN(Building building)
         :base(building)
         {
-            _DoAfterElevatorAction.Add(ElevatorAction.MoveTo, StepAfterMove);
+            _DoAfterElevatorAction.Add(ElevatorAction.MoveTo, StepAfterFloorArrival);
             _DoAfterElevatorAction.Add(ElevatorAction.UnloadAndLoad, StepAfterUnloadAndLoad);
             _DoAfterElevatorAction.Add(ElevatorAction.Idle, StepAfterIdle);
         }
 
         protected override void Step(BasicRequestEvent e)
         {
-            Elevator? freeElevator = Elevators.Find(elevator => elevator.IsIdle);
+            List<Elevator> elevators = GetClosestElevators(e.EventLocation, filter:
+                elevator => (elevator.Location >= e.EventLocation.Location && elevator.Direction != Direction.Up ||
+                elevator.Location <= e.EventLocation.Location && elevator.Direction != Direction.Down) &&
 
-            if(freeElevator != null)
+                // implication
+                (elevator.PlannedTo == null ||
+                Math.Abs((elevator.PlannedTo.Location - elevator.Location).Value) > 
+                Math.Abs((e.EventLocation.Location - elevator.Location).Value)));
+
+            if(elevators.Count == 0)
             {
-                freeElevator.MoveTo(e.EventLocation);
+                elevators = GetClosestElevators(e.EventLocation, e => e.IsIdle);
             }
-            else
+
+            if(elevators.Count == 0)
             {
-                Elevators[0].MoveTo(e.EventLocation);
+                return;
             }
+
+            elevators.First().MoveTo(e.EventLocation);
         }
 
         protected override void Step(ElevatorEvent e)
@@ -32,7 +42,7 @@ namespace Client
             _DoAfterElevatorAction[e.FinishedAction].Invoke(e);
         }
 
-        private void StepAfterMove(ElevatorEvent e)
+        private void StepAfterFloorArrival(ElevatorEvent e)
         {
             if(e.Elevator.AttendingRequests.Count > 0 || e.EventLocation.Requests.Count > 0)
             {
@@ -40,18 +50,17 @@ namespace Client
             }
             else if(GetAllCurrentRequestEvents().Any())
             {
-                e.Elevator.MoveTo(GetClosestFloorWithRequest(e.Elevator));
+                List<Floor> floors = GetClosestFloorsWithRequest(e.Elevator, floorFilter : f => f.PlannedElevators.Count == 0);
+                if (!floors.Any())
+                {
+                    floors = GetClosestFloorsWithRequest(e.Elevator); //TODO - requests that wait the longest
+                }
+
+                e.Elevator.MoveTo(floors.First());
             }
             else
             {
                 e.Elevator.Idle(e.EventLocation);
-
-                Elevator? freeElevator = Elevators.Find(e => e.IsIdle);
-
-                if(freeElevator != null)
-                {
-                    freeElevator.MoveTo(GetClosestFloorWithRequest(freeElevator));
-                }
             }
         }
 
@@ -64,68 +73,50 @@ namespace Client
             }
             else if (GetAllCurrentRequestEvents().Any())
             {
-                Floor floor = GetClosestFloorWithRequest(e.Elevator);
-                e.Elevator.MoveTo(floor);
+                List<Floor> floors = GetClosestFloorsWithRequest(e.Elevator, floorFilter: f => f.PlannedElevators.Count == 0);
+                if (!floors.Any())
+                {
+                    floors = GetClosestFloorsWithRequest(e.Elevator);
+                }
+
+                e.Elevator.MoveTo(floors.First());
             }
             else
             {
                 e.Elevator.Idle(e.EventLocation);
-
-                Elevator? freeElevator = Elevators.Find(e => e.IsIdle);
-
-                if(freeElevator != null)
-                {
-                    freeElevator.MoveTo(GetClosestFloorWithRequest(freeElevator));
-                }
             }
         }
 
         private void StepAfterIdle(ElevatorEvent e)
         {
-            Elevator? freeElevator = Elevators.Find(e => e.IsIdle);
-
-            if(freeElevator != null)
-            {
-                freeElevator.MoveTo(GetClosestFloorWithRequest(freeElevator));
-            }
+            e.Elevator.MoveTo(GetClosestFloorsWithRequest(e.Elevator).First());
         }
 
-        private Floor GetClosestFloorWithRequest(Elevator elevator)
-        {
-            int minDistance = int.MaxValue;
-            Floor floorToGo = null;
-
-            foreach (BasicRequestEvent request in GetAllCurrentRequestEvents())
-            {
-                int distance = Math.Abs((request.EventLocation.Location - elevator.Location).Value);
-
-                if (distance < minDistance)
-                {
-                    minDistance = distance;
-                    floorToGo = request.EventLocation;
-                }
-            }
-
-            return floorToGo;
-        }
 
         private Floor GetNextFloorByRequestToServe(ElevatorEvent e)
         {
-            int minDistance = int.MaxValue;
-            Floor floorToGo = null;
-
-            foreach(BasicRequestEvent request in e.Elevator.AttendingRequests)
+            if(e.Elevator.LastDirection == Direction.Up)
             {
-                int distance = Math.Abs(request.Destination.Id - e.EventLocation.Id);
-
-                if(distance < minDistance)
+                List<Floor> floors = GetClosestFloorsWithRequest(e.Elevator, requestFilter: r => (r.EventLocation.Location - e.Elevator.Location).Value > 0);
+                if (!floors.Any())
                 {
-                    minDistance = distance;
-                    floorToGo = request.Destination;
+                    floors = GetClosestFloorsWithRequest(e.Elevator); //TODO - requests that wait the longest
                 }
+                return floors.First();
             }
-
-            return floorToGo;
+            else if(e.Elevator.LastDirection == Direction.Down)
+            {
+                List<Floor> floors = GetClosestFloorsWithRequest(e.Elevator, requestFilter: r => (r.EventLocation.Location - e.Elevator.Location).Value < 0);
+                if (!floors.Any())
+                {
+                    floors = GetClosestFloorsWithRequest(e.Elevator); //TODO - requests that wait the longest
+                }
+                return floors.First();
+            }
+            else
+            {
+                throw new Exception("Last action must be either up or down, because now it is no direction and the elevator had to get in this position somehow.");
+            }
         }
     }
 }
