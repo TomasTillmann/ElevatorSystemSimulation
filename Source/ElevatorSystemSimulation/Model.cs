@@ -18,6 +18,7 @@ namespace ElevatorSystemSimulation
         public Action<Elevator>? UnplanElevator { get; set; }
         public bool IsIdle { get; private set; } = true; 
         public Direction Direction { get; private set; } = Direction.NoDirection;
+        public Direction? LastDirection { get; private set; } = null; 
         public Centimeters Location { get; set; }
         public IReadOnlyCollection<IRequestEvent> AttendingRequests => _AttendingRequests;
         protected readonly List<IRequestEvent> _AttendingRequests  = new();
@@ -27,6 +28,7 @@ namespace ElevatorSystemSimulation
             Location = 0.ToCentimeters();
             IsIdle = true;
             Direction = Direction.NoDirection;
+            LastDirection = null;
             _AttendingRequests.Clear();
         }
 
@@ -70,7 +72,11 @@ namespace ElevatorSystemSimulation
 
             IsIdle = false;
 
-            SetDirection(floor.Location);
+            LastDirection = Direction;
+            Direction = (floor.Location - Location).Value > 0
+                ? Direction.Up
+                : Direction.Down;
+
             PlanMe(GetDistance(floor.Location) / TravelSpeed, floor, ElevatorAction.MoveTo);
         }
 
@@ -93,6 +99,7 @@ namespace ElevatorSystemSimulation
 
             IsIdle = true;
 
+            LastDirection = Direction;
             Direction = Direction.NoDirection;
             PlanMe(0.ToSeconds(), floor, ElevatorAction.Idle);
         }
@@ -121,6 +128,7 @@ namespace ElevatorSystemSimulation
             Unload(floor);
             Load(floor);
 
+            LastDirection = Direction;
             Direction = Direction.NoDirection;
             PlanMe(DepartingTime, floor, ElevatorAction.UnloadAndLoad);
         }
@@ -179,13 +187,6 @@ namespace ElevatorSystemSimulation
         private Centimeters GetDistance(Centimeters floorLocation)
         {
             return new Centimeters(Math.Abs((floorLocation - Location).Value));
-        }
-
-        private void SetDirection(Centimeters floorLocation)
-        {
-            Direction = (floorLocation - Location).Value > 0 ?
-                Direction.Up :
-                Direction.Down;
         }
     }
 

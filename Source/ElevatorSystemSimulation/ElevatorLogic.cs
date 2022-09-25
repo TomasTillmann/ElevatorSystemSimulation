@@ -32,7 +32,10 @@ namespace ElevatorSystemSimulation
             }
         }
 
-        protected IEnumerable<RequestEvent> GetAllCurrentRequestEvents()
+        protected abstract void Step(RequestEvent ce);
+        protected abstract void Step(ElevatorEvent ee);
+
+        protected virtual IEnumerable<RequestEvent> GetAllCurrentRequestEvents()
         {
             foreach(Floor floor in Building.Floors.Value)
             {
@@ -43,12 +46,14 @@ namespace ElevatorSystemSimulation
             }
         }
 
-        protected List<Elevator> GetClosestElevators(Floor floor)
+        protected virtual List<Elevator> GetClosestElevators(Floor floor, Predicate<Elevator>? filter = null)
         {
+            filter = filter ?? new Predicate<Elevator>(e => true);
+
             Centimeters minDistance = 0.ToCentimeters();
             List<Elevator> closestElevators = new();
 
-            foreach(Elevator elevator in Elevators)
+            foreach(Elevator elevator in Elevators.Where(e => filter(e)))
             {
                 if(elevator.Location - floor.Location < minDistance)
                 {
@@ -65,9 +70,11 @@ namespace ElevatorSystemSimulation
             return closestElevators;
         }
 
-        protected Floor? ToWhereIsPlanned(Elevator elevator)
+        protected virtual Floor? ToWhereIsPlanned(Elevator elevator, Predicate<Floor>? filter = null)
         {
-            foreach(Floor floor in Floors)
+            filter = filter ?? new Predicate<Floor>(f => true);
+
+            foreach(Floor floor in Floors.Where(f => filter(f)))
             {
                 foreach(Elevator plannedElevator in floor.PlannedElevators)
                 {
@@ -80,8 +87,5 @@ namespace ElevatorSystemSimulation
 
             return null;
         }
-
-        protected abstract void Step(RequestEvent ce);
-        protected abstract void Step(ElevatorEvent ee);
     }
 }

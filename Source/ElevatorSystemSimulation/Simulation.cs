@@ -160,7 +160,7 @@ namespace ElevatorSystemSimulation
         #region Calendar
 
         //TODO - implement better - its terribly slow like this - at worst O(n) is possible via Linked list
-        // Priority Queue is not sufficient, want to remove specific events
+        // Priority Queue is not sufficient, does not allow for removing specific events
         private class Calendar
         {
             private readonly List<(IEvent Event, Seconds WhenPlanned)> _Events = new();
