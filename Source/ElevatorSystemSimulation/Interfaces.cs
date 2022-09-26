@@ -4,10 +4,10 @@
     {
         public interface IElevatorLogic
         {
-            public void Step(IEvent e);
+            public void Step(IEvent e, Seconds currentTime);
         }
 
-        public interface IEvent
+        public interface IEvent : ILocatable
         {
             Seconds WhenPlanned { get; }
             Floor EventLocation { get; }
@@ -20,6 +20,11 @@
         public interface IRequestEvent : IEvent
         {
             Floor Destination { get; }
+        }
+
+        public interface ILocatable
+        {
+            Centimeters Location { get; }
         }
     }
 }

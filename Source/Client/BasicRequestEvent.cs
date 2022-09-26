@@ -9,6 +9,8 @@ namespace Client
         public Floor EventLocation { get; } 
         public Floor Destination { get; }
 
+        public Centimeters Location => EventLocation.Location;
+
         public BasicRequestEvent(Floor eventLocation, Seconds whenPlanned, Floor destination)
         {
             EventLocation = eventLocation;

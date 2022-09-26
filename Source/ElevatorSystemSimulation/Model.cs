@@ -3,7 +3,7 @@ using ElevatorSystemSimulation.Interfaces;
 
 namespace ElevatorSystemSimulation
 {
-    public class Elevator : IRestartable
+    public class Elevator : IRestartable, ILocatable
     {
         #region Identification
 
@@ -193,7 +193,7 @@ namespace ElevatorSystemSimulation
         }
     }
 
-    public class Floor : IRestartable
+    public class Floor : IRestartable, ILocatable
     {
         #region Identification
 
@@ -255,13 +255,7 @@ namespace ElevatorSystemSimulation
         {
             //InBetweenFloorsSpace = inBetweenFloorsSpace;
 
-            // avoiding sorting value too
-            foreach(Floor floor in value)
-            {
-                Value.Add(floor);
-            }
-            //
-
+            Value = new List<Floor>(value);
             Value.Sort((f1, f2) => f1.Id.CompareTo(f2.Id));
             SetFloorsLocation();
         }

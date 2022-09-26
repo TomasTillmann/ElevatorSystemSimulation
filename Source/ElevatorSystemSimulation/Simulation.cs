@@ -63,7 +63,7 @@ namespace ElevatorSystemSimulation
             if(_Calendar.TryGetEvent(out IEvent? e))
             {
                 UpdateStateBeforeStep(e);
-                CurrentLogic.Step(e);
+                CurrentLogic.Step(e, CurrentTime);
                 UpdateStateAfterStep();
             }
             else
@@ -234,6 +234,8 @@ namespace ElevatorSystemSimulation
         public Elevator Elevator { get; }
         public Floor EventLocation { get; }
         public ElevatorAction FinishedAction { get; }
+
+        public Centimeters Location => EventLocation.Location;
 
         public ElevatorEvent(Elevator elevator, Seconds whenPlanner, Floor eventLocation, ElevatorAction finishedAction)
         {

@@ -9,14 +9,17 @@ namespace ElevatorSystemSimulation
         protected List<Elevator> Elevators => Building.ElevatorSystem.Elevators;
         protected List<Floor> Floors => Building.Floors.Value;
         protected Dictionary<ElevatorAction, Action<ElevatorEvent>> _DoAfterElevatorAction { get; } = new();
+        protected Seconds CurrentTime { get; private set; }
 
         public ElevatorLogic(Building building)
         {
             Building = building;
         }
 
-        public void Step(IEvent e)
+        public void Step(IEvent e, Seconds currentTime)
         {
+            CurrentTime = currentTime;
+
             if(e is RequestEvent ce)
             {
                 ce.EventLocation._Requests.Add(ce);
@@ -34,6 +37,11 @@ namespace ElevatorSystemSimulation
 
         protected abstract void Step(RequestEvent ce);
         protected abstract void Step(ElevatorEvent ee);
+
+        protected Centimeters GetDistance(ILocatable l1, ILocatable l2)
+        {
+            return Math.Abs((l1.Location - l2.Location).Value).ToCentimeters();
+        }
 
         protected virtual IEnumerable<RequestEvent> GetAllCurrentRequestEvents(Predicate<Floor>? filter = null)
         {
@@ -123,6 +131,31 @@ namespace ElevatorSystemSimulation
             }
 
             return null;
+        }
+    }
+
+    public class StateDecisionTreeConditionNode
+    {
+        public StateDecisionTreeConditionNode OnTrue { get; }
+        public StateDecisionTreeConditionNode OnFalse { get; }
+
+        public Func<bool> Condition { get; set; }
+
+        public StateDecisionTreeConditionNode(StateDecisionTreeConditionNode onTrue, StateDecisionTreeConditionNode onFalse, Func<bool> condition)
+        {
+            OnTrue = onTrue;
+            OnFalse = onFalse;
+            Condition = condition;
+        }
+    }
+
+    public class StateDecisionTreeActionNode
+    {
+        public Action Action { get; set; }
+
+        public StateDecisionTreeActionNode(Action action)
+        {
+            Action = action;
         }
     }
 }

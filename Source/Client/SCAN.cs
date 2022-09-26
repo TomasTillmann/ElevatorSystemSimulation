@@ -1,4 +1,5 @@
 ﻿using ElevatorSystemSimulation;
+using ElevatorSystemSimulation.Extensions;
 
 namespace Client
 {
@@ -16,25 +17,31 @@ namespace Client
         protected override void Step(BasicRequestEvent e)
         {
             List<Elevator> elevators = GetClosestElevators(e.EventLocation, filter:
+
+                // elevators heading in the same direction as this current request - avoids change of direction of the elevator
                 elevator => (elevator.Location >= e.EventLocation.Location && elevator.Direction != Direction.Up ||
                 elevator.Location <= e.EventLocation.Location && elevator.Direction != Direction.Down) &&
 
-                // implication
+                // implication - this request in between the planned one and the elevator
                 (elevator.PlannedTo == null ||
-                Math.Abs((elevator.PlannedTo.Location - elevator.Location).Value) > 
-                Math.Abs((e.EventLocation.Location - elevator.Location).Value)));
+                GetDistance(elevator.PlannedTo, elevator) > GetDistance(e.EventLocation, elevator)));
 
             if(elevators.Count == 0)
             {
                 elevators = GetClosestElevators(e.EventLocation, e => e.IsIdle);
-            }
 
-            if(elevators.Count == 0)
+                if(elevators.Count == 0)
+                {
+                    // if all elevators are busy, don't do anything
+                    return;
+                }
+            }
+            else
             {
-                return;
+                int minPeopleCount = int.MaxValue;
+                elevators.ForEach(e => minPeopleCount = e.AttendingRequests.Count < minPeopleCount ? e.AttendingRequests.Count : minPeopleCount);
+                elevators.Where(e => e.AttendingRequests.Count == minPeopleCount).First().MoveTo(e.EventLocation);
             }
-
-            elevators.First().MoveTo(e.EventLocation);
         }
 
         protected override void Step(ElevatorEvent e)
@@ -44,19 +51,35 @@ namespace Client
 
         private void StepAfterFloorArrival(ElevatorEvent e)
         {
-            if(e.Elevator.AttendingRequests.Count > 0 || e.EventLocation.Requests.Count > 0)
+            if( e.EventLocation.Requests.Count > 0)
             {
                 e.Elevator.UnloadAndLoad(e.EventLocation);
+            }
+            else if(e.Elevator.AttendingRequests.Count > 0)
+            {
+                Floor? floor = GetNextFloorByRequestToServe(e);
+                e.Elevator.MoveTo(floor);
             }
             else if(GetAllCurrentRequestEvents().Any())
             {
                 List<Floor> floors = GetClosestFloorsWithRequest(e.Elevator, floorFilter : f => f.PlannedElevators.Count == 0);
-                if (!floors.Any())
+                if (floors.Count == 0)
                 {
-                    floors = GetClosestFloorsWithRequest(e.Elevator); //TODO - requests that wait the longest
-                }
+                    floors = GetClosestFloorsWithRequest(e.Elevator); 
 
-                e.Elevator.MoveTo(floors.First());
+                    if(floors.Count == 0)
+                    {
+                        e.Elevator.Idle(e.EventLocation);
+                    }
+                    else
+                    {
+                        e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
+                    }
+                }
+                else
+                {
+                    e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
+                }
             }
             else
             {
@@ -66,7 +89,7 @@ namespace Client
 
         private void StepAfterUnloadAndLoad(ElevatorEvent e)
         {
-            if(e.Elevator.AttendingRequests.Count > 0)
+            if (e.Elevator.AttendingRequests.Count > 0)
             {
                 Floor? floor = GetNextFloorByRequestToServe(e);
                 e.Elevator.MoveTo(floor);
@@ -74,12 +97,23 @@ namespace Client
             else if (GetAllCurrentRequestEvents().Any())
             {
                 List<Floor> floors = GetClosestFloorsWithRequest(e.Elevator, floorFilter: f => f.PlannedElevators.Count == 0);
-                if (!floors.Any())
+                if (floors.Count == 0)
                 {
                     floors = GetClosestFloorsWithRequest(e.Elevator);
-                }
 
-                e.Elevator.MoveTo(floors.First());
+                    if (floors.Count == 0)
+                    {
+                        e.Elevator.Idle(e.EventLocation);
+                    }
+                    else
+                    {
+                        e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
+                    }
+                }
+                else
+                {
+                    e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
+                }
             }
             else
             {
@@ -89,27 +123,96 @@ namespace Client
 
         private void StepAfterIdle(ElevatorEvent e)
         {
-            e.Elevator.MoveTo(GetClosestFloorsWithRequest(e.Elevator).First());
+            if (GetAllCurrentRequestEvents().Any())
+            {
+                List<Floor> floors = GetClosestFloorsWithRequest(e.Elevator, floorFilter: f => f.PlannedElevators.Count == 0);
+                if (floors.Count == 0)
+                {
+                    floors = GetClosestFloorsWithRequest(e.Elevator);
+
+                    if (floors.Count == 0)
+                    {
+                        e.Elevator.Idle(e.EventLocation);
+                    }
+                    else
+                    {
+                        e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
+                    }
+                }
+                else
+                {
+                    e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
+                }
+            }
+            else
+            {
+                e.Elevator.Idle(e.EventLocation);
+            }
         }
 
+        #region HelpingMehotds
+
+        private List<Floor> GetFloorsWithMaxWaitingTimeOnRequest(List<Floor>? floors = null)
+        {
+            floors = floors ?? Floors;
+
+            Seconds maxWaitingTime = 0.ToSeconds();
+            List<Floor> floorsWithMaxWaitingTimeOnRequest = new();
+            foreach(Floor floor in floors)
+            {
+                foreach(BasicRequestEvent request in floor.Requests)
+                {
+                    if(CurrentTime - request.WhenPlanned > maxWaitingTime)
+                    {
+                        maxWaitingTime = CurrentTime - request.WhenPlanned;
+                        floorsWithMaxWaitingTimeOnRequest.Clear();
+                        floorsWithMaxWaitingTimeOnRequest.Add(floor);
+                    }
+                    else if(CurrentTime - request.WhenPlanned == maxWaitingTime)
+                    {
+                        floorsWithMaxWaitingTimeOnRequest.Add(floor);
+                    }
+                }
+            }
+
+            return floorsWithMaxWaitingTimeOnRequest;
+        }
 
         private Floor? GetNextFloorByRequestToServe(ElevatorEvent e)
         {
             if(e.Elevator.LastDirection == Direction.Up)
             {
                 List<Floor> floors = GetClosestFloorsWithRequest(e.Elevator, requestFilter: r => (r.EventLocation.Location - e.Elevator.Location).Value > 0);
-                if (!floors.Any())
+                if (floors.Count == 0)
                 {
-                    floors = GetClosestFloorsWithRequest(e.Elevator); //TODO - requests that wait the longest
+                    floors = GetClosestFloorsWithRequest(e.Elevator);
+
+                    if (floors.Count == 0)
+                    {
+                        e.Elevator.Idle(e.EventLocation);
+                    }
+                    else
+                    {
+                        e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
+                    }
                 }
                 return floors.FirstOrDefault();
             }
             else if(e.Elevator.LastDirection == Direction.Down)
             {
                 List<Floor> floors = GetClosestFloorsWithRequest(e.Elevator, requestFilter: r => (r.EventLocation.Location - e.Elevator.Location).Value < 0);
-                if (!floors.Any())
+                if (floors.Count == 0)
                 {
-                    floors = GetClosestFloorsWithRequest(e.Elevator); //TODO - requests that wait the longest
+                    floors = GetClosestFloorsWithRequest(e.Elevator);
+
+                    if (floors.Count == 0)
+                    {
+                        e.Elevator.Idle(e.EventLocation);
+                    }
+                    else
+                    {
+                        e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
+                    }
                 }
                 return floors.FirstOrDefault();
             }
@@ -119,4 +222,6 @@ namespace Client
             }
         }
     }
+
+    #endregion
 }
