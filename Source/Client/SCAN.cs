@@ -1,156 +1,317 @@
 ﻿using ElevatorSystemSimulation;
 using ElevatorSystemSimulation.Extensions;
+using ElevatorSystemSimulation.Interfaces;
 
 namespace Client
 {
     public class SCAN : ElevatorLogic<BasicRequestEvent> 
     {
-        // WIP
+        protected ConditionAfterElevatorEvent<SCAN> StateDecisionTreeAfterElevatorEvent { get; private set; }
+        protected ConditionAfterRequestEvent<SCAN, BasicRequestEvent> StateDecisionTreeAfterRequestEvent { get; private set; }
         public SCAN(Building building)
         :base(building)
         {
-            _DoAfterElevatorAction.Add(ElevatorAction.MoveTo, StepAfterFloorArrival);
-            _DoAfterElevatorAction.Add(ElevatorAction.UnloadAndLoad, StepAfterUnloadAndLoad);
-            _DoAfterElevatorAction.Add(ElevatorAction.Idle, StepAfterIdle);
+            StateDecisionTreeAfterElevatorEvent = GetStateDecisionTreeAfterElevatorEvent();
+            StateDecisionTreeAfterRequestEvent = GetStateDecisionTreeAfterRequestEvent();
         }
 
-        protected override void Step(BasicRequestEvent e)
+        protected override void Execute(SimulationState<BasicRequestEvent> state)
         {
-            List<Elevator> elevators = GetClosestElevators(e.EventLocation, filter:
-
-                // elevators heading in the same direction as this current request - avoids change of direction of the elevator
-                elevator => (elevator.Location >= e.EventLocation.Location && elevator.Direction != Direction.Up ||
-                elevator.Location <= e.EventLocation.Location && elevator.Direction != Direction.Down) &&
-
-                // implication - this request in between the planned one and the elevator
-                (elevator.PlannedTo == null ||
-                GetDistance(elevator.PlannedTo, elevator) > GetDistance(e.EventLocation, elevator)));
-
-            if(elevators.Count == 0)
-            {
-                elevators = GetClosestElevators(e.EventLocation, e => e.IsIdle);
-
-                if(elevators.Count == 0)
-                {
-                    // if all elevators are busy, don't do anything
-                    return;
-                }
-            }
-            else
-            {
-                int minPeopleCount = int.MaxValue;
-                elevators.ForEach(e => minPeopleCount = e.AttendingRequests.Count < minPeopleCount ? e.AttendingRequests.Count : minPeopleCount);
-                elevators.Where(e => e.AttendingRequests.Count == minPeopleCount).First().MoveTo(e.EventLocation);
-            }
+            StateDecisionTreeAfterRequestEvent.Execute(state);
         }
 
-        protected override void Step(ElevatorEvent e)
+        protected override void Execute(SimulationState<ElevatorEvent> state)
         {
-            _DoAfterElevatorAction[e.FinishedAction].Invoke(e);
+            // avoids cycling the elevator in constant idle action planning
+            if(state.CurrentEvent.FinishedAction == ElevatorSystemSimulation.ElevatorAction.Idle)
+            {
+                return;
+            }
+
+            StateDecisionTreeAfterElevatorEvent.Execute(state);
         }
 
-        private void StepAfterFloorArrival(ElevatorEvent e)
+        private ConditionAfterElevatorEvent<SCAN> GetStateDecisionTreeAfterElevatorEvent()
         {
-            if( e.EventLocation.Requests.Count > 0)
+            ElevatorCondition shouldLoadUnload = new(this, (state,context) =>
             {
-                e.Elevator.UnloadAndLoad(e.EventLocation);
-            }
-            else if(e.Elevator.AttendingRequests.Count > 0)
-            {
-                Floor? floor = GetNextFloorByRequestToServe(e);
-                e.Elevator.MoveTo(floor);
-            }
-            else if(GetAllCurrentRequestEvents().Any())
-            {
-                List<Floor> floors = GetClosestFloorsWithRequest(e.Elevator, floorFilter : f => f.PlannedElevators.Count == 0);
-                if (floors.Count == 0)
-                {
-                    floors = GetClosestFloorsWithRequest(e.Elevator); 
+                return 
+                    state.CurrentEvent.EventLocation.Requests.Count != 0 ||
+                    state.CurrentEvent.Elevator.AttendingRequests.Any(r => r.Destination == state.CurrentEvent.EventLocation);
+            });
 
-                    if(floors.Count == 0)
-                    {
-                        e.Elevator.Idle(e.EventLocation);
-                    }
-                    else
-                    {
-                        e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
-                    }
-                }
-                else
-                {
-                    e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
-                }
-            }
-            else
+            ElevatorCondition arePeopleInElevator = new(this, (state,context) =>
             {
-                e.Elevator.Idle(e.EventLocation);
-            }
+                return state.CurrentEvent.Elevator.AttendingRequests.Count != 0;
+            });
+
+            shouldLoadUnload.OnTrue = new ElevatorAction(this, (state, context) =>
+            {
+                state.CurrentEvent.Elevator.UnloadAndLoad(state.CurrentEvent.EventLocation);
+
+                return true;
+            });
+
+            shouldLoadUnload.OnFalse = arePeopleInElevator;
+
+            arePeopleInElevator.OnTrue = new ParametrizedCondition<bool>(this, true, AreRequestsOutInSpecifiedDirection)
+            {
+                OnTrue = new ParametrizedCondition<bool>(this, true, AreRequestsInSpecifiedDirection)
+                {
+                    OnTrue = new ElevatorAction(this, (state, context) =>
+                    {
+                        Elevator elevator = state.CurrentEvent.Elevator;
+
+                        HashSet<Floor> floorsForRequestIn = new(GetClosestFloorsWithRequest(elevator,
+                            floorFilter: GetFloorsFilterBasedOnDirection(true, elevator)));
+
+                        HashSet<Floor> floorsForRequestOut = new(GetClosestFloorsWithRequestOut(elevator,
+                            requestFilter: GetAttendingRequestsFilterBasedOnDirection(true, elevator)));
+
+                        floorsForRequestIn.UnionWith(floorsForRequestOut);
+                        List<Floor> floors = GetClosestFloors(state.CurrentEvent.Elevator, floorsForRequestIn.ToList());
+
+                        // There must be at least one floor, because of its position in the state decision tree
+                        elevator.MoveTo(floors.First());
+
+                        return true;
+                    }),
+
+                    OnFalse = new ElevatorAction(this, (state, context) =>
+                    {
+                        Elevator elevator = state.CurrentEvent.Elevator;
+
+                        List<Floor> floors = GetClosestFloorsWithRequestOut(elevator,
+                            requestFilter: GetAttendingRequestsFilterBasedOnDirection(true, elevator));
+
+                        elevator.MoveTo(floors.First());
+
+                        return true;
+                    }) 
+                },
+
+                OnFalse = new ParametrizedCondition<bool>(this, true, AreRequestsInSpecifiedDirection)
+                {
+                    OnTrue = new ElevatorAction(this, (state, context) =>
+                    {
+                        Elevator elevator = state.CurrentEvent.Elevator;
+
+                        List<Floor> floors = GetClosestFloorsWithRequest(elevator,
+                            floorFilter: GetFloorsFilterBasedOnDirection(true, elevator));
+
+                        elevator.MoveTo(floors.First());
+
+                        return true;
+                    }),
+
+                    OnFalse = new ParametrizedCondition<bool>(this, false, AreRequestsInSpecifiedDirection)
+                    {
+                        OnTrue = new ElevatorAction(this, (state, context) =>
+                        {
+                            Elevator elevator = state.CurrentEvent.Elevator;
+
+                            HashSet<Floor> floorsForRequestIn = new(GetClosestFloorsWithRequest(elevator,
+                                floorFilter: GetFloorsFilterBasedOnDirection(false, elevator)));
+
+                            HashSet<Floor> floorsForRequestOut = new(GetClosestFloorsWithRequestOut(elevator,
+                                requestFilter: GetAttendingRequestsFilterBasedOnDirection(false, elevator)));
+
+                            floorsForRequestIn.UnionWith(floorsForRequestOut);
+                            List<Floor> floors = GetClosestFloors(state.CurrentEvent.Elevator, floorsForRequestIn.ToList());
+
+                            elevator.MoveTo(floors.First());
+
+                            return true;
+                        }),
+
+                        OnFalse = new ElevatorAction(this, (state, context) =>
+                        {
+                            Elevator elevator = state.CurrentEvent.Elevator;
+
+                            List<Floor> floors = GetClosestFloorsWithRequestOut(elevator,
+                            requestFilter: GetAttendingRequestsFilterBasedOnDirection(false, elevator));
+
+                            elevator.MoveTo(floors.First());
+
+                            return true;
+                        })
+                    }
+                }
+            };
+
+            arePeopleInElevator.OnFalse = new ParametrizedCondition<bool>(this, true, AreRequestsInSpecifiedDirection)
+            {
+                OnTrue = new ElevatorAction(this, (state, context) =>
+                {
+                    Elevator elevator = state.CurrentEvent.Elevator;
+
+                    List<Floor> floors = GetClosestFloorsWithRequest(elevator,
+                        floorFilter: GetFloorsFilterBasedOnDirection(true, elevator));
+
+                    elevator.MoveTo(floors.First());
+
+                    return true;
+                }),
+
+                OnFalse = new ParametrizedCondition<bool>(this, false, AreRequestsInSpecifiedDirection)
+                {
+                    OnTrue = new ElevatorAction(this, (state, context) =>
+                    {
+                        Elevator elevator = state.CurrentEvent.Elevator;
+
+                        List<Floor> floors = GetClosestFloorsWithRequest(elevator,
+                            floorFilter: GetFloorsFilterBasedOnDirection(false, elevator));
+
+                        elevator.MoveTo(floors.First());
+
+                        return true;
+                    }),
+
+                    OnFalse = new ElevatorAction(this, (state,  context) =>
+                    {
+                        state.CurrentEvent.Elevator.Idle(state.CurrentEvent.EventLocation);
+
+                        return true;
+                    })
+                }
+            };
+
+            return shouldLoadUnload;
         }
 
-        private void StepAfterUnloadAndLoad(ElevatorEvent e)
+        private ConditionAfterRequestEvent<SCAN, BasicRequestEvent> GetStateDecisionTreeAfterRequestEvent()
         {
-            if (e.Elevator.AttendingRequests.Count > 0)
-            {
-                Floor? floor = GetNextFloorByRequestToServe(e);
-                e.Elevator.MoveTo(floor);
-            }
-            else if (GetAllCurrentRequestEvents().Any())
-            {
-                List<Floor> floors = GetClosestFloorsWithRequest(e.Elevator, floorFilter: f => f.PlannedElevators.Count == 0);
-                if (floors.Count == 0)
-                {
-                    floors = GetClosestFloorsWithRequest(e.Elevator);
 
-                    if (floors.Count == 0)
-                    {
-                        e.Elevator.Idle(e.EventLocation);
-                    }
-                    else
-                    {
-                        e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
-                    }
-                }
-                else
-                {
-                    e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
-                }
-            }
-            else
+            return new RequestCondition(this, (state,  context) =>
             {
-                e.Elevator.Idle(e.EventLocation);
-            }
+                return context.Elevators.Any(e => e.IsIdle);
+            })
+            {
+                OnTrue = new ElevatorActionAfterRequest(this, (state, context) =>
+                {
+                    GetClosestElevators(state.CurrentEvent.EventLocation).First().MoveTo(state.CurrentEvent.EventLocation);
+
+                    return true;
+                }),
+
+                OnFalse = null
+            };
         }
 
-        private void StepAfterIdle(ElevatorEvent e)
+        #region States
+
+        #region AfterElevatorStates
+
+        private class ElevatorCondition : ConditionAfterElevatorEvent<SCAN>
         {
-            if (GetAllCurrentRequestEvents().Any())
-            {
-                List<Floor> floors = GetClosestFloorsWithRequest(e.Elevator, floorFilter: f => f.PlannedElevators.Count == 0);
-                if (floors.Count == 0)
-                {
-                    floors = GetClosestFloorsWithRequest(e.Elevator);
+            public Func<SimulationState<ElevatorEvent>, SCAN, bool> InternalPredicate { get; set; }
 
-                    if (floors.Count == 0)
-                    {
-                        e.Elevator.Idle(e.EventLocation);
-                    }
-                    else
-                    {
-                        e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
-                    }
-                }
-                else
-                {
-                    e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
-                }
-            }
-            else
+            public ElevatorCondition(SCAN context, Func<SimulationState<ElevatorEvent>, SCAN, bool> internalPredicate) : base(context)
             {
-                e.Elevator.Idle(e.EventLocation);
+                InternalPredicate = internalPredicate;
+            }
+
+            protected override bool Predicate(SimulationState<ElevatorEvent> state)
+            {
+                return InternalPredicate.Invoke(state, Context);
             }
         }
+
+        private class ParametrizedCondition<ParameterType> : ConditionAfterElevatorEvent<SCAN>
+        {
+            public ParameterType Parameter { get; set; }
+            public Func<SimulationState<ElevatorEvent>, SCAN, ParameterType, bool> InternalPredicate { get; set; }
+
+            public ParametrizedCondition(SCAN context, ParameterType memory, Func<SimulationState<ElevatorEvent>, SCAN, ParameterType, bool> internalPredicate) : base(context)
+            {
+                InternalPredicate = internalPredicate;
+                Parameter = memory;
+            }
+
+            protected override bool Predicate(SimulationState<ElevatorEvent> state)
+            {
+                return InternalPredicate.Invoke(state, Context, Parameter);
+            }
+        }
+
+        private class ElevatorAction : ActionAfterElevatorEvent<SCAN>
+        {
+            public Func<SimulationState<ElevatorEvent>, SCAN, bool> InternalExecute { get; set; }
+
+            public ElevatorAction(SCAN context, Func<SimulationState<ElevatorEvent>, SCAN, bool> internalExecute) : base(context)
+            {
+                InternalExecute = internalExecute;
+            }
+
+            public override bool Execute(SimulationState<ElevatorEvent> state)
+            {
+                return InternalExecute.Invoke(state, Context);
+            }
+        }
+
+        #endregion
+
+        #region AfterRequestStates
+
+        private class RequestCondition : ConditionAfterRequestEvent<SCAN, BasicRequestEvent>
+        {
+            public Func<SimulationState<BasicRequestEvent>, SCAN, bool> InternalPredicate { get; set; }
+
+            public RequestCondition(SCAN context, Func<SimulationState<BasicRequestEvent>, SCAN, bool> internalPredicate) : base(context)
+            {
+                InternalPredicate = internalPredicate;
+            }
+
+            protected override bool Predicate(SimulationState<BasicRequestEvent> state)
+            {
+                return InternalPredicate.Invoke(state, Context);
+            }
+        }
+
+        private class ElevatorActionAfterRequest : ActionAfterRequestEvent<SCAN, BasicRequestEvent>
+        {
+            public Func<SimulationState<BasicRequestEvent>, SCAN, bool> InternalExecute { get; set; }
+
+            public ElevatorActionAfterRequest(SCAN context, Func<SimulationState<BasicRequestEvent>, SCAN, bool> internalExecute) : base(context)
+            {
+                InternalExecute = internalExecute;
+            }
+
+            public override bool Execute(SimulationState<BasicRequestEvent> state)
+            {
+                return InternalExecute.Invoke(state, Context);
+            }
+        }
+
+        #endregion
+
+        #endregion
 
         #region HelpingMehotds
+
+        private bool AreRequestsInSpecifiedDirection(SimulationState<ElevatorEvent> state, SCAN context, bool inSameDirection)
+        {
+            Elevator elevator = state.CurrentEvent.Elevator;
+            Predicate<Floor> filter = GetFloorsFilterBasedOnDirection(inSameDirection, elevator);
+
+            foreach (Floor floor in context.Floors.Where(f => filter(f)))
+            {
+                if (floor.Requests.Count != 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool AreRequestsOutInSpecifiedDirection(SimulationState<ElevatorEvent> state, SCAN context, bool inSameDirection)
+        {
+            Elevator elevator = state.CurrentEvent.Elevator;
+            Predicate<BasicRequestEvent> filter = GetAttendingRequestsFilterBasedOnDirection(inSameDirection, elevator); 
+
+            return elevator.AttendingRequests.Any(r => filter((BasicRequestEvent)r));
+        }
 
         private List<Floor> GetFloorsWithMaxWaitingTimeOnRequest(List<Floor>? floors = null)
         {
@@ -178,50 +339,71 @@ namespace Client
             return floorsWithMaxWaitingTimeOnRequest;
         }
 
-        private Floor? GetNextFloorByRequestToServe(ElevatorEvent e)
+        private List<Floor> GetClosestFloors(Elevator elevator, List<Floor>? floors = null)
         {
-            if(e.Elevator.LastDirection == Direction.Up)
-            {
-                List<Floor> floors = GetClosestFloorsWithRequest(e.Elevator, requestFilter: r => (r.EventLocation.Location - e.Elevator.Location).Value > 0);
-                if (floors.Count == 0)
-                {
-                    floors = GetClosestFloorsWithRequest(e.Elevator);
+            floors = floors ?? Floors;
+            Centimeters minDistance = new(int.MaxValue);
+            List<Floor> closestFloors = new();
 
-                    if (floors.Count == 0)
-                    {
-                        e.Elevator.Idle(e.EventLocation);
-                    }
-                    else
-                    {
-                        e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
-                    }
-                }
-                return floors.FirstOrDefault();
-            }
-            else if(e.Elevator.LastDirection == Direction.Down)
+            foreach (Floor floor in floors)
             {
-                List<Floor> floors = GetClosestFloorsWithRequest(e.Elevator, requestFilter: r => (r.EventLocation.Location - e.Elevator.Location).Value < 0);
-                if (floors.Count == 0)
+                if (GetDistance(elevator, floor) < minDistance)
                 {
-                    floors = GetClosestFloorsWithRequest(e.Elevator);
-
-                    if (floors.Count == 0)
-                    {
-                        e.Elevator.Idle(e.EventLocation);
-                    }
-                    else
-                    {
-                        e.Elevator.MoveTo(GetFloorsWithMaxWaitingTimeOnRequest(floors).First());
-                    }
+                    minDistance = GetDistance(elevator, floor); 
+                    closestFloors.Clear();
+                    closestFloors.Add(floor);
                 }
-                return floors.FirstOrDefault();
+                else if (GetDistance(elevator, floor) == minDistance)
+                {
+                    closestFloors.Add(floor);
+                }
             }
-            else
-            {
-                throw new Exception("Last action must be either up or down, because now it is no direction and the elevator had to get in this position somehow.");
-            }
+
+            return closestFloors;
         }
+
+        private Predicate<BasicRequestEvent> GetAttendingRequestsFilterBasedOnDirection(bool inSameDirection, Elevator elevator)
+        {
+            Predicate<BasicRequestEvent> filter = f => true;
+            Direction? fromWhereElevatorGotThere = elevator.LastDirection;
+
+            if ((fromWhereElevatorGotThere == Direction.Up && inSameDirection) ||
+               (fromWhereElevatorGotThere == Direction.Down && !inSameDirection))
+            {
+                filter = r => r.Destination.Location >= elevator.Location;
+            }
+            else if ((fromWhereElevatorGotThere == Direction.Down && inSameDirection) ||
+                    (fromWhereElevatorGotThere == Direction.Up && !inSameDirection))
+            {
+                filter = r => r.Destination.Location <= elevator.Location;
+            }
+            // else direction is null or no direction, all floors are "in the same direction" - no filter is applied
+
+            return filter;
+        }
+
+        private Predicate<Floor> GetFloorsFilterBasedOnDirection(bool inSameDirection, Elevator elevator)
+        {
+            Direction? fromWhereElevatorGotThere = elevator.LastDirection;
+
+            Predicate<Floor> filter = f => true;
+
+            if ((fromWhereElevatorGotThere == Direction.Up && inSameDirection) ||
+               (fromWhereElevatorGotThere == Direction.Down && !inSameDirection))
+            {
+                filter = f => f.Location >= elevator.Location;
+            }
+            else if ((fromWhereElevatorGotThere == Direction.Down && inSameDirection) ||
+                    (fromWhereElevatorGotThere == Direction.Up && !inSameDirection))
+            {
+                filter = f => f.Location <= elevator.Location;
+            }
+            // else direction is null or no direction, all floors are "in the same direction" - no filter is applied
+
+            return filter;
+        }
+
+        #endregion
     }
 
-    #endregion
 }

@@ -5,38 +5,58 @@ namespace ElevatorSystemSimulation
 {
     public abstract class ElevatorLogic<RequestEvent> : IElevatorLogic where RequestEvent : IRequestEvent
     {
+        #region Context
+
         protected Building Building { get; }
         protected List<Elevator> Elevators => Building.ElevatorSystem.Elevators;
         protected List<Floor> Floors => Building.Floors.Value;
-        protected Dictionary<ElevatorAction, Action<ElevatorEvent>> _DoAfterElevatorAction { get; } = new();
+
+        #endregion
+
+        #region State
+
         protected Seconds CurrentTime { get; private set; }
+
+        #endregion
+
+        #region Helpers
+
+        protected Dictionary<ElevatorAction, Action<ElevatorEvent>> _DoAfterElevatorAction { get; } = new();
+
+        #endregion
 
         public ElevatorLogic(Building building)
         {
             Building = building;
         }
 
-        public void Step(IEvent e, Seconds currentTime)
+        /// Elevator logic decides what the best decision is - how to plan the elevators - based on the state
+        public void Execute(ISimulationState state)
         {
-            CurrentTime = currentTime;
+            CurrentTime = state.CurrentTime;
 
-            if(e is RequestEvent ce)
+            if(state.CurrentEvent is RequestEvent ce)
             {
+                //HACK - should be in simulation update state not here
                 ce.EventLocation._Requests.Add(ce);
-                Step(ce);
+                //
+
+                Execute(new SimulationState<RequestEvent>(ce, state.CurrentTime));
             }
-            else if(e is ElevatorEvent ee)
+            else if(state.CurrentEvent is ElevatorEvent ee)
             {
-                Step(ee);
+                Execute(new SimulationState<ElevatorEvent>(ee, state.CurrentTime));
             }
             else
             {
-                throw new Exception("Event is something different.");
+                throw new Exception("Event is something different. And it shouldn't be.");
             }
         }
 
-        protected abstract void Step(RequestEvent ce);
-        protected abstract void Step(ElevatorEvent ee);
+        protected abstract void Execute(SimulationState<RequestEvent> state);
+        protected abstract void Execute(SimulationState<ElevatorEvent> state);
+
+        #region Helpers
 
         protected Centimeters GetDistance(ILocatable l1, ILocatable l2)
         {
@@ -56,15 +76,14 @@ namespace ElevatorSystemSimulation
             }
         }
 
-        protected virtual List<Floor> GetClosestFloorsWithRequest(Elevator elevator, Predicate<Floor>? floorFilter = null, Predicate<RequestEvent>? requestFilter = null)
+        protected virtual List<Floor> GetClosestFloorsWithRequest(Elevator elevator, Predicate<Floor>? floorFilter = null)
         {
             floorFilter = floorFilter ?? new Predicate<Floor>(f => true);
-            requestFilter = requestFilter ?? new Predicate<RequestEvent>(r => true);
 
             int minDistance = int.MaxValue;
             List<Floor> closestFloors = new();
 
-            foreach (RequestEvent request in GetAllCurrentRequestEvents().Where(r => requestFilter(r)))
+            foreach (RequestEvent request in GetAllCurrentRequestEvents())
             {
                 if (!floorFilter(request.EventLocation))
                 {
@@ -82,6 +101,32 @@ namespace ElevatorSystemSimulation
                 else if(distance == minDistance)
                 {
                     closestFloors.Add(request.EventLocation);
+                }
+            }
+
+            return closestFloors;
+        }
+
+        protected virtual List<Floor> GetClosestFloorsWithRequestOut(Elevator elevator, Predicate<RequestEvent>? requestFilter = null)
+        {
+            requestFilter = requestFilter ?? new Predicate<RequestEvent>(r => true);
+
+            Centimeters minDistance = new(int.MaxValue);
+            List<Floor> closestFloors = new();
+
+            foreach(RequestEvent request in elevator.AttendingRequests.Where(r => requestFilter((RequestEvent)r)))
+            {
+                Centimeters distance = GetDistance(request.Destination, elevator);
+
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    closestFloors.Clear();
+                    closestFloors.Add(request.Destination);
+                }
+                else if(distance == minDistance)
+                {
+                    closestFloors.Add(request.Destination);
                 }
             }
 
@@ -132,30 +177,48 @@ namespace ElevatorSystemSimulation
 
             return null;
         }
+
+        private List<Floor> GetClosestFloorsFromSource()
+        {
+            //TODO - make intersection of all closest to methods - their body is almost the same
+            throw new NotImplementedException();
+        }
+
+        #endregion
+
     }
 
-    public class StateDecisionTreeConditionNode
+    public abstract class ConditionAfterElevatorEvent<ContextType> : StateDecisionTreeConditionNode<SimulationState<ElevatorEvent>, ContextType> where ContextType : IElevatorLogic
     {
-        public StateDecisionTreeConditionNode OnTrue { get; }
-        public StateDecisionTreeConditionNode OnFalse { get; }
+        protected ConditionAfterElevatorEvent(
+            IStateDecisionTreeNode<SimulationState<ElevatorEvent>, ContextType> onTrue,
+            IStateDecisionTreeNode<SimulationState<ElevatorEvent>, ContextType> onFalse,
+            ContextType context
+        )
+        : base(onTrue, onFalse, context) { }
 
-        public Func<bool> Condition { get; set; }
-
-        public StateDecisionTreeConditionNode(StateDecisionTreeConditionNode onTrue, StateDecisionTreeConditionNode onFalse, Func<bool> condition)
-        {
-            OnTrue = onTrue;
-            OnFalse = onFalse;
-            Condition = condition;
-        }
+        protected ConditionAfterElevatorEvent(ContextType context) : base(context) { }
     }
 
-    public class StateDecisionTreeActionNode
+    public abstract class ActionAfterElevatorEvent<ContextType> : StateDecisionTreeActionNode<SimulationState<ElevatorEvent>, ContextType> where ContextType : IElevatorLogic
     {
-        public Action Action { get; set; }
+        protected ActionAfterElevatorEvent(ContextType context) : base(context) { }
+    }
 
-        public StateDecisionTreeActionNode(Action action)
-        {
-            Action = action;
-        }
+    public abstract class ConditionAfterRequestEvent<ContextType, RequestType> : StateDecisionTreeConditionNode<SimulationState<RequestType>, ContextType> where ContextType : IElevatorLogic where RequestType : IRequestEvent 
+    {
+        protected ConditionAfterRequestEvent(
+            IStateDecisionTreeNode<SimulationState<RequestType>, ContextType> onTrue,
+            IStateDecisionTreeNode<SimulationState<RequestType>, ContextType> onFalse,
+            ContextType context
+        )
+        : base(onTrue, onFalse, context) { }
+
+        protected ConditionAfterRequestEvent(ContextType context) : base(context) { }
+    }
+
+    public abstract class ActionAfterRequestEvent<ContextType, RequestType> : StateDecisionTreeActionNode<SimulationState<RequestType>, ContextType> where ContextType : IElevatorLogic where RequestType : IRequestEvent
+    {
+        protected ActionAfterRequestEvent(ContextType context) : base(context) { }
     }
 }

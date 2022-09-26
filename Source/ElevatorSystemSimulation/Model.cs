@@ -249,6 +249,9 @@ namespace ElevatorSystemSimulation
     public class Floors
     {
         public List<Floor> Value { get; } = new();
+        public Floor HeighestFloor => Value[Value.Count - 1];
+        public Floor LowestFloor => Value[0]; 
+
         //public Centimeters InBetweenFloorsSpace { get; }
 
         public Floors(List<Floor> value, Centimeters inBetweenFloorsSpace)

@@ -63,7 +63,7 @@ namespace ElevatorSystemSimulation
             if(_Calendar.TryGetEvent(out IEvent? e))
             {
                 UpdateStateBeforeStep(e);
-                CurrentLogic.Step(e, CurrentTime);
+                CurrentLogic.Execute(new SimulationState(e, CurrentTime));
                 UpdateStateAfterStep();
             }
             else
@@ -107,6 +107,20 @@ namespace ElevatorSystemSimulation
             if(e is ElevatorEvent ee)
             {
                 ee.Elevator.Location = ee.EventLocation.Location;
+            }
+
+            ValidateElevatorsLocations();
+        }
+
+        private void ValidateElevatorsLocations()
+        {
+            foreach(Elevator elevator in Building.ElevatorSystem.Elevators)
+            {
+                if(elevator.Location > Building.Floors.HeighestFloor.Location || 
+                    elevator.Location < Building.Floors.LowestFloor.Location)
+                {
+                    throw new Exception("Elevators are out of the bounds of the building!");
+                }
             }
         }
 
@@ -226,6 +240,30 @@ namespace ElevatorSystemSimulation
         }
 
         #endregion
+    }
+
+    public struct SimulationState : ISimulationState
+    {
+        public IEvent CurrentEvent { get; }
+        public Seconds CurrentTime { get; } 
+
+        public SimulationState(IEvent currentEvent, Seconds currentTime)
+        {
+            CurrentEvent = currentEvent;
+            CurrentTime = currentTime;
+        }
+    }
+
+    public struct SimulationState<EventType> : ISimulationState<EventType> where EventType : IEvent 
+    {
+        public EventType CurrentEvent { get; }
+        public Seconds CurrentTime { get; }
+
+        public SimulationState(EventType currentEvent, Seconds currentTime)
+        {
+            CurrentEvent = currentEvent;
+            CurrentTime = currentTime;
+        }
     }
 
     public struct ElevatorEvent : IEvent

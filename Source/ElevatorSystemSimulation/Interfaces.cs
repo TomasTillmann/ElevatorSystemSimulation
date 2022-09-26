@@ -4,7 +4,7 @@
     {
         public interface IElevatorLogic
         {
-            public void Step(IEvent e, Seconds currentTime);
+            public void Execute(ISimulationState state);
         }
 
         public interface IEvent : ILocatable
@@ -25,6 +25,18 @@
         public interface ILocatable
         {
             Centimeters Location { get; }
+        }
+
+        public interface ISimulationState
+        {
+            public IEvent CurrentEvent { get; }
+            public Seconds CurrentTime { get; }
+        }
+
+        public interface ISimulationState<EventType> where EventType : IEvent
+        {
+            public EventType CurrentEvent { get; }
+            public Seconds CurrentTime { get; }
         }
     }
 }
