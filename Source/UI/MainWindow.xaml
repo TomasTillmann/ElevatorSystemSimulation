@@ -6,8 +6,9 @@
         xmlns:local="clr-namespace:UI"
         mc:Ignorable="d"
         WindowState="Maximized"
-        Title="Elevator Simulation">
+        Title="Elevator Simulation"
+        x:Name="mainWindow">
     <Grid>
-        <local:MainView/>
+        <local:MainView Owner="{Binding Path=., ElementName=mainWindow}"/>
     </Grid>
 </Window>

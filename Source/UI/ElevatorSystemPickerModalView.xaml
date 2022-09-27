@@ -1,0 +1,56 @@
+﻿<Window x:Class="UI.ElevatorSystemPickerModalView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        MinHeight="700"
+        MinWidth="700"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        WindowStartupLocation="CenterOwner"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:UI"
+        mc:Ignorable="d"
+        Title="Elevator System Picker" Height="650" Width="600"
+        Style="{StaticResource modalWindow}"
+        x:Name="elevatorSystemPickerModal">
+
+    <Window.DataContext>
+        <local:ElevatorSystemPickerViewModel/>
+    </Window.DataContext>
+
+    <Window.Resources>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            
+        </Grid>
+
+        <Grid Grid.Row="1" Background="FloralWhite">
+            <Grid HorizontalAlignment="Right">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="100"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0"
+                        Command="{Binding SaveCommand}"
+                        CommandParameter="{Binding }"
+                        Content="Save"
+                        Margin="10"/>
+
+                <Button Grid.Column="1"
+                        Command="{Binding CancelCommand}"
+                        CommandParameter="{Binding Path=., ElementName=elevatorSystemPickerModal}"
+                        Content="Cancel"
+                        Margin="10"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

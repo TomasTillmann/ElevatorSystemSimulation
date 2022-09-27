@@ -189,7 +189,8 @@ namespace Client
             {
                 OnTrue = new ElevatorActionAfterRequest(this, (state, context) =>
                 {
-                    GetClosestElevators(state.CurrentEvent.EventLocation).First().MoveTo(state.CurrentEvent.EventLocation);
+                    GetClosestElevators(state.CurrentEvent.EventLocation, filter : e => e.IsIdle)
+                    .First().MoveTo(state.CurrentEvent.EventLocation);
 
                     return true;
                 }),

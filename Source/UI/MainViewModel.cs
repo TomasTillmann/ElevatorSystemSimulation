@@ -168,6 +168,20 @@ namespace UI
             }
         }
 
+        #region Commands
+
+        public ICommand ShowModalElevatorSystemPickerCommand => _ShowModalElevatorSystemPickerCommand ??= new CommandHandler<Window>(ShowModalElevatorSystemPicker);
+        private ICommand _ShowModalElevatorSystemPickerCommand;
+
+        private void ShowModalElevatorSystemPicker(Window owner)
+        {
+            ElevatorSystemPickerModalView elevatorSystemPicker = new(owner);
+
+            elevatorSystemPicker.ShowDialog();
+        }
+
+        #endregion
+
         #region Listeners
 
         public void Step(object sender, RoutedEventArgs e)

@@ -22,6 +22,9 @@ namespace UI
         public double SidePanelScale { get { return (double)GetValue(SidePanelScaleProperty); } set { SetValue(SidePanelScaleProperty, value); } }
         public static readonly DependencyProperty SidePanelScaleProperty = DependencyProperty.Register("SidePanelScale", typeof(double), typeof(BuildingView), new PropertyMetadata(1.0));
 
+        public Window Owner { get { return (Window)GetValue(OwnerProperty); } set { SetValue(OwnerProperty, value); } }
+        public static readonly DependencyProperty OwnerProperty = DependencyProperty.Register("Owner", typeof(Window), typeof(MainView));
+
         public MainView()
         {
             InitializeComponent();

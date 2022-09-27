@@ -30,6 +30,15 @@
         <Grid Grid.Column="0"
               Background="SkyBlue">
 
+            <StackPanel Panel.ZIndex="2000" VerticalAlignment="Bottom">
+                <Button Content="&#x2699;"
+                        Command="{Binding ShowModalElevatorSystemPickerCommand}"
+                        CommandParameter="{Binding Owner, ElementName=mainView}"
+                        HorizontalAlignment="Left"
+                        Margin="10"
+                        FontSize="20"/>
+            </StackPanel>
+
             <StackPanel Panel.ZIndex="2000">
                 <TextBlock Text="{Binding StepCount, StringFormat={}Step Count: {0}}" FontSize="20" Margin="20,20,0,0"/>
                 <TextBlock Text="{Binding CurrentTime, StringFormat={}Current Time: {0} s}" FontSize="20" Margin="20,10,0,0"/>
@@ -67,11 +76,13 @@
                     <RepeatButton Grid.Column="0" 
                                       x:Name="stepBackButton"
                                       Content="Step Back"
+                                      Delay="500" Interval="50"
                                       Margin="6"/>
 
                     <RepeatButton Grid.Column="1" 
                                       x:Name="stepButton"
                                       Content="Step"
+                                      Delay="500" Interval="50" 
                                       Margin="6"/>
 
                     <Button Grid.Column="2"

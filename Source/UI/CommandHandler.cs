@@ -3,15 +3,21 @@ using System.Windows.Input;
 
 namespace UI
 {
-    public class CommandHandler : ICommand
+    public interface ICommand<ParamterType> : ICommand
     {
-        private Action _action;
-        private Func<bool> _canExecute;
+        bool CanExecute(ParamterType parameter);
+        void Execute(ParamterType parameter); 
+    }
 
-        public CommandHandler(Action action, Func<bool> canExecute)
+    public class CommandHandler<ParameterType> : ICommand<ParameterType>
+    {
+        private Action<ParameterType> _Execute;
+        private Func<ParameterType, bool> _CanExecute;
+
+        public CommandHandler(Action<ParameterType> action, Func<ParameterType, bool>? canExecute = null)
         {
-            _action = action;
-            _canExecute = canExecute;
+            _Execute = action;
+            _CanExecute =  canExecute ?? new Func<ParameterType, bool>(_ => true);
         }
 
         public event EventHandler? CanExecuteChanged
@@ -20,14 +26,48 @@ namespace UI
             remove { CommandManager.RequerySuggested -= value; }
         }
 
+        bool ICommand.CanExecute(object? parameter)
+        {
+            return CanExecute((ParameterType)parameter);
+        }
+
+        public bool CanExecute(ParameterType parameter)
+        {
+            return _CanExecute.Invoke(parameter);
+        }
+
+        void ICommand.Execute(object? parameter)
+        {
+            Execute((ParameterType)parameter);
+        }
+
+        public void Execute(ParameterType parameter)
+        {
+            _Execute.Invoke(parameter);
+        }
+    }
+
+    public class CommandHandler : ICommand
+    {
+        private Action<object?> _Execute;
+        private Func<object?, bool> _CanExecute;
+
+        public event EventHandler? CanExecuteChanged;
+
+        public CommandHandler(Action<object?> action, Func<object?, bool>? canExecute = null)
+        {
+            _Execute = action;
+            _CanExecute = canExecute ?? new Func<object?, bool>(_ => true);
+        }
+
         public bool CanExecute(object? parameter)
         {
-            return _canExecute.Invoke();
+            return _CanExecute.Invoke(parameter);
         }
 
         public void Execute(object? parameter)
         {
-            _action();
+            _Execute.Invoke(parameter);
         }
     }
 }

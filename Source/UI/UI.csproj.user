@@ -10,6 +10,9 @@
     <Compile Update="BuildingView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="ElevatorSystemPickerModalView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="ElevatorView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -28,6 +31,9 @@
   </ItemGroup>
   <ItemGroup>
     <Page Update="BuildingView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="ElevatorSystemPickerModalView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="ElevatorView.xaml">

@@ -35,6 +35,8 @@ namespace Client
                 new List<Elevator>()
                 {
                     new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
+                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
+                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
                 }
             );
 
@@ -43,7 +45,7 @@ namespace Client
             BasicRequestsGenerator generator = new(new Random(420));
             Seconds totalSimulationRunningTime = 5000.ToSeconds();
 
-            return new Simulation(building, elevatorLogic, totalSimulationRunningTime, generator.Generate(150, floors, totalSimulationRunningTime));
+            return new Simulation(building, elevatorLogic, totalSimulationRunningTime, generator.Generate(500, floors, totalSimulationRunningTime));
         }
     }
 }
