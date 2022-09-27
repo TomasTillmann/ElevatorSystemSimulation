@@ -27,6 +27,15 @@ namespace UI
         private List<FloorView> _FloorViews;
         private List<RequestView> _RequestViews = new();
 
+        private const string BuildingUid = "building";
+        private const string RequestUid = "request";
+        private const string FloorSeparatorUid = "floorSeparator";
+        private const string GroundUid = "ground";
+        private const string FloorUid = "floor";
+        private const string ElevatorDividerUid = "elevatorDivider";
+
+        private readonly HashSet<string> DrawnElementsUidsTracker = new();
+
         public List<ElevatorViewModel> Elevators { get => (List<ElevatorViewModel>)GetValue(ElevatorsProperty); set => SetValue(ElevatorsProperty, value); }
         public static readonly DependencyProperty ElevatorsProperty = DependencyProperty.Register("Elevators", typeof(List<ElevatorViewModel>), typeof(BuildingView), new FrameworkPropertyMetadata(null, OnFloorsOrElevatorsChanged));
 
@@ -59,7 +68,7 @@ namespace UI
             InitializeComponent();
             Init();
 
-            PreviewMouseWheel += OnPreviewMouseWheelMoving; 
+            PreviewMouseWheel += OnPreviewMouseWheelMoving;
         }
 
         public void UpdateViewAfterStep()
@@ -76,25 +85,6 @@ namespace UI
                 return;
             }
 
-            _ElevatorViews =
-                Elevators
-                .Select(e => new ElevatorView
-                {
-                    Width = ElevatorViewWidth,
-                    Height = ElevatorViewHeight,
-                    PeopleCount = e.PeopleCount
-                })
-                .ToList();
-
-            _FloorViews =
-                Floors
-                .Select(f => new FloorView
-                {
-                    Width = ElevatorViewWidth + WallMargin,
-                    Height = ElevatorViewHeight + WallMargin
-                })
-                .ToList();
-
             DrawBuilding();
             DrawElevators();
             DrawRequests();
@@ -105,15 +95,14 @@ namespace UI
 
         private void DrawBuilding()
         {
-            building.Width = WallMargin + _ElevatorViews.Count * (ElevatorViewWidth + WallMargin);
-            building.Height = WallMargin + _FloorViews.Count * (ElevatorViewHeight + WallMargin);
+            building.Width = WallMargin + Elevators.Count * (ElevatorViewWidth + WallMargin);
+            building.Height = WallMargin + Floors.Count * (ElevatorViewHeight + WallMargin);
 
             surroundings.Width = building.Width + 500;
             surroundings.Height = building.Height + 20;
 
             BuildingVerticalLocation = surroundings.Width / 2 - building.Width / 2;
             BuildingHorizontalLocation = 2 * WallMargin;
-
 
             if (Background == null)
             {
@@ -128,7 +117,11 @@ namespace UI
                     Fill = new SolidColorBrush(Color.FromRgb(155, 155, 158)),
                     Height = building.Height,
                     Width = WallMargin / 3,
+                    Uid=$"{ElevatorDividerUid}{i}"
                 };
+
+                DrawnElementsUidsTracker.Add(elevatorsDividerView.Uid);
+
                 Panel.SetZIndex(elevatorsDividerView, -1);
 
                 building.Children.Add(elevatorsDividerView);
@@ -140,6 +133,21 @@ namespace UI
 
         private void DrawElevators()
         {
+            _ElevatorViews =
+                Elevators
+                .Select(e =>
+                {
+                    DrawnElementsUidsTracker.Add(e.Id.ToString());
+                    return new ElevatorView
+                    {
+                        Width = ElevatorViewWidth,
+                        Height = ElevatorViewHeight,
+                        PeopleCount = e.PeopleCount,
+                        Uid = e.Id.ToString()
+                    };
+                })
+                .ToList();
+
             double horizontalPosition = 0;
             for(int i = 0; i < Elevators.Count; i++)
             {
@@ -156,6 +164,9 @@ namespace UI
 
         private void DrawRequests()
         {
+
+            _RequestViews.Clear();
+
             double horizontalPosition = BuildingHorizontalLocation; 
             for(int i = 0; i < Floors.Count; i++)
             {
@@ -165,8 +176,11 @@ namespace UI
                     TextHeight = ElevatorViewHeight,
                     TextWidth = ElevatorViewWidth,
                     FloorHeight = WallMargin,
-                    FloorWidth = ElevatorViewWidth + WallMargin
+                    FloorWidth = ElevatorViewWidth + WallMargin,
+                    Uid=$"{RequestUid}{i}"
                 };
+
+                DrawnElementsUidsTracker.Add(requestViewOnFloor.Uid);
 
                 surroundings.Children.Add(requestViewOnFloor);
                 Canvas.SetLeft(requestViewOnFloor, BuildingVerticalLocation + building.Width);
@@ -187,8 +201,11 @@ namespace UI
                 {
                     Fill = new SolidColorBrush(Colors.DarkGray),
                     Height = WallMargin,
-                    Width = building.Width
+                    Width = building.Width,
+                    Uid=$"{FloorSeparatorUid}{i}"
                 };
+
+                DrawnElementsUidsTracker.Add(floorSeparatorView.Uid);
 
                 building.Children.Add(floorSeparatorView);
                 Canvas.SetBottom(floorSeparatorView, floorSeparatorPosition);
@@ -202,8 +219,11 @@ namespace UI
             {
                 Fill = new SolidColorBrush(Colors.SandyBrown),
                 Height = 2 * WallMargin,
-                Width=surroundings.Width
+                Width=surroundings.Width,
+                Uid=GroundUid
             };
+
+            DrawnElementsUidsTracker.Add(ground.Uid);
 
             surroundings.Children.Add(ground);
             Canvas.SetBottom(ground, 0);
@@ -214,17 +234,20 @@ namespace UI
             double verticalShift = 2 * WallMargin + ElevatorViewHeight / 2;
             for(int i = 0; i < Floors.Count; i++)
             {
-                TextBox id = new()
+                TextBox floorId = new()
                 {
                     Text = Floors[i].Id.ToString(),
                     Background = new SolidColorBrush(Colors.Transparent),
                     FontSize = 20,
                     BorderBrush = new SolidColorBrush(Colors.Transparent),
+                    Uid=$"{FloorUid}{i}"
                 };
 
-                surroundings.Children.Add(id);
-                Canvas.SetLeft(id, BuildingHorizontalLocation + (surroundings.Width - building.Width) / 2 - 6 * WallMargin);
-                Canvas.SetBottom(id, verticalShift);
+                DrawnElementsUidsTracker.Add(floorId.Uid);
+
+                surroundings.Children.Add(floorId);
+                Canvas.SetLeft(floorId, BuildingHorizontalLocation + (surroundings.Width - building.Width) / 2 - 6 * WallMargin);
+                Canvas.SetBottom(floorId, verticalShift);
                 verticalShift += ElevatorViewHeight + WallMargin;
 
             }
@@ -270,8 +293,32 @@ namespace UI
 
         private void Redraw()
         {
-            var x = surroundings.Children;
-            var y = building.Children;
+            List<UIElement> itemsToRemove = new();
+
+            foreach(UIElement element in surroundings.Children)
+            {
+                if (DrawnElementsUidsTracker.Contains(element.Uid))
+                {
+                    itemsToRemove.Add(element);
+                }
+            }
+
+            foreach (UIElement element in building.Children)
+            {
+                if (DrawnElementsUidsTracker.Contains(element.Uid))
+                {
+                    itemsToRemove.Add(element);
+                }
+            }
+
+
+            itemsToRemove.ForEach(element =>
+            {
+                surroundings.Children.Remove(element);
+                building.Children.Remove(element);
+                DrawnElementsUidsTracker.Remove(element.Uid);
+            });
+
             Init();
         }
 

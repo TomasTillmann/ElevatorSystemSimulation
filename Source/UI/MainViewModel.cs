@@ -192,6 +192,7 @@ namespace UI
                 if(elevatorSystemPicker.ResultingSimulation is not null)
                 {
                     InitSimulation(elevatorSystemPicker.ResultingSimulation);
+                    Restart();
                 }
                 else
                 {

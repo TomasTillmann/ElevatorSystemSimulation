@@ -26,7 +26,7 @@ namespace UI
         public static readonly DependencyProperty SelectedFloorProperty = DependencyProperty.Register("SelectedFloor", typeof(FloorInModalViewModel), typeof(ElevatorSystemPickerViewModel));
 
         public int TotalSimulationTime { get { return (int)GetValue(TotalSimulationTimeProperty); } set { SetValue(TotalSimulationTimeProperty, value); } }
-        public static readonly DependencyProperty TotalSimulationTimeProperty = DependencyProperty.Register("TotalSimulationTime", typeof(int), typeof(ElevatorSystemPickerViewModel));
+        public static readonly DependencyProperty TotalSimulationTimeProperty = DependencyProperty.Register("TotalSimulationTime", typeof(int), typeof(ElevatorSystemPickerViewModel), new FrameworkPropertyMetadata(5000));
 
         public IElevatorLogic Algorithm { get { return (IElevatorLogic)GetValue(AlgorithmProperty); } set { SetValue(AlgorithmProperty, value); } }
         public static readonly DependencyProperty AlgorithmProperty = DependencyProperty.Register("Algorithm", typeof(IElevatorLogic), typeof(ElevatorSystemPickerViewModel));
@@ -53,9 +53,10 @@ namespace UI
 
                 Building building = new(floors, elevatorSystem);
 
+                // user could choose in future - TODO
                 Algorithm = new SCAN(building);
-
                 BasicRequestsGenerator generator = new(new Random(420));
+                //
 
                 ResultingSimulation = new Simulation(building, Algorithm, TotalSimulationTime.ToSeconds(), generator.Generate(500, floors, TotalSimulationTime.ToSeconds()));
 

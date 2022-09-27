@@ -7,8 +7,7 @@ namespace ElevatorSystemSimulation
     {
         #region Identification
 
-        private static int _Counter = 0;
-        public int Id { get; }
+        public int Id { get; internal set; }
 
         #endregion
 
@@ -61,8 +60,6 @@ namespace ElevatorSystemSimulation
             DepartingTime = departingTime;
             Capacity = capacity;
             Location = 0.ToCentimeters();
-
-            Id = _Counter++;
         }
 
         public void MoveTo(Floor? floor)
@@ -200,10 +197,7 @@ namespace ElevatorSystemSimulation
     public class Floor : IRestartable, ILocatable
     {
         #region Identification
-
-        private static int _Counter = 0;
-
-        public int Id { get; }
+        public int Id { get; internal set; }
         public string? Name { get; }
 
         #endregion
@@ -228,7 +222,6 @@ namespace ElevatorSystemSimulation
 
         public Floor(Centimeters height, string? name = null)
         {
-            Id = _Counter++;
             Height = height;
             Name = name;
         }
@@ -264,6 +257,10 @@ namespace ElevatorSystemSimulation
 
             Value = new List<Floor>(value);
             Value.Sort((f1, f2) => f1.Id.CompareTo(f2.Id));
+
+            int i = -1;
+            Value.ForEach(f => f.Id = i+=1);
+
             SetFloorsLocation();
         }
 
@@ -292,6 +289,9 @@ namespace ElevatorSystemSimulation
         public ElevatorSystem(List<Elevator> elevators)
         {
             Elevators = elevators;
+
+            int i = -1;
+            elevators.ForEach(e => e.Id = i+=1);
         }
     }
 }

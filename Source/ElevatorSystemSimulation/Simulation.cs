@@ -46,6 +46,11 @@ namespace ElevatorSystemSimulation
             _Calendar.Init(_Requests);
 
             SetElevatorsIPlannableProperties();
+
+            if(requests.All(r => r.WhenPlanned == 0.ToSeconds()))
+            {
+                IsOver = true;
+            }
         }
 
         public void Run()
