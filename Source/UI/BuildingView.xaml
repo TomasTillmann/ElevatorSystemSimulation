@@ -8,8 +8,6 @@
              x:Name="buildingView">
 
     <UserControl.Resources>
-        <local:DividerConverter x:Key="dividerConverter"/>
-        <local:AdderConverter x:Key="adderConverter"/>
         <local:GetLeftLocationFromCenterConverter x:Key="getLeftLocationFromCenterConverter"/>
     </UserControl.Resources>
 

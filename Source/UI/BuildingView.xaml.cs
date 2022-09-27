@@ -62,7 +62,14 @@ namespace UI
             PreviewMouseWheel += OnPreviewMouseWheelMoving; 
         }
 
-        public void Init()
+        public void UpdateViewAfterStep()
+        {
+            UpdateElevators();
+            UpdateRequests();
+            ShowWhereIsLastEvent();
+        }
+
+        private void Init()
         {
             if(Elevators == null || Floors == null)
             {
@@ -94,13 +101,6 @@ namespace UI
             DrawFloorSeparators();
             DrawFloorIds();
             DrawGround();
-        }
-
-        public void UpdateViewAfterStep()
-        {
-            UpdateElevators();
-            UpdateRequests();
-            ShowWhereIsLastEvent();
         }
 
         private void DrawBuilding()
@@ -268,6 +268,13 @@ namespace UI
             }
         }
 
+        private void Redraw()
+        {
+            var x = surroundings.Children;
+            var y = building.Children;
+            Init();
+        }
+
         private double GetElevatorsViewVerticalLocation(ElevatorViewModel elevatorViewModel, Centimeters floorHeight)
         {
             int floor = (elevatorViewModel.Location.Value / floorHeight.Value);
@@ -314,7 +321,7 @@ namespace UI
         {
             if(d is BuildingView buildingView)
             {
-                buildingView.Init();
+                buildingView.Redraw();
             }
         }
 

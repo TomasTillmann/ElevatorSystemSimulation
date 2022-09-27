@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ElevatorSystemSimulation;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -22,50 +23,26 @@ namespace UI
         public DataTemplate ElevatorSystemPickerMainContentTemplate { get { return (DataTemplate)GetValue(ElevatorSystemPickerMainContentTemplateProperty); } set { SetValue(ElevatorSystemPickerMainContentTemplateProperty, value); } }
         public static readonly DependencyProperty ElevatorSystemPickerMainContentTemplateProperty = DependencyProperty.Register("ElevatorSystemPickerMainContentTemplate", typeof(DataTemplate), typeof(ElevatorSystemPickerModalView));
 
+        public Simulation? ResultingSimulation { get { return (Simulation?)GetValue(ResultingSimulationProperty); } set { SetValue(ResultingSimulationProperty, value); } }
+        public static readonly DependencyProperty ResultingSimulationProperty = DependencyProperty.Register("ResultingSimulation", typeof(Simulation), typeof(ElevatorSystemPickerModalView));
+
         public ElevatorSystemPickerModalView(Window owner)
         {
             Owner = owner;
             Owner.Opacity = 0.5;
             InitializeComponent();
 
-            Width = owner.Width - 2 * owner.Width / 3;
-            Height = owner.Height - 2 * owner.Height / 10;
+            // update resulting simulation when updated in view model - can be than extracted by owner window
+            SetBinding(ResultingSimulationProperty, new Binding("ResultingSimulation") { Source = ViewModel });
 
-            Closing += OnWindowClosing;
-            cancelButton.Click += CloseWindow;
+            viewComboBox.ItemsSource = Enum.GetValues(typeof(SelectionStatesInModalView)).Cast<SelectionStatesInModalView>();
+        }
+    }
 
-            viewComboBox.ItemsSource = Enum.GetValues(typeof(ViewType)).Cast<ViewType>();
-        }
-
-        private void OnWindowClosing(object? sender, CancelEventArgs e)
-        {
-            Owner.Opacity = 1;
-        }
-
-        private void CloseWindow(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
-
-        private void OnElevatorsPicker(object sender, RoutedEventArgs e)
-        {
-            ElevatorSystemPickerMainContentTemplate = (DataTemplate)TryFindResource("elevatorPickerDataTemplate");
-        }
-
-        private void OnFloorsPicker(object sender, RoutedEventArgs e)
-        {
-            ElevatorSystemPickerMainContentTemplate = (DataTemplate)TryFindResource("floorsPickerDataTemplate");
-        }
-        private void OnAlgorithmPicker(object sender, RoutedEventArgs e)
-        {
-            ElevatorSystemPickerMainContentTemplate = (DataTemplate)TryFindResource("algorithmPickerDataTemplate");
-        }
-
-        public enum ViewType
-        {
-            Elevators,
-            Floors,
-            Algorithm,
-        }
+    public enum SelectionStatesInModalView
+    {
+        Elevators,
+        Floors,
+        Algorithm,
     }
 }

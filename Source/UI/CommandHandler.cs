@@ -11,13 +11,13 @@ namespace UI
 
     public class CommandHandler<ParameterType> : ICommand<ParameterType>
     {
-        private Action<ParameterType> _Execute;
-        private Func<ParameterType, bool> _CanExecute;
+        private Action<ParameterType?> _Execute;
+        private Func<ParameterType?, bool> _CanExecute;
 
-        public CommandHandler(Action<ParameterType> action, Func<ParameterType, bool>? canExecute = null)
+        public CommandHandler(Action<ParameterType?> action, Func<ParameterType?, bool>? canExecute = null)
         {
             _Execute = action;
-            _CanExecute =  canExecute ?? new Func<ParameterType, bool>(_ => true);
+            _CanExecute =  canExecute ?? new Func<ParameterType?, bool>(_ => true);
         }
 
         public event EventHandler? CanExecuteChanged
@@ -28,20 +28,30 @@ namespace UI
 
         bool ICommand.CanExecute(object? parameter)
         {
+            if(parameter == null)
+            {
+                return CanExecute(default(ParameterType));
+            }
+
             return CanExecute((ParameterType)parameter);
         }
 
-        public bool CanExecute(ParameterType parameter)
+        public bool CanExecute(ParameterType? parameter)
         {
             return _CanExecute.Invoke(parameter);
         }
 
         void ICommand.Execute(object? parameter)
         {
+            if(parameter == null)
+            {
+                Execute(default(ParameterType));
+            }
+
             Execute((ParameterType)parameter);
         }
 
-        public void Execute(ParameterType parameter)
+        public void Execute(ParameterType? parameter)
         {
             _Execute.Invoke(parameter);
         }

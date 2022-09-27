@@ -15,9 +15,6 @@
     </UserControl.DataContext>
 
     <UserControl.Resources>
-        <local:AdderConverter x:Key="adderConverter"/>
-        <local:ZeroToCollapsedConverter x:Key="zeroToCollapsedConverter"/>
-        <local:NullToCollapsedConverter x:Key="nullToCollapsedConverter"/>
     </UserControl.Resources>
 
     <Grid>

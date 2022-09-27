@@ -17,7 +17,7 @@ namespace UI
     public class MainViewModel : DependencyObject
     {
         // Model
-        private Simulation _Simulation { get; }
+        private Simulation _Simulation { get; set; }
         //
 
         #region History
@@ -50,13 +50,9 @@ namespace UI
 
         public MainViewModel()
         {
-            _Simulation = GetSimulation();
+            InitSimulation(GetInitSimulation());
 
-            Elevators = _Simulation.Building.ElevatorSystem.Elevators.Select(e => new ElevatorViewModel(e)).ToList();
-            Floors = _Simulation.Building.Floors.Value.Select(f => new FloorViewModel(f)).ToList();
-
-            _History.Add(GetSnapshot());
-            _CurrentSnapshotPointer++;
+            Restart();
         }
 
         public void Step()
@@ -98,7 +94,15 @@ namespace UI
             _CurrentSnapshotPointer = 0;
         }
 
-        private Simulation GetSimulation()
+        private void InitSimulation(Simulation simulation)
+        {
+            _Simulation = simulation;
+
+            Elevators = _Simulation.Building.ElevatorSystem.Elevators.Select(e => new ElevatorViewModel(e)).ToList();
+            Floors = _Simulation.Building.Floors.Value.Select(f => new FloorViewModel(f)).ToList();
+        }
+
+        private Simulation GetInitSimulation()
         {
             return SimulationProvider.GetSimulation();
         }
@@ -177,7 +181,25 @@ namespace UI
         {
             ElevatorSystemPickerModalView elevatorSystemPicker = new(owner);
 
-            elevatorSystemPicker.ShowDialog();
+            bool? result = elevatorSystemPicker.ShowDialog();
+
+            if (result == null)
+            {
+
+            }
+            else if (result.Value)
+            {
+                if(elevatorSystemPicker.ResultingSimulation is not null)
+                {
+                    InitSimulation(elevatorSystemPicker.ResultingSimulation);
+                }
+                else
+                {
+                    // SHOULDNT HAPPEN - modal window view model should validate before saving if its not null or empty - TODO
+                }
+            }
+
+            owner.Opacity = 1;
         }
 
         #endregion
@@ -303,6 +325,28 @@ namespace UI
             if(value is double numericValue && (parameter is double numericParameter || Double.TryParse(parameter.ToString(), out numericParameter)))
             {
                 return numericValue - numericParameter;
+            }
+
+            return value;
+        }
+    }
+    public class SubstracterConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is double numericValue && (parameter is double numericParameter || Double.TryParse(parameter.ToString(), out numericParameter)))
+            {
+                return numericValue - numericParameter;
+            }
+
+            return value;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is double numericValue && (parameter is double numericParameter || Double.TryParse(parameter.ToString(), out numericParameter)))
+            {
+                return numericValue + numericParameter;
             }
 
             return value;

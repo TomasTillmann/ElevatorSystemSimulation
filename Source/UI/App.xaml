@@ -9,6 +9,19 @@
             <Setter Property="BorderBrush" Value="Black"/>
             <Setter Property="BorderThickness" Value="1.5"/>
         </Style>
+
+        <local:DividerConverter x:Key="dividerConverter"/>
+
+        <local:AdderConverter x:Key="adderConverter"/>
+
+        <local:SubstracterConverter x:Key="substracterConverter"/>
+
+        <local:ZeroToCollapsedConverter x:Key="zeroToCollapsedConverter"/>
+
+        <local:NullToCollapsedConverter x:Key="nullToCollapsedConverter"/>
+
+        <local:NullToFalseConverter x:Key="nullToFalseConverter"/>
+
     </Application.Resources>
 
 </Application>

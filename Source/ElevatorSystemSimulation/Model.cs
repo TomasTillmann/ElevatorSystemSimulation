@@ -53,7 +53,11 @@ namespace ElevatorSystemSimulation
             int capacity)
         {
             TravelSpeed = travelSpeed;
+
+            // Dont care about this for now - TODO
             AccelerationDelaySpeed = acceleratingTravelSpeed;
+            //
+
             DepartingTime = departingTime;
             Capacity = capacity;
             Location = 0.ToCentimeters();
