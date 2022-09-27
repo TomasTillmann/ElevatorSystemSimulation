@@ -25,7 +25,7 @@ namespace ElevatorSystemSimulation
         private Building _Building;
 
         public Seconds CurrentTime { get; private set; } = 0.ToSeconds();
-        public IElevatorLogic CurrentLogic { get; }
+        public IElevatorLogic CurrentLogic { get; set; }
         public Seconds TotalTime { get; }
         public int StepCount { get; private set; }
         public IEvent? LastEvent { get; private set; }
