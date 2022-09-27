@@ -17,12 +17,15 @@ namespace ElevatorSystemSimulation
             {
                 _Requests = value;
                 _Requests.Sort((IRequestEvent r1, IRequestEvent r2) => r1.WhenPlanned.Value.CompareTo(r2.WhenPlanned.Value));
+                Restart();
             }
         }
 
+        public Building Building { get => _Building; set { _Building = value; Restart(); } }
+        private Building _Building;
+
         public Seconds CurrentTime { get; private set; } = 0.ToSeconds();
         public IElevatorLogic CurrentLogic { get; }
-        public Building Building { get; }
         public Seconds TotalTime { get; }
         public int StepCount { get; private set; }
         public IEvent? LastEvent { get; private set; }
@@ -36,12 +39,12 @@ namespace ElevatorSystemSimulation
             List<IRequestEvent> requests)
         {
             CurrentLogic = currentLogic;
+            _Requests = requests;
             Building = building;
             TotalTime = totalTime;
 
-            _Requests = requests;
-
             _Calendar.Init(_Requests);
+
             SetElevatorsIPlannableProperties();
         }
 

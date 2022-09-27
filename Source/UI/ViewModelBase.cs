@@ -11,4 +11,14 @@ namespace UI
             Model = model;
         }
     }
+
+    public abstract class ViewModelBase : DependencyObject
+    {
+        protected object? Model { get; set; }
+
+        public ViewModelBase(object? model = null)
+        {
+            Model = model;
+        }
+    }
 }

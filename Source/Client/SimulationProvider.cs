@@ -12,6 +12,9 @@ namespace Client
     {
         public static Simulation GetSimulation()
         {
+            //// User picks
+
+            // only the same floors are allowed for now! - TODO
             Floors floors = new(
                 new List<Floor>()
                 {
@@ -41,9 +44,18 @@ namespace Client
             );
 
             Building building = new(floors, elevatorSystem);
-            SCAN elevatorLogic = new(building);
-            BasicRequestsGenerator generator = new(new Random(420));
+
             Seconds totalSimulationRunningTime = 5000.ToSeconds();
+
+            // Only one algorithm for now - TODO
+            SCAN elevatorLogic = new(building);
+            //
+
+            ////
+
+            // Will be able to pick in the future - TODO
+            BasicRequestsGenerator generator = new(new Random(420));
+            //
 
             return new Simulation(building, elevatorLogic, totalSimulationRunningTime, generator.Generate(500, floors, totalSimulationRunningTime));
         }
