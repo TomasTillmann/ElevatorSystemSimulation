@@ -7,7 +7,7 @@ namespace ElevatorSystemSimulation
     {
         #region Context
 
-        protected Building Building { get; }
+        public Building Building { get; }
         protected List<Elevator> Elevators => Building.ElevatorSystem.Elevators;
         protected List<Floor> Floors => Building.Floors.Value;
 
@@ -37,9 +37,7 @@ namespace ElevatorSystemSimulation
 
             if(state.CurrentEvent is RequestEvent ce)
             {
-                //HACK - should be in simulation update state not here
                 ce.EventLocation._Requests.Add(ce);
-                //
 
                 Execute(new SimulationState<RequestEvent>(ce, state.CurrentTime));
             }

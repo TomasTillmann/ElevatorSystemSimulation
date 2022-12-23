@@ -4,7 +4,8 @@
     {
         public interface IElevatorLogic
         {
-            public void Execute(ISimulationState state);
+            Building Building { get; }
+            void Execute(ISimulationState state);
         }
 
         public interface IEvent : ILocatable

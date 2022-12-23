@@ -43,6 +43,6 @@ namespace UI
     {
         Elevators,
         Floors,
-        Algorithm,
+        Logic,
     }
 }

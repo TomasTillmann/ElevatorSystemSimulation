@@ -235,10 +235,84 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="algorithmPickerDataTemplate">
+        <DataTemplate x:Key="algorithmPickerDataTemplate" DataType="{x:Type local:ElevatorSystemPickerViewModel}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="5"/>
+                    <ColumnDefinition Width="4*"/>
+                </Grid.ColumnDefinitions>
 
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Logics" FontSize="20" Margin="20"/>
+
+                    <Grid MaxHeight="{Binding MaxHeight, ElementName=elevatorSystemPickerModal, Converter={StaticResource substracterConverter}, ConverterParameter=120}">
+                        <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="auto" VerticalScrollBarVisibility="auto">
+                            <ScrollViewer.Resources>
+                                <sys:Double x:Key="{x:Static SystemParameters.VerticalScrollBarWidthKey}">5</sys:Double>
+                            </ScrollViewer.Resources>
+                            <Grid>
+                                <ItemsControl ItemsSource="{Binding Path=Algorithms}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type local:AlgorithmInModalViewModel}">
+                                            <Border BorderBrush="black" BorderThickness="0.5" Margin="0.5">
+                                                <Button
+                                                    Content="{Binding Name}"
+                                                    Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Grid}}, Path=DataContext.SelectCommand}"
+                                                    CommandParameter="{Binding}">
+                                                    <Button.Style>
+                                                        <Style BasedOn="{StaticResource itemStyle}" TargetType="{x:Type Button}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Border}}, Path=DataContext.IsSelected}"
+                                                                             Value="True">
+                                                                    <Setter Property="Background" Value="FloralWhite"/>
+                                                                </DataTrigger>
+
+                                                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Border}}, Path=DataContext.IsSelected}"
+                                                                             Value="False">
+                                                                    <Setter Property="Background" Value="BlanchedAlmond"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                        </ScrollViewer>
+                    </Grid>
+                </StackPanel>
+
+                <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"/>
+
+                <ScrollViewer Grid.Column="2" HorizontalScrollBarVisibility="auto" VerticalScrollBarVisibility="auto">
+                    <StackPanel>
+                        <Grid>
+                            <TextBlock Text="Algorithm Parameters" FontSize="20" Margin="20"/>
+                            <Button Style="{StaticResource deleteButton}"
+                                    IsEnabled="{Binding SelectedAlgorithm, Converter={StaticResource nullToFalseConverter}}"
+                                    Command="{Binding DeleteCommand}"
+                                    CommandParameter="{Binding SelectedAlgorithm}"/>
+                        </Grid>
+
+                        <Grid Visibility="{Binding SelectedAlgorithm, Converter={StaticResource nullToCollapsedConverter}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0">
+                                <Label Content="Algorithm description:"/>
+                                <TextBox Text="{Binding SelectedAlgorithm.Description}"/>
+                            </Grid>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
         </DataTemplate>
-
     </Window.Resources>
 
     <Grid>
@@ -262,7 +336,7 @@
                                 <Setter Property="Content" Value="{Binding}"/>
                             </DataTrigger>
 
-                            <DataTrigger Binding="{Binding SelectedItem, ElementName=viewComboBox}" Value="Algorithm">
+                            <DataTrigger Binding="{Binding SelectedItem, ElementName=viewComboBox}" Value="Logic">
                                 <Setter Property="ContentTemplate" Value="{StaticResource algorithmPickerDataTemplate}"/>
                                 <Setter Property="Content" Value="{Binding}"/>
                             </DataTrigger>
@@ -319,8 +393,8 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-
             </Grid>
+
         </Grid>
     </Grid>
 </Window>

@@ -25,6 +25,11 @@ namespace UI
         public FloorInModalViewModel? SelectedFloor { get { return (FloorInModalViewModel)GetValue(SelectedFloorProperty); } set { SetValue(SelectedFloorProperty, value); } }
         public static readonly DependencyProperty SelectedFloorProperty = DependencyProperty.Register("SelectedFloor", typeof(FloorInModalViewModel), typeof(ElevatorSystemPickerViewModel));
 
+        public ObservableCollection<AlgorithmInModalViewModel> Algorithms { get; set; } = new();
+
+        public AlgorithmInModalViewModel SelectedAlgorithm { get { return (AlgorithmInModalViewModel)GetValue(SelectedAlgorithmProperty); } set { SetValue(SelectedAlgorithmProperty, value); } }
+        public static readonly DependencyProperty SelectedAlgorithmProperty = DependencyProperty.Register("SelectedAlgorithm", typeof(AlgorithmInModalViewModel), typeof(ElevatorSystemPickerViewModel));
+
         public int TotalSimulationTime { get { return (int)GetValue(TotalSimulationTimeProperty); } set { SetValue(TotalSimulationTimeProperty, value); } }
         public static readonly DependencyProperty TotalSimulationTimeProperty = DependencyProperty.Register("TotalSimulationTime", typeof(int), typeof(ElevatorSystemPickerViewModel), new FrameworkPropertyMetadata(5000));
 
@@ -37,6 +42,12 @@ namespace UI
         private void OnWindowClosing(Window modalWindow)
         {
             modalWindow.Close();
+        }
+
+        public ElevatorSystemPickerViewModel()
+        {
+            Algorithms.Add(new AlgorithmInModalViewModel(ElevatorLogicType.SCAN, "SCAN", "The most used"));
+            SelectedAlgorithm= Algorithms.First();
         }
 
         #region Commands
@@ -54,7 +65,8 @@ namespace UI
                 Building building = new(floors, elevatorSystem);
 
                 // user could choose in future - TODO
-                Algorithm = new SCAN(building);
+                //Algorithm = new SCAN(building);
+                Algorithm = SelectedAlgorithm.GetElevatorLogic(building);
                 BasicRequestsGenerator generator = new(new Random(420));
                 //
 
@@ -101,10 +113,6 @@ namespace UI
                 Floors.Add(floor);
                 Select(floor);
             }
-            else if(toAdd == SelectionStatesInModalView.Algorithm)
-            {
-
-            }
         }
 
         public ICommand SelectCommand => _SelectCommand ??= new CommandHandler(Select);
@@ -140,6 +148,20 @@ namespace UI
                     SelectedFloor.IsSelected = true;
                 }
             }
+            else if(parameter is AlgorithmInModalViewModel algorithm)
+            {
+                if(SelectedAlgorithm is not null)
+                {
+                    SelectedAlgorithm.IsSelected = false;
+                }
+
+                SelectedAlgorithm = algorithm;
+
+                if(SelectedAlgorithm is not null)
+                {
+                    SelectedAlgorithm.IsSelected = true;
+                }
+            }
         }
 
         public ICommand DeleteCommand => _DeleteCommand ??= new CommandHandler(Delete);
@@ -164,7 +186,7 @@ namespace UI
         #endregion
     }
 
-    public class ElevatorInModalViewModel : ViewModelBase<Elevator>
+    public class ElevatorInModalViewModel : ViewModelBase<Elevator>, ISelectable
     {
         public int TravelSpeed { get { return (int)GetValue(TravelSpeedProperty); } set { SetValue(TravelSpeedProperty, value); } }
         public static readonly DependencyProperty TravelSpeedProperty = DependencyProperty.Register("TravelSpeed", typeof(int), typeof(ElevatorInModalViewModel));
@@ -194,7 +216,7 @@ namespace UI
         }
     }
 
-    public class FloorInModalViewModel : ViewModelBase<Floor>
+    public class FloorInModalViewModel : ViewModelBase<Floor>, ISelectable
     {
         public int Height { get { return (int)GetValue(HeightProperty); } set { SetValue(HeightProperty, value); } }
         public static readonly DependencyProperty HeightProperty = DependencyProperty.Register("Height", typeof(int), typeof(FloorInModalViewModel));
@@ -214,6 +236,43 @@ namespace UI
         {
             return new Floor(Height.ToCentimeters());
         }
+    }
+
+    public class AlgorithmInModalViewModel : ViewModelBase<ElevatorLogicType>, ISelectable
+    {
+        public string Name { get { return (string)GetValue(NameProperty); } set { SetValue(NameProperty, value); } }
+        public static readonly DependencyProperty NameProperty = DependencyProperty.Register("Name", typeof(string), typeof(AlgorithmInModalViewModel));
+        public string Description { get { return (string)GetValue(DescriptionProperty); } set { SetValue(DescriptionProperty, value); } }
+        public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register("Description", typeof(string), typeof(AlgorithmInModalViewModel));
+
+        public bool IsSelected { get { return (bool)GetValue(IsSelectedProperty); } set { SetValue(IsSelectedProperty, value); } }
+        public static readonly DependencyProperty IsSelectedProperty = DependencyProperty.Register("IsSelected", typeof(bool), typeof(AlgorithmInModalViewModel));
+
+        public AlgorithmInModalViewModel(ElevatorLogicType elevatorLogicType, string name, string description) : base(elevatorLogicType)
+        {
+            Name = name;
+            Description = description;
+        }
+
+        public IElevatorLogic GetElevatorLogic(Building building)
+        {
+            switch (Model)
+            {
+                case ElevatorLogicType.SCAN:
+                    return new SCAN(building);
+                //TODO
+                //case ElevatorLogicType.Hungry:
+                //    return new Hungry(building);
+            }
+
+            return null;
+        }
+    }
+
+    public enum ElevatorLogicType
+    {
+        SCAN,
+        Hungry
     }
 
     #region Converters
