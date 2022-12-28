@@ -13,12 +13,12 @@ namespace Client
 
         protected override void Execute(SimulationState<BasicRequestEvent> state)
         {
-            throw new NotImplementedException();
+
         }
 
         protected override void Execute(SimulationState<ElevatorEvent> state)
         {
-            throw new NotImplementedException();
+
         }
     }
 }
