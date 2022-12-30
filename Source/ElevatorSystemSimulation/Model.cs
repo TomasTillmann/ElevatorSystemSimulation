@@ -13,9 +13,7 @@ namespace ElevatorSystemSimulation
 
         #region Simulation
 
-        public Action<Elevator, Seconds, Floor, ElevatorAction>? PlanElevator { get; set; }
         public Centimeters Location { get; set; }
-        public Action<Elevator>? UnplanElevator { get; set; }
         public Direction Direction { get; private set; } = Direction.NoDirection;
         public Direction? LastDirection { get; private set; } = null; 
         public Floor? PlannedTo { get; private set; }
@@ -24,6 +22,9 @@ namespace ElevatorSystemSimulation
 
         public IReadOnlyCollection<IRequestEvent> AttendingRequests => _AttendingRequests;
         protected readonly List<IRequestEvent> _AttendingRequests  = new();
+
+        internal Action<Elevator, Seconds, Floor, ElevatorAction>? PlanElevator { get; set; }
+        internal Action<Elevator>? UnplanElevator { get; set; }
 
         public void Restart()
         {
@@ -44,6 +45,7 @@ namespace ElevatorSystemSimulation
         public int Capacity { get; }
 
         #endregion
+
 
         public Elevator(
             CentimetersPerSecond travelSpeed,

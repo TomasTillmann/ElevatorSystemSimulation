@@ -46,8 +46,12 @@ namespace UI
 
         public ElevatorSystemPickerViewModel()
         {
-            Algorithms.Add(new AlgorithmInModalViewModel(ElevatorLogicType.SCAN, "SCAN", "The most used"));
-            SelectedAlgorithm= Algorithms.First();
+            Algorithms.Add(new AlgorithmInModalViewModel(ElevatorLogicType.SCAN, "SCAN", "The most widely used"));
+            Algorithms.Add(new AlgorithmInModalViewModel(ElevatorLogicType.Hungry, "Hungry", "Chooses always the closest elevators. Leads to starvation. Can't be used generally."));
+
+            //TODO
+            //SelectedAlgorithm= Algorithms.First();
+            SelectedAlgorithm = Algorithms[1];
         }
 
         #region Commands
@@ -260,9 +264,9 @@ namespace UI
             {
                 case ElevatorLogicType.SCAN:
                     return new SCAN(building);
-                //TODO
-                //case ElevatorLogicType.Hungry:
-                //    return new Hungry(building);
+
+                case ElevatorLogicType.Hungry:
+                    return new Hungry(building);
             }
 
             return null;
