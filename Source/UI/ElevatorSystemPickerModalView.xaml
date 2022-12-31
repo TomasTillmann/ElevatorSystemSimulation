@@ -61,6 +61,11 @@
             </Style.Setters>
         </Style>
 
+        <Style TargetType="{x:Type TextBlock}">
+            <Style.Setters>
+            </Style.Setters>
+        </Style>
+
         <Style TargetType="{x:Type Label}">
             <Style.Setters>
                 <Setter Property="Margin" Value="10,3,40,4"/>
@@ -290,11 +295,7 @@
                 <ScrollViewer Grid.Column="2" HorizontalScrollBarVisibility="auto" VerticalScrollBarVisibility="auto">
                     <StackPanel>
                         <Grid>
-                            <TextBlock Text="Algorithm Parameters" FontSize="20" Margin="20"/>
-                            <Button Style="{StaticResource deleteButton}"
-                                    IsEnabled="{Binding SelectedAlgorithm, Converter={StaticResource nullToFalseConverter}}"
-                                    Command="{Binding DeleteCommand}"
-                                    CommandParameter="{Binding SelectedAlgorithm}"/>
+                            <TextBlock Text="Algorithms" FontSize="20" Margin="20"/>
                         </Grid>
 
                         <Grid Visibility="{Binding SelectedAlgorithm, Converter={StaticResource nullToCollapsedConverter}}">
@@ -305,8 +306,15 @@
                             </Grid.RowDefinitions>
 
                             <Grid Grid.Row="0">
-                                <Label Content="Algorithm description:"/>
-                                <TextBox Text="{Binding SelectedAlgorithm.Description}"/>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+
+                                <Label Grid.Row="0" Content="Algorithm description:"/>
+                                <TextBlock Grid.Row="1" Text="{Binding SelectedAlgorithm.Description}"
+                                TextAlignment="Justify"
+                                           Margin="10"/>
                             </Grid>
                         </Grid>
                     </StackPanel>
