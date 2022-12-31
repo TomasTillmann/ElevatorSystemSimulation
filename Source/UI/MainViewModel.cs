@@ -196,7 +196,7 @@ namespace UI
                 }
                 else
                 {
-                    // SHOULDNT HAPPEN - modal window view model should validate before saving if its not null or empty - TODO
+                    throw new Exception("SHOULDNT HAPPEN - modal window view model should validate before saving if its not null or empty.");
                 }
             }
 

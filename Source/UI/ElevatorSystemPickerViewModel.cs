@@ -48,10 +48,11 @@ namespace UI
         {
             Algorithms.Add(new AlgorithmInModalViewModel(ElevatorLogicType.SCAN, "SCAN", "The most widely used"));
             Algorithms.Add(new AlgorithmInModalViewModel(ElevatorLogicType.Hungry, "Hungry", "Chooses always the closest elevators. Leads to starvation. Can't be used generally."));
+            Algorithms.Add(new AlgorithmInModalViewModel(ElevatorLogicType.DestinationDispatch, "DestinationDispatch", "User Specifies destination before getting to the elevator. Can group people with the same destination then."));
 
-            //TODO
-            //SelectedAlgorithm= Algorithms.First();
-            SelectedAlgorithm = Algorithms[1];
+            //TODO - delete
+            //Select(Algorithms.FirstOrDefault());
+            Select(Algorithms[2]);
         }
 
         #region Commands
@@ -65,12 +66,11 @@ namespace UI
             {
                 Floors floors = new(Floors.Select(f => f.ToFloor()).ToList(), Floors[0].Height.ToCentimeters());
                 ElevatorSystem elevatorSystem = new (Elevators.Select(e => e.ToElevator()).ToList());
-
                 Building building = new(floors, elevatorSystem);
 
+                Algorithm = SelectedAlgorithm.ToAlgorithm(building);
+
                 // user could choose in future - TODO
-                //Algorithm = new SCAN(building);
-                Algorithm = SelectedAlgorithm.GetElevatorLogic(building);
                 BasicRequestsGenerator generator = new(new Random(420));
                 //
 
@@ -258,7 +258,7 @@ namespace UI
             Description = description;
         }
 
-        public IElevatorLogic GetElevatorLogic(Building building)
+        public IElevatorLogic ToAlgorithm(Building building)
         {
             switch (Model)
             {
@@ -267,6 +267,9 @@ namespace UI
 
                 case ElevatorLogicType.Hungry:
                     return new Hungry(building);
+
+                case ElevatorLogicType.DestinationDispatch:
+                    return new DestinationDispatch(building);
             }
 
             return null;
@@ -276,7 +279,8 @@ namespace UI
     public enum ElevatorLogicType
     {
         SCAN,
-        Hungry
+        Hungry,
+        DestinationDispatch,
     }
 
     #region Converters

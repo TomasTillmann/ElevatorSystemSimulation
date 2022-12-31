@@ -1,4 +1,6 @@
-﻿namespace ElevatorSystemSimulation
+﻿using System.Runtime.CompilerServices;
+
+namespace ElevatorSystemSimulation
 {
     public struct CentimetersPerSecond
     {
@@ -107,13 +109,35 @@
     {
         MoveTo,
         UnloadAndLoad,
+        Load,
+        Unload,
         Idle,
     }
 
     public enum Direction
     {
-        Down = -1,
-        NoDirection = 0,
         Up = 1,
+        NoDirection = 0,
+        Down = -1,
+    }
+
+    public static class DirectionExtensions
+    {
+        public static Direction ToOpposite(this Direction direction)
+        {
+            switch (direction)
+            {
+                case Direction.Up:
+                    return Direction.Down;
+
+                case Direction.Down:
+                    return Direction.Up;
+
+                case Direction.NoDirection:
+                    return Direction.NoDirection;
+            }
+
+            throw new Exception("Direction problem");
+        }
     }
 }

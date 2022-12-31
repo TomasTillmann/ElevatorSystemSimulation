@@ -48,7 +48,8 @@ namespace Client
             Seconds totalSimulationRunningTime = 5000.ToSeconds();
 
             // Only one algorithm for now - TODO
-            SCAN elevatorLogic = new(building);
+            //SCAN elevatorLogic = new(building);
+            DestinationDispatch elevatorLogic = new(building);
             //
 
             ////

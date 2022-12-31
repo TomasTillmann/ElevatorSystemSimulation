@@ -119,15 +119,13 @@ namespace ElevatorSystemSimulation
 
             if (Location != floor.Location)
             {
-                throw new Exception("Elevator cannot load people. Elevators can load people only when fully in a floor.");
+                throw new Exception("Elevator cannot load and unload people. Elevators can load and unload people only when fully in a floor.");
             }
 
             if (!IsIdle)
             {
                 UnplanMe();
             }
-
-            //TODO - IMPLEMENT: depart out + depart in time - maybe no one to depart out or no one to depart in on the floor 
 
             PlannedTo = floor;
 
@@ -139,6 +137,78 @@ namespace ElevatorSystemSimulation
             PlanMe(DepartingTime, floor, ElevatorAction.UnloadAndLoad);
         }
 
+        /// <summary>
+        /// Loads only the specified requests in order given by the enumerable. If not specified, it follows the order of Requests. In that case, it implicitly adds requests that are the longest in the floor.
+        /// Checks for the capacity. If Capacity of the elevator is full, no more requests are added to the elevator and they are left on the floor.
+        /// </summary>
+        /// <param name="floor"></param>
+        /// <param name="requests"></param>
+        public void Load(Floor? floor, IEnumerable<IRequestEvent>? requests = null)
+        {
+            if(floor == null)
+            {
+                return;
+            }
+
+            if (Location != floor.Location)
+            {
+                throw new Exception("Elevator cannot load people. Elevators can load people only when fully in a floor.");
+            }
+
+            if (!IsIdle)
+            {
+                UnplanMe();
+            }
+
+            requests = requests == null ? floor.Requests : requests;
+
+            HashSet<IRequestEvent> requestsToDelete = new();
+            foreach(IRequestEvent request in requests)
+            {
+                if(_AttendingRequests.Count < Capacity)
+                {
+                    _AttendingRequests.Add(request);
+                    requestsToDelete.Add(request);
+                }
+            }
+
+            floor._Requests.RemoveAll(r => requestsToDelete.Contains(r));
+
+            PlannedTo = floor;
+            LastDirection = Direction;
+            Direction = Direction.NoDirection;
+            PlanMe(DepartingTime, floor, ElevatorAction.Load);
+        }
+
+        /// <summary>
+        /// Unloads all the people that want to get out at this floor.
+        /// </summary>
+        /// <param name="floor"></param>
+        public void Unload(Floor? floor)
+        {
+            if(floor == null)
+            {
+                return;
+            }
+
+            if (Location != floor.Location)
+            {
+                throw new Exception("Elevator cannot unload people. Elevators can unload people only when fully in a floor.");
+            }
+
+            if (!IsIdle)
+            {
+                UnplanMe();
+            }
+
+            _AttendingRequests.RemoveAll(r => r.Destination == floor);
+
+            PlannedTo = floor;
+            LastDirection = Direction;
+            Direction = Direction.NoDirection;
+            PlanMe(DepartingTime, floor, ElevatorAction.Unload);
+        }
+
         public override string ToString() => 
             $"ElevatorId: {Id}\n" +
             $"ElevatorLocation: {Location}";
@@ -146,28 +216,6 @@ namespace ElevatorSystemSimulation
         internal void SetLocation(Seconds stepDuration)
         {
             Location += Direction * (TravelSpeed * stepDuration);
-        }
-
-        private void Unload(Floor floor)
-        {
-            _AttendingRequests.RemoveAll(r => r.Destination == floor);
-        }
-
-        private void Load(Floor floor)
-        {
-            // implicitly adding requests that are the longest in the floor
-
-            int numOfRemoved = 0;
-            foreach(IRequestEvent request in floor.Requests)
-            {
-                if(_AttendingRequests.Count < Capacity)
-                {
-                    _AttendingRequests.Add(request);
-                    numOfRemoved++;
-                }
-            }
-
-            floor._Requests.RemoveRange(0, numOfRemoved);
         }
 
         private void PlanMe(Seconds duration, Floor destination, ElevatorAction action)
@@ -269,6 +317,17 @@ namespace ElevatorSystemSimulation
         public Floor? GetFloorById(int floorId)
         {
             return Value.Find(floor => floor.Id == floorId);
+        }
+
+        public IEnumerable<IRequestEvent> GetAllRequests()
+        {
+            foreach(Floor floor in Value)
+            {
+                foreach(IRequestEvent request in floor.Requests)
+                {
+                    yield return request;
+                }
+            }
         }
 
         private void SetFloorsLocation()
