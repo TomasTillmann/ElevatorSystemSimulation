@@ -9,24 +9,94 @@ namespace ElevatorSystemSimulation
     // Total distance traveled by each elevator
     // Total number of departures by each elevator
     // Total Idle time and in use time by each elevator
-    public class Statistics<TRequestEvent> where TRequestEvent : RequestEvent
+    public class Statistics<TRequest> where TRequest : Request
     {
-        private Dictionary<int, RequestInfo> requestInfos = new();
-        private Dictionary<int, ElevatorInfo> elevatorInfos = new();
-
-        public void Update(ISimulationState<TRequestEvent> state)
+        /// <summary>
+        /// When this is triggered by simulation, it means, that the request just happened.
+        /// </summary>
+        /// <param name="state"></param>
+        public void Update(ISimulationState<TRequest> state)
         {
-
+            // start of waiting in floor
+            state.Event.Info = new RequestInfo(0.ToSeconds(), 0.ToSeconds());
+            state.Event.Info.StartOfWaiting = state.Time;
         }
 
         public void Update(ISimulationState<ElevatorEvent> state)
         {
+            Elevator elevator = state.Event.Elevator;
+            Floor currentFloor = state.Event.EventLocation;
 
+            switch (state.Event.FinishedAction)
+            {
+                case ElevatorAction.UnloadAndLoad:
+                    UpdateAfterUnload(state);
+                    UpdateAfterLoad(state);
+
+                    break;
+
+                case ElevatorAction.Load:
+                    UpdateAfterLoad(state);
+
+                    break;
+
+                case ElevatorAction.Unload:
+                    UpdateAfterUnload(state);
+
+                    break;
+
+                case ElevatorAction.MoveTo:
+                    break;
+
+                case ElevatorAction.Idle:
+                    elevator.Info.StartOfIdle = state.Time;
+                    break;
+            }
+
+            if(state.Event.FinishedAction != ElevatorAction.Idle)
+            {
+                elevator.Info.TotalIdleTime += elevator.Info.StartOfIdle + (state.Time - elevator.Info.StartOfIdle);
+            }
         }
 
-        public StatisticsResult GetResult()
+        public StatisticsResult GetResult(List<Request> requests, List<Elevator> elevators)
         {
-            return new StatisticsResult(requestInfos.Values.ToList(), elevatorInfos.Values.ToList());
+            return new StatisticsResult
+            (
+                requests.Select(r => r.Info).ToList(),
+                elevators.Select(e => e.Info).ToList()
+            );
+        }
+
+        private void UpdateAfterLoad(ISimulationState<ElevatorEvent> state)
+        {
+            Elevator elevator = state.Event.Elevator;
+            elevator.Info.DeparturesCount += 1;
+
+            IEnumerable<Request> freshlyInElevator = elevator.AttendingRequests.Where(r => r.Info.WaitingTimeOnFloor == 0.ToSeconds());
+            foreach (Request req in freshlyInElevator)
+            {
+                // end of waiting in floor
+                req.Info.WaitingTimeOnFloor = req.Info.StartOfWaiting + (state.Time - req.Info.StartOfWaiting);
+                req.Info.ServingElevator = elevator;
+
+                // now start of waiting in elevator
+                req.Info.StartOfWaiting = state.Time;
+            }
+        }
+
+        private void UpdateAfterUnload(ISimulationState<ElevatorEvent> state)
+        {
+            Elevator elevator = state.Event.Elevator;
+            elevator.Info.DeparturesCount += 1;
+
+            // departing can happen only after finished unload action 
+            foreach(Request req in state.Event.DepartedRequests)
+            {
+                // end of waiting in elevator
+                req.Info.WaitingTimeInElevator = req.Info.StartOfWaiting + (state.Time - req.Info.StartOfWaiting);
+                elevator.Info.ServedRequestsCount += 1;
+            }
         }
     }
 
@@ -36,20 +106,43 @@ namespace ElevatorSystemSimulation
         public List<ElevatorInfo> ElevatorInfos { get; }
 
         public Seconds AverageWaitingTimeOnFloor { get; }
-        public Seconds MaxWaitingTimeOnFloor { get; }
+        public Seconds MaxWaitingTimeOnFloor { get; }   
         public Seconds AverageWaitingTimeInElevator { get; }
         public Seconds MaxWaitingTimeInElevator { get; }
-        public int ServedRequests { get; }
-        public Seconds TotalTime { get; }
         public Seconds AverageElevatorIdleTime { get; }
-        public int AverageRequestsPerElevatorCount { get; }
+        public int AverageServedRequestsPerElevatorCount { get; }
 
         public StatisticsResult(List<RequestInfo> requestInfos, List<ElevatorInfo> elevatorInfos)
         {
             RequestInfos = requestInfos;
             ElevatorInfos = elevatorInfos;
 
-            // TODO: will be all calculated from these two above
+            AverageWaitingTimeOnFloor = CalcAverage(RequestInfos.Select(r => r.WaitingTimeOnFloor));
+            AverageWaitingTimeInElevator = CalcAverage(RequestInfos.Select(r => r.WaitingTimeInElevator));
+            AverageElevatorIdleTime = CalcAverage(ElevatorInfos.Select(e => e.TotalIdleTime));
+            AverageServedRequestsPerElevatorCount = CalcAverage(ElevatorInfos.Select(e => e.ServedRequestsCount));
+
+            MaxWaitingTimeOnFloor = RequestInfos.FindMaxSubset(r => r.WaitingTimeOnFloor.Value, int.MinValue).First().WaitingTimeOnFloor;
+            MaxWaitingTimeInElevator = RequestInfos.FindMaxSubset(r => r.WaitingTimeInElevator.Value, int.MinValue).First().WaitingTimeInElevator;
+        }
+
+        private static Seconds CalcAverage(IEnumerable<Seconds> values)
+        {
+            return CalcAverage(values.Select(v => v.Value)).ToSeconds();
+        }
+
+        private static int CalcAverage(IEnumerable<int> values)
+        {
+            int sum = 0;
+            int count = 0;
+
+            foreach (int value in values)
+            {
+                sum += value;
+                count += 1;
+            }
+
+            return sum / count; 
         }
     }
 
@@ -59,24 +152,34 @@ namespace ElevatorSystemSimulation
         public Seconds WaitingTimeOnFloor { get; set; }
         public Seconds WaitingTimeInElevator { get; set; }
 
-        public RequestInfo(Elevator? servingElevator, Seconds waitingTimeOnFloor, Seconds waitingTimeInElevator)
+        #region InternalStatsHandling
+
+        internal Seconds StartOfWaiting { get; set; }
+
+        #endregion
+
+        public RequestInfo(Seconds waitingTimeOnFloor, Seconds waitingTimeInElevator, Elevator? servingElevator = null)
         {
-            ServingElevator = servingElevator;
             WaitingTimeOnFloor = waitingTimeOnFloor;
             WaitingTimeInElevator = waitingTimeInElevator;
+            ServingElevator = servingElevator;
         }
     }
 
     public class ElevatorInfo
     {
-        public Seconds TotalInUseTime { get; set; }
         public Seconds TotalIdleTime { get; set; }
         public int DeparturesCount { get; set; }
         public int ServedRequestsCount { get; set; }
 
-        public ElevatorInfo(Seconds totalInUseTime, Seconds totalIdleTime, int departuresCount, int servedRequestsCount)
+        #region InternalStatsHandling
+
+        internal Seconds StartOfIdle { get; set; }
+
+        #endregion
+
+        public ElevatorInfo(Seconds totalIdleTime, int departuresCount, int servedRequestsCount)
         {
-            TotalInUseTime = totalInUseTime;
             TotalIdleTime = totalIdleTime;
             DeparturesCount = departuresCount;
             ServedRequestsCount = servedRequestsCount;

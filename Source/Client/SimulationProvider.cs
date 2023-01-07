@@ -10,7 +10,7 @@ namespace Client
 {
     public class SimulationProvider
     {
-        public static Simulation<BasicRequestEvent> GetSimulation()
+        public static Simulation<BasicRequest> GetSimulation()
         {
             //// User picks
 
@@ -47,8 +47,8 @@ namespace Client
 
 
             // Only one algorithm for now - TODO
-            //SCAN elevatorLogic = new(building);
-            DestinationDispatch elevatorLogic = new(building);
+            Hungry elevatorLogic = new(building);
+            //DestinationDispatch elevatorLogic = new(building);
             //
 
             ////
@@ -57,7 +57,7 @@ namespace Client
             BasicRequestsGenerator generator = new(new Random(420));
             //
 
-            return new Simulation<BasicRequestEvent>(building, elevatorLogic, generator.Generate(500, floors, 5000.ToSeconds()));
+            return new Simulation<BasicRequest>(building, elevatorLogic, generator.Generate(500, floors, 5000.ToSeconds()));
         }
     }
 }

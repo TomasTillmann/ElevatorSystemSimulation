@@ -11,14 +11,14 @@ using System.Threading.Tasks;
 
 namespace Client
 {
-    public class DestinationDispatch : ElevatorLogic<BasicRequestEvent>
+    public class DestinationDispatch : ElevatorLogic<BasicRequest>
     {
         private Dictionary<Elevator, DispatchElevator> DispatchElevators = new();
         private HashSet<Floor> FreeGroups = new();
 
         public DestinationDispatch(Building building) : base(building)
         {
-            foreach(Elevator elevator in building.ElevatorSystem.Value)
+            foreach(Elevator elevator in building.ElevatorSystem.Elevators)
             {
                 DispatchElevators.Add(elevator, new DispatchElevator(elevator));
             }
@@ -29,21 +29,21 @@ namespace Client
             }
         } 
 
-        public override void Execute(ISimulationState<BasicRequestEvent> state)
+        public override void Execute(ISimulationState<BasicRequest> state)
         {
             HashSet<DispatchElevator> elevatorCandidates = new();
-            Floor currentFloor = state.CurrentEvent.EventLocation;
+            Floor currentFloor = state.Event.EventLocation;
 
-            if (FreeGroups.Contains(state.CurrentEvent.Destination))
+            if (FreeGroups.Contains(state.Event.Destination))
             {
                 // add all idle
-                foreach(Elevator elevator in Building.ElevatorSystem.Value.Where(e => e.IsIdle))
+                foreach(Elevator elevator in Building.ElevatorSystem.Elevators.Where(e => e.IsIdle))
                 {
                     elevatorCandidates.Add(DispatchElevators[elevator]);
                 }
 
                 // add without any group
-                foreach(Elevator elevator in Building.ElevatorSystem.Value.Where(e => DispatchElevators[e].Group is null))
+                foreach(Elevator elevator in Building.ElevatorSystem.Elevators.Where(e => DispatchElevators[e].Group is null))
                 {
                     elevatorCandidates.Add(DispatchElevators[elevator]);
                 }
@@ -51,7 +51,7 @@ namespace Client
             else
             {
                 // add only those dealing with the same group
-                foreach(Elevator elevator in Building.ElevatorSystem.Value.Where(e => DispatchElevators[e].Group == state.CurrentEvent.Destination))
+                foreach(Elevator elevator in Building.ElevatorSystem.Elevators.Where(e => DispatchElevators[e].Group == state.Event.Destination))
                 {
                     elevatorCandidates.Add(DispatchElevators[elevator]);
                 }
@@ -79,16 +79,16 @@ namespace Client
             }
 
             bestElevator.Value.MoveTo(currentFloor);
-            bestElevator.Group = state.CurrentEvent.Destination;
+            bestElevator.Group = state.Event.Destination;
             FreeGroups.Remove(bestElevator.Group);
         }
 
         public override void Execute(ISimulationState<ElevatorEvent> state)
         {
-            DispatchElevator elevator = DispatchElevators[state.CurrentEvent.Elevator];
-            Floor currentFloor = state.CurrentEvent.EventLocation;
+            DispatchElevator elevator = DispatchElevators[state.Event.Elevator];
+            Floor currentFloor = state.Event.EventLocation;
 
-            switch (state.CurrentEvent.FinishedAction)
+            switch (state.Event.FinishedAction)
             {
                 case ElevatorAction.Load:
                     // elevator is full - ready to depart
@@ -196,7 +196,7 @@ namespace Client
 
             foreach(Floor floor in Floors)
             {
-                foreach(BasicRequestEvent request in floor.Requests)
+                foreach(BasicRequest request in floor.Requests)
                 {
                     groupsCount[request.Destination] += 1;
                 }

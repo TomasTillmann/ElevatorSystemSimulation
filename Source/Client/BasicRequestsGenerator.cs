@@ -11,14 +11,14 @@ namespace Client
             _Random = random;
         }
 
-        public List<BasicRequestEvent> Generate(int count, Floors floors, Seconds maxPlannedTime)
+        public List<BasicRequest> Generate(int count, Floors floors, Seconds maxPlannedTime)
         {
-            List<BasicRequestEvent> requests = new();
+            List<BasicRequest> requests = new();
 
             for(int i = 0; i < count; i++)
             {
                 requests.Add(
-                    new BasicRequestEvent(
+                    new BasicRequest(
                         GetRandomFloor(floors),
                         new Seconds(_Random.Next(0, maxPlannedTime.Value)),
                         GetRandomFloor(floors)

@@ -10,31 +10,31 @@ using System.Threading.Tasks;
 
 namespace Client
 {
-    public class Hungry : ElevatorLogic<BasicRequestEvent>
+    public class Hungry : ElevatorLogic<BasicRequest>
     {
         public Hungry(Building building) : base(building) { }
 
-        public override void Execute(ISimulationState<BasicRequestEvent> state)
+        public override void Execute(ISimulationState<BasicRequest> state)
         {
             IEnumerable<Elevator> elevators;
             Elevator elevator;
 
             // find idle
-            elevators = Building.ElevatorSystem.Value.Where(e => e.IsIdle);
+            elevators = Building.ElevatorSystem.Elevators.Where(e => e.IsIdle);
 
             if (elevators.Any())
             {
                 // find the closest idle
-                elevator = elevators.FindMinSubset(e => Math.Abs((e.Location - state.CurrentEvent.Location).Value), int.MaxValue).First();
-                elevator.MoveTo(state.CurrentEvent.EventLocation);
+                elevator = elevators.FindMinSubset(e => Math.Abs((e.Location - state.Event.Location).Value), int.MaxValue).First();
+                elevator.MoveTo(state.Event.EventLocation);
                 return;
             }
 
             // find the closest generally
-            elevators = Building.ElevatorSystem.Value.FindMinSubset(e => Math.Abs((e.Location - state.CurrentEvent.Location).Value), int.MaxValue);
+            elevators = Building.ElevatorSystem.Elevators.FindMinSubset(e => Math.Abs((e.Location - state.Event.Location).Value), int.MaxValue);
 
             elevator = elevators.First();
-            elevator.MoveTo(state.CurrentEvent.EventLocation);
+            elevator.MoveTo(state.Event.EventLocation);
         }
 
         /// <summary>
@@ -43,26 +43,26 @@ namespace Client
         /// <param name="state"></param>
         public override void Execute(ISimulationState<ElevatorEvent> state)
         {
-            Elevator elevator = state.CurrentEvent.Elevator;
+            Elevator elevator = state.Event.Elevator;
 
-            switch (state.CurrentEvent.FinishedAction)
+            switch (state.Event.FinishedAction)
             {
                 case ElevatorAction.MoveTo:
                     // if any requests on the floor or people in the elevator want to get out on this floor 
-                    if(state.CurrentEvent.EventLocation.Requests.Any()
-                    || elevator.AttendingRequests.Any(r => r.Destination == state.CurrentEvent.EventLocation))
+                    if(state.Event.EventLocation.Requests.Any()
+                    || elevator.AttendingRequests.Any(r => r.Destination == state.Event.EventLocation))
                     {
-                        elevator.UnloadAndLoad(state.CurrentEvent.EventLocation);
+                        elevator.Unload(state.Event.EventLocation);
                     }
                     else
                     {
                         Floor? floor = GetClosestRequestInFloor(state);
-                        elevator.MoveTo(floor != null ? floor : state.CurrentEvent.EventLocation);
+                        elevator.MoveTo(floor != null ? floor : state.Event.EventLocation);
                     }
 
                     break;
 
-                case ElevatorAction.UnloadAndLoad:
+                case ElevatorAction.Load:
                     if (elevator.AttendingRequests.Any())
                     {
                         Floor floor = GetClosestRequestOutFloor(elevator);
@@ -71,8 +71,13 @@ namespace Client
                     else
                     {
                         Floor? floor = GetClosestRequestInFloor(state);
-                        elevator.MoveTo(floor != null ? floor : state.CurrentEvent.EventLocation);
+                        elevator.MoveTo(floor != null ? floor : state.Event.EventLocation);
                     }
+
+                    break;
+
+                case ElevatorAction.Unload:
+                    elevator.Load(state.Event.EventLocation);
 
                     break;
 
@@ -89,7 +94,7 @@ namespace Client
         private Floor? GetClosestRequestInFloor(ISimulationState<ElevatorEvent> state)
         {
             IEnumerable<Floor> floorsWithRequest   = Building.Floors.Value.Where(f => f.Requests.Any());
-            IEnumerable<Floor> closestFloors       = floorsWithRequest.FindMinSubset(f => Math.Abs((f.Location - state.CurrentEvent.Location).Value), int.MaxValue);
+            IEnumerable<Floor> closestFloors       = floorsWithRequest.FindMinSubset(f => Math.Abs((f.Location - state.Event.Location).Value), int.MaxValue);
 
             return closestFloors.FirstOrDefault();
         }

@@ -11,7 +11,7 @@ namespace UI
         public Centimeters Location { get; set; } 
         public int PeopleCount { get; set; }
         public Direction Direction { get; set; }
-        public List<RequestEvent> AttendingRequests { get; set; }
+        public List<Request> AttendingRequests { get; set; }
 
         public ElevatorViewModel(Elevator elevator)
         : base(elevator)
@@ -20,7 +20,7 @@ namespace UI
             PeopleCount = elevator.AttendingRequests.Count;
             Id = elevator.Id;
             Direction = elevator.Direction;
-            AttendingRequests = (List<RequestEvent>)elevator.AttendingRequests;
+            AttendingRequests = (List<Request>)elevator.AttendingRequests;
         }
 
         object ICloneable.Clone() { return Clone(); }
@@ -31,7 +31,7 @@ namespace UI
                 Location = Location,
                 PeopleCount = PeopleCount,
                 Direction = Direction,
-                AttendingRequests = new List<RequestEvent>(AttendingRequests)
+                AttendingRequests = new List<Request>(AttendingRequests)
             };
         } 
     }

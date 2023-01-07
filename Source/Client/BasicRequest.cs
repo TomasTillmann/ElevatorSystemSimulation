@@ -3,9 +3,9 @@ using ElevatorSystemSimulation.Interfaces;
 
 namespace Client
 {
-    public class BasicRequestEvent : RequestEvent
+    public class BasicRequest : Request
     {
-        public BasicRequestEvent(Floor eventLocation, Seconds whenPlanned, Floor destination)
+        public BasicRequest(Floor eventLocation, Seconds whenPlanned, Floor destination)
             :base(whenPlanned, eventLocation, destination) { }
 
         public override string ToString() => 

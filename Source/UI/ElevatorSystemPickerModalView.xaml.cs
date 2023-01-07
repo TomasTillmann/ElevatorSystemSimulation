@@ -24,8 +24,8 @@ namespace UI
         public DataTemplate ElevatorSystemPickerMainContentTemplate { get { return (DataTemplate)GetValue(ElevatorSystemPickerMainContentTemplateProperty); } set { SetValue(ElevatorSystemPickerMainContentTemplateProperty, value); } }
         public static readonly DependencyProperty ElevatorSystemPickerMainContentTemplateProperty = DependencyProperty.Register("ElevatorSystemPickerMainContentTemplate", typeof(DataTemplate), typeof(ElevatorSystemPickerModalView));
 
-        public Simulation<BasicRequestEvent>? ResultingSimulation { get { return (Simulation<BasicRequestEvent>?)GetValue(ResultingSimulationProperty); } set { SetValue(ResultingSimulationProperty, value); } }
-        public static readonly DependencyProperty ResultingSimulationProperty = DependencyProperty.Register("ResultingSimulation", typeof(Simulation<BasicRequestEvent>), typeof(ElevatorSystemPickerModalView));
+        public Simulation<BasicRequest>? ResultingSimulation { get { return (Simulation<BasicRequest>?)GetValue(ResultingSimulationProperty); } set { SetValue(ResultingSimulationProperty, value); } }
+        public static readonly DependencyProperty ResultingSimulationProperty = DependencyProperty.Register("ResultingSimulation", typeof(Simulation<BasicRequest>), typeof(ElevatorSystemPickerModalView));
 
         public ElevatorSystemPickerModalView(Window owner)
         {

@@ -33,8 +33,8 @@ namespace UI
         public int TotalSimulationTime { get { return (int)GetValue(TotalSimulationTimeProperty); } set { SetValue(TotalSimulationTimeProperty, value); } }
         public static readonly DependencyProperty TotalSimulationTimeProperty = DependencyProperty.Register("TotalSimulationTime", typeof(int), typeof(ElevatorSystemPickerViewModel), new FrameworkPropertyMetadata(5000));
 
-        public IElevatorLogic<BasicRequestEvent> Algorithm { get { return (IElevatorLogic<BasicRequestEvent>)GetValue(AlgorithmProperty); } set { SetValue(AlgorithmProperty, value); } }
-        public static readonly DependencyProperty AlgorithmProperty = DependencyProperty.Register("Algorithm", typeof(IElevatorLogic<BasicRequestEvent>), typeof(ElevatorSystemPickerViewModel));
+        public IElevatorLogic<BasicRequest> Algorithm { get { return (IElevatorLogic<BasicRequest>)GetValue(AlgorithmProperty); } set { SetValue(AlgorithmProperty, value); } }
+        public static readonly DependencyProperty AlgorithmProperty = DependencyProperty.Register("Algorithm", typeof(IElevatorLogic<BasicRequest>), typeof(ElevatorSystemPickerViewModel));
 
         public ISimulation? ResultingSimulation { get { return (ISimulation?)GetValue(ResultingSimulationProperty); } set { SetValue(ResultingSimulationProperty, value); } }
         public static readonly DependencyProperty ResultingSimulationProperty = DependencyProperty.Register("ResultingSimulation", typeof(ISimulation), typeof(ElevatorSystemPickerViewModel));
@@ -74,7 +74,7 @@ namespace UI
                 BasicRequestsGenerator generator = new(new Random(420));
                 //
 
-                ResultingSimulation = new Simulation<BasicRequestEvent>(building, Algorithm, generator.Generate(500, floors, TotalSimulationTime.ToSeconds()));
+                ResultingSimulation = new Simulation<BasicRequest>(building, Algorithm, generator.Generate(500, floors, TotalSimulationTime.ToSeconds()));
 
                 modalWindow.DialogResult = true;
                 OnWindowClosing(modalWindow);
@@ -258,7 +258,7 @@ namespace UI
             Description = description;
         }
 
-        public IElevatorLogic<BasicRequestEvent> ToAlgorithm(Building building)
+        public IElevatorLogic<BasicRequest> ToAlgorithm(Building building)
         {
             switch (Model)
             {

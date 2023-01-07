@@ -4,10 +4,10 @@ using ElevatorSystemSimulation.Interfaces;
 
 namespace Client
 {
-    public class SCAN : ElevatorLogic<BasicRequestEvent> 
+    public class SCAN : ElevatorLogic<BasicRequest> 
     {
         protected ConditionAfterElevatorEvent<SCAN> StateDecisionTreeAfterElevatorEvent { get; private set; }
-        protected ConditionAfterRequestEvent<SCAN, BasicRequestEvent> StateDecisionTreeAfterRequestEvent { get; private set; }
+        protected ConditionAfterRequestEvent<SCAN, BasicRequest> StateDecisionTreeAfterRequestEvent { get; private set; }
         public SCAN(Building building)
         :base(building)
         {
@@ -15,7 +15,7 @@ namespace Client
             StateDecisionTreeAfterRequestEvent = GetStateDecisionTreeAfterRequestEvent();
         }
 
-        public override void Execute(ISimulationState<BasicRequestEvent> state)
+        public override void Execute(ISimulationState<BasicRequest> state)
         {
             StateDecisionTreeAfterRequestEvent.Execute(state);
         }
@@ -23,7 +23,7 @@ namespace Client
         public override void Execute(ISimulationState<ElevatorEvent> state)
         {
             // avoids cycling the elevator in constant idle action planning
-            if(state.CurrentEvent.FinishedAction == ElevatorSystemSimulation.ElevatorAction.Idle)
+            if(state.Event.FinishedAction == ElevatorSystemSimulation.ElevatorAction.Idle)
             {
                 return;
             }
@@ -36,18 +36,18 @@ namespace Client
             ElevatorCondition shouldLoadUnload = new(this, (state,context) =>
             {
                 return 
-                    state.CurrentEvent.EventLocation.Requests.Count != 0 ||
-                    state.CurrentEvent.Elevator.AttendingRequests.Any(r => r.Destination == state.CurrentEvent.EventLocation);
+                    state.Event.EventLocation.Requests.Count != 0 ||
+                    state.Event.Elevator.AttendingRequests.Any(r => r.Destination == state.Event.EventLocation);
             });
 
             ElevatorCondition arePeopleInElevator = new(this, (state,context) =>
             {
-                return state.CurrentEvent.Elevator.AttendingRequests.Count != 0;
+                return state.Event.Elevator.AttendingRequests.Count != 0;
             });
 
             shouldLoadUnload.OnTrue = new ElevatorAction(this, (state, context) =>
             {
-                state.CurrentEvent.Elevator.UnloadAndLoad(state.CurrentEvent.EventLocation);
+                state.Event.Elevator.UnloadAndLoad(state.Event.EventLocation);
 
                 return true;
             });
@@ -60,7 +60,7 @@ namespace Client
                 {
                     OnTrue = new ElevatorAction(this, (state, context) =>
                     {
-                        Elevator elevator = state.CurrentEvent.Elevator;
+                        Elevator elevator = state.Event.Elevator;
 
                         HashSet<Floor> floorsForRequestIn = new(GetClosestFloorsWithRequest(elevator,
                             floorFilter: GetFloorsFilterBasedOnDirection(true, elevator)));
@@ -69,7 +69,7 @@ namespace Client
                             requestFilter: GetAttendingRequestsFilterBasedOnDirection(true, elevator)));
 
                         floorsForRequestIn.UnionWith(floorsForRequestOut);
-                        List<Floor> floors = GetClosestFloors(state.CurrentEvent.Elevator, floorsForRequestIn.ToList());
+                        List<Floor> floors = GetClosestFloors(state.Event.Elevator, floorsForRequestIn.ToList());
 
                         // There must be at least one floor, because of its position in the state decision tree
                         elevator.MoveTo(floors.First());
@@ -79,7 +79,7 @@ namespace Client
 
                     OnFalse = new ElevatorAction(this, (state, context) =>
                     {
-                        Elevator elevator = state.CurrentEvent.Elevator;
+                        Elevator elevator = state.Event.Elevator;
 
                         List<Floor> floors = GetClosestFloorsWithRequestOut(elevator,
                             requestFilter: GetAttendingRequestsFilterBasedOnDirection(true, elevator));
@@ -94,7 +94,7 @@ namespace Client
                 {
                     OnTrue = new ElevatorAction(this, (state, context) =>
                     {
-                        Elevator elevator = state.CurrentEvent.Elevator;
+                        Elevator elevator = state.Event.Elevator;
 
                         List<Floor> floors = GetClosestFloorsWithRequest(elevator,
                             floorFilter: GetFloorsFilterBasedOnDirection(true, elevator));
@@ -108,7 +108,7 @@ namespace Client
                     {
                         OnTrue = new ElevatorAction(this, (state, context) =>
                         {
-                            Elevator elevator = state.CurrentEvent.Elevator;
+                            Elevator elevator = state.Event.Elevator;
 
                             HashSet<Floor> floorsForRequestIn = new(GetClosestFloorsWithRequest(elevator,
                                 floorFilter: GetFloorsFilterBasedOnDirection(false, elevator)));
@@ -117,7 +117,7 @@ namespace Client
                                 requestFilter: GetAttendingRequestsFilterBasedOnDirection(false, elevator)));
 
                             floorsForRequestIn.UnionWith(floorsForRequestOut);
-                            List<Floor> floors = GetClosestFloors(state.CurrentEvent.Elevator, floorsForRequestIn.ToList());
+                            List<Floor> floors = GetClosestFloors(state.Event.Elevator, floorsForRequestIn.ToList());
 
                             elevator.MoveTo(floors.First());
 
@@ -126,7 +126,7 @@ namespace Client
 
                         OnFalse = new ElevatorAction(this, (state, context) =>
                         {
-                            Elevator elevator = state.CurrentEvent.Elevator;
+                            Elevator elevator = state.Event.Elevator;
 
                             List<Floor> floors = GetClosestFloorsWithRequestOut(elevator,
                             requestFilter: GetAttendingRequestsFilterBasedOnDirection(false, elevator));
@@ -143,7 +143,7 @@ namespace Client
             {
                 OnTrue = new ElevatorAction(this, (state, context) =>
                 {
-                    Elevator elevator = state.CurrentEvent.Elevator;
+                    Elevator elevator = state.Event.Elevator;
 
                     List<Floor> floors = GetClosestFloorsWithRequest(elevator,
                         floorFilter: GetFloorsFilterBasedOnDirection(true, elevator));
@@ -157,7 +157,7 @@ namespace Client
                 {
                     OnTrue = new ElevatorAction(this, (state, context) =>
                     {
-                        Elevator elevator = state.CurrentEvent.Elevator;
+                        Elevator elevator = state.Event.Elevator;
 
                         List<Floor> floors = GetClosestFloorsWithRequest(elevator,
                             floorFilter: GetFloorsFilterBasedOnDirection(false, elevator));
@@ -169,7 +169,7 @@ namespace Client
 
                     OnFalse = new ElevatorAction(this, (state,  context) =>
                     {
-                        state.CurrentEvent.Elevator.Idle(state.CurrentEvent.EventLocation);
+                        state.Event.Elevator.Idle(state.Event.EventLocation);
 
                         return true;
                     })
@@ -179,7 +179,7 @@ namespace Client
             return shouldLoadUnload;
         }
 
-        private ConditionAfterRequestEvent<SCAN, BasicRequestEvent> GetStateDecisionTreeAfterRequestEvent()
+        private ConditionAfterRequestEvent<SCAN, BasicRequest> GetStateDecisionTreeAfterRequestEvent()
         {
 
             return new RequestCondition(this, (state,  context) =>
@@ -189,8 +189,8 @@ namespace Client
             {
                 OnTrue = new ElevatorActionAfterRequest(this, (state, context) =>
                 {
-                    GetClosestElevators(state.CurrentEvent.EventLocation, filter : e => e.IsIdle)
-                    .First().MoveTo(state.CurrentEvent.EventLocation);
+                    GetClosestElevators(state.Event.EventLocation, filter : e => e.IsIdle)
+                    .First().MoveTo(state.Event.EventLocation);
 
                     return true;
                 }),
@@ -254,31 +254,31 @@ namespace Client
 
         #region AfterRequestStates
 
-        private class RequestCondition : ConditionAfterRequestEvent<SCAN, BasicRequestEvent>
+        private class RequestCondition : ConditionAfterRequestEvent<SCAN, BasicRequest>
         {
-            public Func<ISimulationState<BasicRequestEvent>, SCAN, bool> InternalPredicate { get; set; }
+            public Func<ISimulationState<BasicRequest>, SCAN, bool> InternalPredicate { get; set; }
 
-            public RequestCondition(SCAN context, Func<ISimulationState<BasicRequestEvent>, SCAN, bool> internalPredicate) : base(context)
+            public RequestCondition(SCAN context, Func<ISimulationState<BasicRequest>, SCAN, bool> internalPredicate) : base(context)
             {
                 InternalPredicate = internalPredicate;
             }
 
-            protected override bool Predicate(ISimulationState<BasicRequestEvent> state)
+            protected override bool Predicate(ISimulationState<BasicRequest> state)
             {
                 return InternalPredicate.Invoke(state, Context);
             }
         }
 
-        private class ElevatorActionAfterRequest : ActionAfterRequestEvent<SCAN, BasicRequestEvent>
+        private class ElevatorActionAfterRequest : ActionAfterRequestEvent<SCAN, BasicRequest>
         {
-            public Func<ISimulationState<BasicRequestEvent>, SCAN, bool> InternalExecute { get; set; }
+            public Func<ISimulationState<BasicRequest>, SCAN, bool> InternalExecute { get; set; }
 
-            public ElevatorActionAfterRequest(SCAN context, Func<ISimulationState<BasicRequestEvent>, SCAN, bool> internalExecute) : base(context)
+            public ElevatorActionAfterRequest(SCAN context, Func<ISimulationState<BasicRequest>, SCAN, bool> internalExecute) : base(context)
             {
                 InternalExecute = internalExecute;
             }
 
-            public override bool Execute(ISimulationState<BasicRequestEvent> state)
+            public override bool Execute(ISimulationState<BasicRequest> state)
             {
                 return InternalExecute.Invoke(state, Context);
             }
@@ -292,7 +292,7 @@ namespace Client
 
         private bool AreRequestsInSpecifiedDirection(ISimulationState<ElevatorEvent> state, SCAN context, bool inSameDirection)
         {
-            Elevator elevator = state.CurrentEvent.Elevator;
+            Elevator elevator = state.Event.Elevator;
             Predicate<Floor> filter = GetFloorsFilterBasedOnDirection(inSameDirection, elevator);
 
             foreach (Floor floor in context.Floors.Where(f => filter(f)))
@@ -308,10 +308,10 @@ namespace Client
 
         private bool AreRequestsOutInSpecifiedDirection(ISimulationState<ElevatorEvent> state, SCAN context, bool inSameDirection)
         {
-            Elevator elevator = state.CurrentEvent.Elevator;
-            Predicate<BasicRequestEvent> filter = GetAttendingRequestsFilterBasedOnDirection(inSameDirection, elevator); 
+            Elevator elevator = state.Event.Elevator;
+            Predicate<BasicRequest> filter = GetAttendingRequestsFilterBasedOnDirection(inSameDirection, elevator); 
 
-            return elevator.AttendingRequests.Any(r => filter((BasicRequestEvent)r));
+            return elevator.AttendingRequests.Any(r => filter((BasicRequest)r));
         }
 
         private List<Floor> GetFloorsWithMaxWaitingTimeOnRequest(List<Floor>? floors = null)
@@ -322,7 +322,7 @@ namespace Client
             List<Floor> floorsWithMaxWaitingTimeOnRequest = new();
             foreach(Floor floor in floors)
             {
-                foreach(BasicRequestEvent request in floor.Requests)
+                foreach(BasicRequest request in floor.Requests)
                 {
                     if(CurrentTime - request.WhenPlanned > maxWaitingTime)
                     {
@@ -363,9 +363,9 @@ namespace Client
             return closestFloors;
         }
 
-        private Predicate<BasicRequestEvent> GetAttendingRequestsFilterBasedOnDirection(bool inSameDirection, Elevator elevator)
+        private Predicate<BasicRequest> GetAttendingRequestsFilterBasedOnDirection(bool inSameDirection, Elevator elevator)
         {
-            Predicate<BasicRequestEvent> filter = f => true;
+            Predicate<BasicRequest> filter = f => true;
             Direction? fromWhereElevatorGotThere = elevator.LastDirection;
 
             if ((fromWhereElevatorGotThere == Direction.Up && inSameDirection) ||

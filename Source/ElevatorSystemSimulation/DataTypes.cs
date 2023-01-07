@@ -107,10 +107,10 @@ namespace ElevatorSystemSimulation
 
     public enum ElevatorAction
     {
-        MoveTo,
         UnloadAndLoad,
         Load,
         Unload,
+        MoveTo,
         Idle,
     }
 

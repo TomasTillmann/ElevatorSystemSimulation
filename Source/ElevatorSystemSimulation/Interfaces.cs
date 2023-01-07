@@ -8,7 +8,7 @@
             void Execute(ISimulationState state);
         }
 
-        public interface IElevatorLogic<TRequestEvent> : IElevatorLogic where TRequestEvent : RequestEvent
+        public interface IElevatorLogic<TRequestEvent> : IElevatorLogic where TRequestEvent : Request
         {
             void Execute(ISimulationState<TRequestEvent> requestEvent);
             void Execute(ISimulationState<ElevatorEvent> elevatorEvent);
@@ -55,7 +55,7 @@
         /// <param name="destination">
         /// In what floor the person behind this request wants to travel to.
         /// </param>
-        public abstract class RequestEvent : IIdentifiable, ILocatable, IEvent
+        public abstract class Request : IIdentifiable, ILocatable, IEvent
         {
             #region Identification
 
@@ -71,7 +71,7 @@
 
             internal RequestInfo? Info { get; set; }
 
-            protected RequestEvent(Seconds whenPlanned, Floor eventLocation, Floor destination)
+            protected Request(Seconds whenPlanned, Floor eventLocation, Floor destination)
             {
                 WhenPlanned = whenPlanned;
                 EventLocation = eventLocation;
@@ -90,10 +90,10 @@
             public Seconds CurrentTime { get; }
         }
 
-        public interface ISimulationState<EventType> where EventType : IEvent
+        public interface ISimulationState<TEvent> where TEvent : IEvent
         {
-            public EventType CurrentEvent { get; }
-            public Seconds CurrentTime { get; }
+            public TEvent Event { get; }
+            public Seconds Time { get; }
         }
     }
 }

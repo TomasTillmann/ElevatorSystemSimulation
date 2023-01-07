@@ -3,20 +3,21 @@ using ElevatorSystemSimulation.Extensions;
 
 namespace ElevatorSystemSimulation
 {
-    public sealed class Simulation<TRequestEvent> : IRestartable, ISimulation where TRequestEvent : RequestEvent
+    public sealed class Simulation<TRequest> : IRestartable, ISimulation where TRequest : Request
     {
         private Calendar _Calendar { get; set; } = new();
         private Seconds _LastStepTime = 0.ToSeconds();
         private bool _DidClientMadeAction;
-        private Statistics<TRequestEvent> Statistics = new();
+        private Statistics<TRequest> Statistics = new();
 
-        public List<TRequestEvent> _Requests;
+        public List<TRequest> AllRequests;
+        public List<TRequest> DepartedRequests = new();
 
         public Building Building { get => _Building; set { _Building = value; Restart(); } }
         private Building _Building;
 
         public Seconds CurrentTime { get; private set; } = 0.ToSeconds();
-        public IElevatorLogic<TRequestEvent> CurrentLogic { get; set; }
+        public IElevatorLogic<TRequest> CurrentLogic { get; set; }
         public int StepCount { get; private set; }
         public IEvent? LastEvent { get; private set; }
         public IEvent? LastAction { get; private set; }
@@ -27,14 +28,14 @@ namespace ElevatorSystemSimulation
 
         public Simulation(
             Building building,
-            IElevatorLogic<TRequestEvent> currentLogic,
-            List<TRequestEvent> requests)
+            IElevatorLogic<TRequest> currentLogic,
+            List<TRequest> requests)
         {
             CurrentLogic = currentLogic;
-            _Requests = requests;
+            AllRequests = requests;
             _Building = building;
 
-            _Calendar.Init(_Requests);
+            _Calendar.Init(AllRequests);
 
             SetElevatorsIPlannableProperties();
 
@@ -75,9 +76,14 @@ namespace ElevatorSystemSimulation
             }
         }
 
+        public StatisticsResult GetStatistics()
+        {
+            return Statistics.GetResult(AllRequests.Select(r => (Request)r).ToList(), ElevatorSystem.Elevators);
+        }
+
         public void Restart()
         {
-            Building.ElevatorSystem.Value.ForEach(elevator => elevator.Restart());
+            Building.ElevatorSystem.Elevators.ForEach(elevator => elevator.Restart());
             Building.Floors.Value.ForEach(floor => floor.Restart());
 
             // restart state
@@ -90,17 +96,17 @@ namespace ElevatorSystemSimulation
             //
 
             _Calendar.Clear();
-            _Calendar.Init(_Requests);
+            _Calendar.Init(AllRequests);
         }
 
         //TODO: ugly
         private void Execute(ISimulationState state)
         {
-            if (state.CurrentEvent is TRequestEvent ce)
+            if (state.CurrentEvent is TRequest ce)
             {
                 ce.EventLocation._Requests.Add(ce);
 
-                CurrentLogic.Execute(new SimulationState<TRequestEvent>(ce, state.CurrentTime));
+                CurrentLogic.Execute(new SimulationState<TRequest>(ce, state.CurrentTime));
             }
             else if (state.CurrentEvent is ElevatorEvent ee)
             {
@@ -115,11 +121,11 @@ namespace ElevatorSystemSimulation
         //TODO: ugly
         private void UpdateStats(ISimulationState state)
         {
-            if (state.CurrentEvent is TRequestEvent ce)
+            if (state.CurrentEvent is TRequest ce)
             {
                 ce.EventLocation._Requests.Add(ce);
 
-                Statistics.Update(new SimulationState<TRequestEvent>(ce, state.CurrentTime));
+                Statistics.Update(new SimulationState<TRequest>(ce, state.CurrentTime));
             }
             else if (state.CurrentEvent is ElevatorEvent ee)
             {
@@ -139,7 +145,7 @@ namespace ElevatorSystemSimulation
 
         private void SetElevatorsLocations(IEvent e)
         {
-            foreach(Elevator elevator in Building.ElevatorSystem.Value)
+            foreach(Elevator elevator in Building.ElevatorSystem.Elevators)
             {
                 elevator.SetLocation(CurrentTime - _LastStepTime);
             }
@@ -155,7 +161,7 @@ namespace ElevatorSystemSimulation
 
         private void SetElevatorsIPlannableProperties()
         {
-            foreach (Elevator elevator in Building.ElevatorSystem.Value)
+            foreach (Elevator elevator in Building.ElevatorSystem.Elevators)
             {
                 elevator.PlanElevator = PlanElevator;
                 elevator.UnplanElevator = UnplanElevator;
@@ -165,14 +171,25 @@ namespace ElevatorSystemSimulation
         private void PlanElevator(Elevator elevator, Seconds duration, Floor destination, ElevatorAction action)
         {
             _DidClientMadeAction = true;
-            ElevatorEvent ee = new ElevatorEvent(elevator, CurrentTime + duration, destination, action);
+            List<Request> currentlyDepartedRequests = new();
+
+            if(action == ElevatorAction.MoveTo)
+            {
+                //TODO: also had to remove elevators from planned elevators
+                destination._PlannedElevators.Add(elevator);
+            }
+            else if(action == ElevatorAction.Unload || action == ElevatorAction.UnloadAndLoad)
+            {
+                foreach(TRequest req in elevator.AttendingRequests.Where(r => r.Destination == destination))
+                {
+                    DepartedRequests.Add(req);
+                    currentlyDepartedRequests.Add(req);
+                }
+            }
+
+            ElevatorEvent ee = new ElevatorEvent(elevator, CurrentTime + duration, destination, action, currentlyDepartedRequests);
 
             LastAction = ee;
-
-            if(ee.FinishedAction == ElevatorAction.MoveTo)
-            {
-                ee.EventLocation._PlannedElevators.Add(ee.Elevator);
-            }
 
             _Calendar.AddEvent(ee);
         }
@@ -187,6 +204,7 @@ namespace ElevatorSystemSimulation
             SetCurrentTime(e.WhenPlanned);
             SetElevatorsLocations(e);
 
+            //TODO: I think this is not correct, but somehow it works fine
             if (e is ElevatorEvent ee)
             {
                 if (ee.FinishedAction == ElevatorAction.UnloadAndLoad)
@@ -194,6 +212,7 @@ namespace ElevatorSystemSimulation
                     ee.EventLocation._PlannedElevators.Remove(ee.Elevator);
                 }
             }
+            //
 
             StepCount += 1;
             LastEvent = e;
@@ -208,10 +227,17 @@ namespace ElevatorSystemSimulation
         #region Calendar
 
         //TODO - implement better - its terribly slow like this - at worst O(n) is possible via Linked list
-        // Priority Queue is not sufficient, does not allow for removing specific events
+        // Priority Queue is not sufficient, does not allow for removing specific events (add another array or smthng needs to be done for it to work)
         private class Calendar
         {
             private readonly List<(IEvent Event, Seconds WhenPlanned)> _Events = new();
+
+            public Calendar() { }
+
+            public Calendar(IEnumerable<Request> requests)
+            {
+                Init(requests);
+            }
 
             public bool TryGetEvent(out IEvent? e)
             {
@@ -246,7 +272,7 @@ namespace ElevatorSystemSimulation
                 }
             }
 
-            public void Init(IEnumerable<RequestEvent> requests)
+            public void Init(IEnumerable<Request> requests)
             {
                 foreach (IEvent request in requests)
                 {
@@ -285,13 +311,13 @@ namespace ElevatorSystemSimulation
 
     public struct SimulationState<TEventType> : ISimulationState<TEventType> where TEventType : IEvent 
     {
-        public TEventType CurrentEvent { get; }
-        public Seconds CurrentTime { get; }
+        public TEventType Event { get; }
+        public Seconds Time { get; }
 
         public SimulationState(TEventType currentEvent, Seconds currentTime)
         {
-            CurrentEvent = currentEvent;
-            CurrentTime = currentTime;
+            Event = currentEvent;
+            Time = currentTime;
         }
     }
 
@@ -301,14 +327,16 @@ namespace ElevatorSystemSimulation
         public Elevator Elevator { get; }
         public Floor EventLocation { get; }
         public ElevatorAction FinishedAction { get; }
+        public List<Request> DepartedRequests { get; }
         public Centimeters Location => EventLocation.Location;
 
-        public ElevatorEvent(Elevator elevator, Seconds whenPlanner, Floor eventLocation, ElevatorAction finishedAction)
+        public ElevatorEvent(Elevator elevator, Seconds whenPlanned, Floor eventLocation, ElevatorAction finishedAction, List<Request> departedRequests)
         {
             Elevator = elevator;
-            WhenPlanned = whenPlanner;
+            WhenPlanned = whenPlanned;
             EventLocation = eventLocation;
             FinishedAction = finishedAction;
+            DepartedRequests = departedRequests;
         }
 
         public override string ToString() => 

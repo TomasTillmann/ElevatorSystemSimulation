@@ -94,15 +94,15 @@ namespace UI
             _CurrentSnapshotPointer = 0;
         }
 
-        private void InitSimulation(Simulation<BasicRequestEvent> simulation)
+        private void InitSimulation(Simulation<BasicRequest> simulation)
         {
             _Simulation = simulation;
 
-            Elevators = _Simulation.Building.ElevatorSystem.Value.Select(e => new ElevatorViewModel(e)).ToList();
+            Elevators = _Simulation.Building.ElevatorSystem.Elevators.Select(e => new ElevatorViewModel(e)).ToList();
             Floors = _Simulation.Building.Floors.Value.Select(f => new FloorViewModel(f)).ToList();
         }
 
-        private Simulation<BasicRequestEvent> GetInitSimulation()
+        private Simulation<BasicRequest> GetInitSimulation()
         {
             return SimulationProvider.GetSimulation();
         }
@@ -123,7 +123,7 @@ namespace UI
             int i = 0;
             foreach(ElevatorViewModel elevatorViewModel in Elevators)
             {
-                Elevator elevatorModel = _Simulation.Building.ElevatorSystem.Value[i++];
+                Elevator elevatorModel = _Simulation.Building.ElevatorSystem.Elevators[i++];
                 elevatorViewModel.Location = elevatorModel.Location;
                 elevatorViewModel.PeopleCount = elevatorModel.AttendingRequests.Count;
             }
@@ -135,7 +135,7 @@ namespace UI
             foreach(FloorViewModel floorViewModel in Floors)
             {
                 Floor floor = _Simulation.Building.Floors.Value[i++];
-                floorViewModel.Requests = (List<RequestEvent>)floor.Requests;
+                floorViewModel.Requests = (List<Request>)floor.Requests;
             }
         }
 
@@ -145,7 +145,7 @@ namespace UI
             {
                 LastEvent = new ElevatorEventViewModel(elevatorEvent);
             }
-            else if (_Simulation.LastEvent is BasicRequestEvent requestEvent)
+            else if (_Simulation.LastEvent is BasicRequest requestEvent)
             {
                 LastEvent = new BasicRequestEventViewModel(requestEvent);
             }
@@ -162,7 +162,7 @@ namespace UI
             {
                 LastAction = new ElevatorEventViewModel(elevatorEvent);
             }
-            else if (_Simulation.LastAction is BasicRequestEvent requestEvent)
+            else if (_Simulation.LastAction is BasicRequest requestEvent)
             {
                 LastAction= new BasicRequestEventViewModel(requestEvent);
             }
