@@ -347,6 +347,14 @@ namespace ElevatorSystemSimulation
     {
         public List<Elevator> Value { get; set; } = new();
 
+        public ElevatorSystem(List<Elevator> value)
+        {
+            Value = value;
+
+            int i = -1;
+            value.ForEach(e => e.Id = i += 1);
+        }
+
         public IEnumerable<RequestEvent> GetAllInElevatorRequests()
         {
             foreach(Elevator elevator in Value)
@@ -358,12 +366,16 @@ namespace ElevatorSystemSimulation
             }
         }
 
-        public ElevatorSystem(List<Elevator> value)
+        internal void ValidateElevatorsLocations(Floors floors)
         {
-            Value = value;
-
-            int i = -1;
-            value.ForEach(e => e.Id = i+=1);
+            foreach (Elevator elevator in Value)
+            {
+                if (elevator.Location > floors.HeighestFloor.Location ||
+                    elevator.Location < floors.LowestFloor.Location)
+                {
+                    throw new Exception("Elevators are out of the bounds of the building!");
+                }
+            }
         }
     }
 }

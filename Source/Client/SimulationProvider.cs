@@ -45,7 +45,6 @@ namespace Client
 
             Building building = new(floors, elevatorSystem);
 
-            Seconds totalSimulationRunningTime = 5000.ToSeconds();
 
             // Only one algorithm for now - TODO
             //SCAN elevatorLogic = new(building);
@@ -58,7 +57,7 @@ namespace Client
             BasicRequestsGenerator generator = new(new Random(420));
             //
 
-            return new Simulation(building, elevatorLogic, totalSimulationRunningTime, generator.Generate(500, floors, totalSimulationRunningTime));
+            return new Simulation(building, elevatorLogic, generator.Generate(500, floors, 5000.ToSeconds()));
         }
     }
 }

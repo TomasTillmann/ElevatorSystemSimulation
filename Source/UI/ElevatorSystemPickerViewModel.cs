@@ -74,7 +74,7 @@ namespace UI
                 BasicRequestsGenerator generator = new(new Random(420));
                 //
 
-                ResultingSimulation = new Simulation(building, Algorithm, TotalSimulationTime.ToSeconds(), generator.Generate(500, floors, TotalSimulationTime.ToSeconds()));
+                ResultingSimulation = new Simulation(building, Algorithm, generator.Generate(500, floors, TotalSimulationTime.ToSeconds()));
 
                 modalWindow.DialogResult = true;
                 OnWindowClosing(modalWindow);

@@ -3,46 +3,36 @@ using ElevatorSystemSimulation.Extensions;
 
 namespace ElevatorSystemSimulation
 {
-    public class Simulation : IRestartable
+    public sealed class Simulation : IRestartable
     {
         private Calendar _Calendar { get; set; } = new();
         private Seconds _LastStepTime = 0.ToSeconds();
         private bool _DidClientMadeAction;
-        private Statistics Statistics;
+        private Statistics? Statistics;
 
-        protected List<RequestEvent> _Requests;
-        private List<RequestEvent> Requests
-        {
-            get => _Requests;
-            set
-            {
-                _Requests = value;
-                _Requests.Sort((RequestEvent r1, RequestEvent r2) => r1.WhenPlanned.Value.CompareTo(r2.WhenPlanned.Value));
-                Restart();
-            }
-        }
+        public List<RequestEvent> _Requests;
 
         public Building Building { get => _Building; set { _Building = value; Restart(); } }
         private Building _Building;
 
         public Seconds CurrentTime { get; private set; } = 0.ToSeconds();
         public IElevatorLogic CurrentLogic { get; set; }
-        public Seconds TotalTime { get; }
         public int StepCount { get; private set; }
         public IEvent? LastEvent { get; private set; }
         public IEvent? LastAction { get; private set; }
         public bool IsOver { get; private set; }
 
+        private ElevatorSystem ElevatorSystem => _Building.ElevatorSystem;
+        private Floors Floors => _Building.Floors;
+
         public Simulation(
             Building building,
             IElevatorLogic currentLogic,
-            Seconds totalTime,
             List<RequestEvent> requests)
         {
             CurrentLogic = currentLogic;
             _Requests = requests;
-            Building = building;
-            TotalTime = totalTime;
+            _Building = building;
 
             _Calendar.Init(_Requests);
 
@@ -56,7 +46,7 @@ namespace ElevatorSystemSimulation
 
         public void Run()
         {
-            while (CurrentTime < TotalTime && !IsOver)
+            while (!IsOver)
             {
                 Step();
             }
@@ -71,8 +61,8 @@ namespace ElevatorSystemSimulation
 
             if(_Calendar.TryGetEvent(out IEvent? e))
             {
-                UpdateStateBeforeStep(e);
-                CurrentLogic.Execute(new SimulationState(e, CurrentTime));
+                UpdateStateBeforeStep(e!);
+                CurrentLogic.Execute(new SimulationState(e!, CurrentTime));
                 UpdateStateAfterStep();
             }
             else
@@ -118,19 +108,7 @@ namespace ElevatorSystemSimulation
                 ee.Elevator.Location = ee.EventLocation.Location;
             }
 
-            ValidateElevatorsLocations();
-        }
-
-        private void ValidateElevatorsLocations()
-        {
-            foreach(Elevator elevator in Building.ElevatorSystem.Value)
-            {
-                if(elevator.Location > Building.Floors.HeighestFloor.Location || 
-                    elevator.Location < Building.Floors.LowestFloor.Location)
-                {
-                    throw new Exception("Elevators are out of the bounds of the building!");
-                }
-            }
+            ElevatorSystem.ValidateElevatorsLocations(Floors);
         }
 
         private void SetElevatorsIPlannableProperties()
@@ -263,12 +241,12 @@ namespace ElevatorSystemSimulation
         }
     }
 
-    public struct SimulationState<EventType> : ISimulationState<EventType> where EventType : IEvent 
+    public struct SimulationState<TEventType> : ISimulationState<TEventType> where TEventType : IEvent 
     {
-        public EventType CurrentEvent { get; }
+        public TEventType CurrentEvent { get; }
         public Seconds CurrentTime { get; }
 
-        public SimulationState(EventType currentEvent, Seconds currentTime)
+        public SimulationState(TEventType currentEvent, Seconds currentTime)
         {
             CurrentEvent = currentEvent;
             CurrentTime = currentTime;
@@ -281,7 +259,6 @@ namespace ElevatorSystemSimulation
         public Elevator Elevator { get; }
         public Floor EventLocation { get; }
         public ElevatorAction FinishedAction { get; }
-
         public Centimeters Location => EventLocation.Location;
 
         public ElevatorEvent(Elevator elevator, Seconds whenPlanner, Floor eventLocation, ElevatorAction finishedAction)
