@@ -8,7 +8,7 @@ namespace ElevatorSystemSimulation
         private Calendar _Calendar { get; set; } = new();
         private Seconds _LastStepTime = 0.ToSeconds();
         private bool _DidClientMadeAction;
-        private Statistics? Statistics;
+        private Statistics<TRequestEvent> Statistics = new();
 
         public List<TRequestEvent> _Requests;
 
@@ -63,7 +63,9 @@ namespace ElevatorSystemSimulation
             {
                 UpdateStateBeforeStep(e!);
 
-                Execute(new SimulationState(e!, CurrentTime));
+                SimulationState state = new SimulationState(e!, CurrentTime);
+                Execute(state);
+                UpdateStats(state);
 
                 UpdateStateAfterStep();
             }
@@ -91,6 +93,7 @@ namespace ElevatorSystemSimulation
             _Calendar.Init(_Requests);
         }
 
+        //TODO: ugly
         private void Execute(ISimulationState state)
         {
             if (state.CurrentEvent is TRequestEvent ce)
@@ -107,7 +110,25 @@ namespace ElevatorSystemSimulation
             {
                 throw new ApplicationException("Event is something different. And it shouldn't be.");
             }
+        }
 
+        //TODO: ugly
+        private void UpdateStats(ISimulationState state)
+        {
+            if (state.CurrentEvent is TRequestEvent ce)
+            {
+                ce.EventLocation._Requests.Add(ce);
+
+                Statistics.Update(new SimulationState<TRequestEvent>(ce, state.CurrentTime));
+            }
+            else if (state.CurrentEvent is ElevatorEvent ee)
+            {
+                Statistics.Update(new SimulationState<ElevatorEvent>(ee, state.CurrentTime));
+            }
+            else
+            {
+                throw new ApplicationException("Event is something different. And it shouldn't be.");
+            }
         }
 
         private void SetCurrentTime(Seconds whenPlanned)

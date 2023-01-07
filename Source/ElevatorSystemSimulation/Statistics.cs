@@ -9,10 +9,20 @@ namespace ElevatorSystemSimulation
     // Total distance traveled by each elevator
     // Total number of departures by each elevator
     // Total Idle time and in use time by each elevator
-    public class Statistics
+    public class Statistics<TRequestEvent> where TRequestEvent : RequestEvent
     {
         private Dictionary<int, RequestInfo> requestInfos = new();
         private Dictionary<int, ElevatorInfo> elevatorInfos = new();
+
+        public void Update(ISimulationState<TRequestEvent> state)
+        {
+
+        }
+
+        public void Update(ISimulationState<ElevatorEvent> state)
+        {
+
+        }
 
         public StatisticsResult GetResult()
         {
