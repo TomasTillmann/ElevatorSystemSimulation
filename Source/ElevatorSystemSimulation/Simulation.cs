@@ -275,7 +275,7 @@ namespace ElevatorSystemSimulation
         }
     }
 
-    public struct ElevatorEvent : IEvent
+    public class ElevatorEvent : IEvent
     {
         public Seconds WhenPlanned { get; }
         public Elevator Elevator { get; }
