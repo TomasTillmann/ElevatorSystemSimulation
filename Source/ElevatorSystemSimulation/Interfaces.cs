@@ -7,9 +7,29 @@
             Building Building { get; }
             void Execute(ISimulationState state);
         }
+
+        public interface IElevatorLogic<TRequestEvent> : IElevatorLogic where TRequestEvent : RequestEvent
+        {
+            void Execute(ISimulationState<TRequestEvent> requestEvent);
+            void Execute(ISimulationState<ElevatorEvent> elevatorEvent);
+        }
+
         public interface IRestartable
         {
             void Restart();
+        }
+
+        public interface ISimulation : IRestartable
+        {
+            Building Building { get; }
+            Seconds CurrentTime { get; }
+            IEvent? LastEvent { get; }
+            IEvent? LastAction { get; }
+            bool IsOver { get; }
+            int StepCount { get; }
+
+            void Run();
+            void Step();
         }
 
         public interface IIdentifiable

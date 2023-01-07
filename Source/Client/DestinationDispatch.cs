@@ -1,5 +1,6 @@
 ﻿using ElevatorSystemSimulation;
 using ElevatorSystemSimulation.Extensions;
+using ElevatorSystemSimulation.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +29,7 @@ namespace Client
             }
         } 
 
-        protected override void Execute(SimulationState<BasicRequestEvent> state)
+        public override void Execute(ISimulationState<BasicRequestEvent> state)
         {
             HashSet<DispatchElevator> elevatorCandidates = new();
             Floor currentFloor = state.CurrentEvent.EventLocation;
@@ -82,7 +83,7 @@ namespace Client
             FreeGroups.Remove(bestElevator.Group);
         }
 
-        protected override void Execute(SimulationState<ElevatorEvent> state)
+        public override void Execute(ISimulationState<ElevatorEvent> state)
         {
             DispatchElevator elevator = DispatchElevators[state.CurrentEvent.Elevator];
             Floor currentFloor = state.CurrentEvent.EventLocation;

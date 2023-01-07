@@ -3,7 +3,7 @@ using ElevatorSystemSimulation.Extensions;
 
 namespace ElevatorSystemSimulation
 {
-    public abstract class ElevatorLogic<TRequestEvent> : IElevatorLogic where TRequestEvent : Interfaces.RequestEvent
+    public abstract class ElevatorLogic<TRequestEvent> : IElevatorLogic<TRequestEvent> where TRequestEvent : RequestEvent
     {
         #region Context
 
@@ -51,8 +51,9 @@ namespace ElevatorSystemSimulation
             }
         }
 
-        protected abstract void Execute(SimulationState<TRequestEvent> state);
-        protected abstract void Execute(SimulationState<ElevatorEvent> state);
+        public abstract void Execute(ISimulationState<TRequestEvent> requestEvent);
+        public abstract void Execute(ISimulationState<ElevatorEvent> elevatorEvent);
+
 
         #region Helpers
 
@@ -186,11 +187,11 @@ namespace ElevatorSystemSimulation
 
     }
 
-    public abstract class ConditionAfterElevatorEvent<TContextType> : StateDecisionTreeConditionNode<SimulationState<ElevatorEvent>, TContextType> where TContextType : IElevatorLogic
+    public abstract class ConditionAfterElevatorEvent<TContextType> : StateDecisionTreeConditionNode<ISimulationState<ElevatorEvent>, TContextType> where TContextType : IElevatorLogic
     {
         protected ConditionAfterElevatorEvent(
-            IStateDecisionTreeNode<SimulationState<ElevatorEvent>, TContextType> onTrue,
-            IStateDecisionTreeNode<SimulationState<ElevatorEvent>, TContextType> onFalse,
+            IStateDecisionTreeNode<ISimulationState<ElevatorEvent>, TContextType> onTrue,
+            IStateDecisionTreeNode<ISimulationState<ElevatorEvent>, TContextType> onFalse,
             TContextType context
         )
         : base(onTrue, onFalse, context) { }
@@ -198,16 +199,16 @@ namespace ElevatorSystemSimulation
         protected ConditionAfterElevatorEvent(TContextType context) : base(context) { }
     }
 
-    public abstract class ActionAfterElevatorEvent<TContextType> : StateDecisionTreeActionNode<SimulationState<ElevatorEvent>, TContextType> where TContextType : IElevatorLogic
+    public abstract class ActionAfterElevatorEvent<TContextType> : StateDecisionTreeActionNode<ISimulationState<ElevatorEvent>, TContextType> where TContextType : IElevatorLogic
     {
         protected ActionAfterElevatorEvent(TContextType context) : base(context) { }
     }
 
-    public abstract class ConditionAfterRequestEvent<TContextType, TRequestType> : StateDecisionTreeConditionNode<SimulationState<TRequestType>, TContextType> where TContextType : IElevatorLogic where TRequestType : Interfaces.RequestEvent 
+    public abstract class ConditionAfterRequestEvent<TContextType, TRequestType> : StateDecisionTreeConditionNode<ISimulationState<TRequestType>, TContextType> where TContextType : IElevatorLogic where TRequestType : Interfaces.RequestEvent 
     {
         protected ConditionAfterRequestEvent(
-            IStateDecisionTreeNode<SimulationState<TRequestType>, TContextType> onTrue,
-            IStateDecisionTreeNode<SimulationState<TRequestType>, TContextType> onFalse,
+            IStateDecisionTreeNode<ISimulationState<TRequestType>, TContextType> onTrue,
+            IStateDecisionTreeNode<ISimulationState<TRequestType>, TContextType> onFalse,
             TContextType context
         )
         : base(onTrue, onFalse, context) { }
@@ -215,7 +216,7 @@ namespace ElevatorSystemSimulation
         protected ConditionAfterRequestEvent(TContextType context) : base(context) { }
     }
 
-    public abstract class ActionAfterRequestEvent<TContextType, TRequestType> : StateDecisionTreeActionNode<SimulationState<TRequestType>, TContextType> where TContextType : IElevatorLogic where TRequestType : Interfaces.RequestEvent
+    public abstract class ActionAfterRequestEvent<TContextType, TRequestType> : StateDecisionTreeActionNode<ISimulationState<TRequestType>, TContextType> where TContextType : IElevatorLogic where TRequestType : Interfaces.RequestEvent
     {
         protected ActionAfterRequestEvent(TContextType context) : base(context) { }
     }

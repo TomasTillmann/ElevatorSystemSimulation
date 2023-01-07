@@ -3,20 +3,20 @@ using ElevatorSystemSimulation.Extensions;
 
 namespace ElevatorSystemSimulation
 {
-    public sealed class Simulation : IRestartable
+    public sealed class Simulation<TRequestEvent> : IRestartable, ISimulation where TRequestEvent : RequestEvent
     {
         private Calendar _Calendar { get; set; } = new();
         private Seconds _LastStepTime = 0.ToSeconds();
         private bool _DidClientMadeAction;
         private Statistics? Statistics;
 
-        public List<RequestEvent> _Requests;
+        public List<TRequestEvent> _Requests;
 
         public Building Building { get => _Building; set { _Building = value; Restart(); } }
         private Building _Building;
 
         public Seconds CurrentTime { get; private set; } = 0.ToSeconds();
-        public IElevatorLogic CurrentLogic { get; set; }
+        public IElevatorLogic<TRequestEvent> CurrentLogic { get; set; }
         public int StepCount { get; private set; }
         public IEvent? LastEvent { get; private set; }
         public IEvent? LastAction { get; private set; }
@@ -27,8 +27,8 @@ namespace ElevatorSystemSimulation
 
         public Simulation(
             Building building,
-            IElevatorLogic currentLogic,
-            List<RequestEvent> requests)
+            IElevatorLogic<TRequestEvent> currentLogic,
+            List<TRequestEvent> requests)
         {
             CurrentLogic = currentLogic;
             _Requests = requests;
@@ -62,7 +62,9 @@ namespace ElevatorSystemSimulation
             if(_Calendar.TryGetEvent(out IEvent? e))
             {
                 UpdateStateBeforeStep(e!);
-                CurrentLogic.Execute(new SimulationState(e!, CurrentTime));
+
+                Execute(new SimulationState(e!, CurrentTime));
+
                 UpdateStateAfterStep();
             }
             else
@@ -87,6 +89,25 @@ namespace ElevatorSystemSimulation
 
             _Calendar.Clear();
             _Calendar.Init(_Requests);
+        }
+
+        private void Execute(ISimulationState state)
+        {
+            if (state.CurrentEvent is TRequestEvent ce)
+            {
+                ce.EventLocation._Requests.Add(ce);
+
+                CurrentLogic.Execute(new SimulationState<TRequestEvent>(ce, state.CurrentTime));
+            }
+            else if (state.CurrentEvent is ElevatorEvent ee)
+            {
+                CurrentLogic.Execute(new SimulationState<ElevatorEvent>(ee, state.CurrentTime));
+            }
+            else
+            {
+                throw new ApplicationException("Event is something different. And it shouldn't be.");
+            }
+
         }
 
         private void SetCurrentTime(Seconds whenPlanned)

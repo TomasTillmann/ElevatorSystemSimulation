@@ -17,7 +17,7 @@ namespace UI
     public class MainViewModel : DependencyObject
     {
         // Model
-        private Simulation _Simulation { get; set; }
+        private ISimulation _Simulation { get; set; }
         //
 
         #region History
@@ -94,7 +94,7 @@ namespace UI
             _CurrentSnapshotPointer = 0;
         }
 
-        private void InitSimulation(Simulation simulation)
+        private void InitSimulation(Simulation<BasicRequestEvent> simulation)
         {
             _Simulation = simulation;
 
@@ -102,7 +102,7 @@ namespace UI
             Floors = _Simulation.Building.Floors.Value.Select(f => new FloorViewModel(f)).ToList();
         }
 
-        private Simulation GetInitSimulation()
+        private Simulation<BasicRequestEvent> GetInitSimulation()
         {
             return SimulationProvider.GetSimulation();
         }

@@ -1,4 +1,5 @@
-﻿using ElevatorSystemSimulation;
+﻿using Client;
+using ElevatorSystemSimulation;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -23,8 +24,8 @@ namespace UI
         public DataTemplate ElevatorSystemPickerMainContentTemplate { get { return (DataTemplate)GetValue(ElevatorSystemPickerMainContentTemplateProperty); } set { SetValue(ElevatorSystemPickerMainContentTemplateProperty, value); } }
         public static readonly DependencyProperty ElevatorSystemPickerMainContentTemplateProperty = DependencyProperty.Register("ElevatorSystemPickerMainContentTemplate", typeof(DataTemplate), typeof(ElevatorSystemPickerModalView));
 
-        public Simulation? ResultingSimulation { get { return (Simulation?)GetValue(ResultingSimulationProperty); } set { SetValue(ResultingSimulationProperty, value); } }
-        public static readonly DependencyProperty ResultingSimulationProperty = DependencyProperty.Register("ResultingSimulation", typeof(Simulation), typeof(ElevatorSystemPickerModalView));
+        public Simulation<BasicRequestEvent>? ResultingSimulation { get { return (Simulation<BasicRequestEvent>?)GetValue(ResultingSimulationProperty); } set { SetValue(ResultingSimulationProperty, value); } }
+        public static readonly DependencyProperty ResultingSimulationProperty = DependencyProperty.Register("ResultingSimulation", typeof(Simulation<BasicRequestEvent>), typeof(ElevatorSystemPickerModalView));
 
         public ElevatorSystemPickerModalView(Window owner)
         {

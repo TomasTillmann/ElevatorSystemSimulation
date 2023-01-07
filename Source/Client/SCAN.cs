@@ -15,12 +15,12 @@ namespace Client
             StateDecisionTreeAfterRequestEvent = GetStateDecisionTreeAfterRequestEvent();
         }
 
-        protected override void Execute(SimulationState<BasicRequestEvent> state)
+        public override void Execute(ISimulationState<BasicRequestEvent> state)
         {
             StateDecisionTreeAfterRequestEvent.Execute(state);
         }
 
-        protected override void Execute(SimulationState<ElevatorEvent> state)
+        public override void Execute(ISimulationState<ElevatorEvent> state)
         {
             // avoids cycling the elevator in constant idle action planning
             if(state.CurrentEvent.FinishedAction == ElevatorSystemSimulation.ElevatorAction.Idle)
@@ -205,14 +205,14 @@ namespace Client
 
         private class ElevatorCondition : ConditionAfterElevatorEvent<SCAN>
         {
-            public Func<SimulationState<ElevatorEvent>, SCAN, bool> InternalPredicate { get; set; }
+            public Func<ISimulationState<ElevatorEvent>, SCAN, bool> InternalPredicate { get; set; }
 
-            public ElevatorCondition(SCAN context, Func<SimulationState<ElevatorEvent>, SCAN, bool> internalPredicate) : base(context)
+            public ElevatorCondition(SCAN context, Func<ISimulationState<ElevatorEvent>, SCAN, bool> internalPredicate) : base(context)
             {
                 InternalPredicate = internalPredicate;
             }
 
-            protected override bool Predicate(SimulationState<ElevatorEvent> state)
+            protected override bool Predicate(ISimulationState<ElevatorEvent> state)
             {
                 return InternalPredicate.Invoke(state, Context);
             }
@@ -221,15 +221,15 @@ namespace Client
         private class ParametrizedCondition<ParameterType> : ConditionAfterElevatorEvent<SCAN>
         {
             public ParameterType Parameter { get; set; }
-            public Func<SimulationState<ElevatorEvent>, SCAN, ParameterType, bool> InternalPredicate { get; set; }
+            public Func<ISimulationState<ElevatorEvent>, SCAN, ParameterType, bool> InternalPredicate { get; set; }
 
-            public ParametrizedCondition(SCAN context, ParameterType memory, Func<SimulationState<ElevatorEvent>, SCAN, ParameterType, bool> internalPredicate) : base(context)
+            public ParametrizedCondition(SCAN context, ParameterType memory, Func<ISimulationState<ElevatorEvent>, SCAN, ParameterType, bool> internalPredicate) : base(context)
             {
                 InternalPredicate = internalPredicate;
                 Parameter = memory;
             }
 
-            protected override bool Predicate(SimulationState<ElevatorEvent> state)
+            protected override bool Predicate(ISimulationState<ElevatorEvent> state)
             {
                 return InternalPredicate.Invoke(state, Context, Parameter);
             }
@@ -237,14 +237,14 @@ namespace Client
 
         private class ElevatorAction : ActionAfterElevatorEvent<SCAN>
         {
-            public Func<SimulationState<ElevatorEvent>, SCAN, bool> InternalExecute { get; set; }
+            public Func<ISimulationState<ElevatorEvent>, SCAN, bool> InternalExecute { get; set; }
 
-            public ElevatorAction(SCAN context, Func<SimulationState<ElevatorEvent>, SCAN, bool> internalExecute) : base(context)
+            public ElevatorAction(SCAN context, Func<ISimulationState<ElevatorEvent>, SCAN, bool> internalExecute) : base(context)
             {
                 InternalExecute = internalExecute;
             }
 
-            public override bool Execute(SimulationState<ElevatorEvent> state)
+            public override bool Execute(ISimulationState<ElevatorEvent> state)
             {
                 return InternalExecute.Invoke(state, Context);
             }
@@ -256,14 +256,14 @@ namespace Client
 
         private class RequestCondition : ConditionAfterRequestEvent<SCAN, BasicRequestEvent>
         {
-            public Func<SimulationState<BasicRequestEvent>, SCAN, bool> InternalPredicate { get; set; }
+            public Func<ISimulationState<BasicRequestEvent>, SCAN, bool> InternalPredicate { get; set; }
 
-            public RequestCondition(SCAN context, Func<SimulationState<BasicRequestEvent>, SCAN, bool> internalPredicate) : base(context)
+            public RequestCondition(SCAN context, Func<ISimulationState<BasicRequestEvent>, SCAN, bool> internalPredicate) : base(context)
             {
                 InternalPredicate = internalPredicate;
             }
 
-            protected override bool Predicate(SimulationState<BasicRequestEvent> state)
+            protected override bool Predicate(ISimulationState<BasicRequestEvent> state)
             {
                 return InternalPredicate.Invoke(state, Context);
             }
@@ -271,14 +271,14 @@ namespace Client
 
         private class ElevatorActionAfterRequest : ActionAfterRequestEvent<SCAN, BasicRequestEvent>
         {
-            public Func<SimulationState<BasicRequestEvent>, SCAN, bool> InternalExecute { get; set; }
+            public Func<ISimulationState<BasicRequestEvent>, SCAN, bool> InternalExecute { get; set; }
 
-            public ElevatorActionAfterRequest(SCAN context, Func<SimulationState<BasicRequestEvent>, SCAN, bool> internalExecute) : base(context)
+            public ElevatorActionAfterRequest(SCAN context, Func<ISimulationState<BasicRequestEvent>, SCAN, bool> internalExecute) : base(context)
             {
                 InternalExecute = internalExecute;
             }
 
-            public override bool Execute(SimulationState<BasicRequestEvent> state)
+            public override bool Execute(ISimulationState<BasicRequestEvent> state)
             {
                 return InternalExecute.Invoke(state, Context);
             }
@@ -290,7 +290,7 @@ namespace Client
 
         #region HelpingMehotds
 
-        private bool AreRequestsInSpecifiedDirection(SimulationState<ElevatorEvent> state, SCAN context, bool inSameDirection)
+        private bool AreRequestsInSpecifiedDirection(ISimulationState<ElevatorEvent> state, SCAN context, bool inSameDirection)
         {
             Elevator elevator = state.CurrentEvent.Elevator;
             Predicate<Floor> filter = GetFloorsFilterBasedOnDirection(inSameDirection, elevator);
@@ -306,7 +306,7 @@ namespace Client
             return false;
         }
 
-        private bool AreRequestsOutInSpecifiedDirection(SimulationState<ElevatorEvent> state, SCAN context, bool inSameDirection)
+        private bool AreRequestsOutInSpecifiedDirection(ISimulationState<ElevatorEvent> state, SCAN context, bool inSameDirection)
         {
             Elevator elevator = state.CurrentEvent.Elevator;
             Predicate<BasicRequestEvent> filter = GetAttendingRequestsFilterBasedOnDirection(inSameDirection, elevator); 

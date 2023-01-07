@@ -1,5 +1,6 @@
 ﻿using ElevatorSystemSimulation;
 using ElevatorSystemSimulation.Extensions;
+using ElevatorSystemSimulation.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace Client
     {
         public Hungry(Building building) : base(building) { }
 
-        protected override void Execute(SimulationState<BasicRequestEvent> state)
+        public override void Execute(ISimulationState<BasicRequestEvent> state)
         {
             IEnumerable<Elevator> elevators;
             Elevator elevator;
@@ -40,7 +41,7 @@ namespace Client
         /// Loads and unloads the elevator if needed. Plans the elevator to the closest floor with request.
         /// </summary>
         /// <param name="state"></param>
-        protected override void Execute(SimulationState<ElevatorEvent> state)
+        public override void Execute(ISimulationState<ElevatorEvent> state)
         {
             Elevator elevator = state.CurrentEvent.Elevator;
 
@@ -85,7 +86,7 @@ namespace Client
         /// </summary>
         /// <param name="state"></param>
         /// <returns>Closest floor with request or null. Null if there are no floors with any request.</returns>
-        private Floor? GetClosestRequestInFloor(SimulationState<ElevatorEvent> state)
+        private Floor? GetClosestRequestInFloor(ISimulationState<ElevatorEvent> state)
         {
             IEnumerable<Floor> floorsWithRequest   = Building.Floors.Value.Where(f => f.Requests.Any());
             IEnumerable<Floor> closestFloors       = floorsWithRequest.FindMinSubset(f => Math.Abs((f.Location - state.CurrentEvent.Location).Value), int.MaxValue);

@@ -33,11 +33,11 @@ namespace UI
         public int TotalSimulationTime { get { return (int)GetValue(TotalSimulationTimeProperty); } set { SetValue(TotalSimulationTimeProperty, value); } }
         public static readonly DependencyProperty TotalSimulationTimeProperty = DependencyProperty.Register("TotalSimulationTime", typeof(int), typeof(ElevatorSystemPickerViewModel), new FrameworkPropertyMetadata(5000));
 
-        public IElevatorLogic Algorithm { get { return (IElevatorLogic)GetValue(AlgorithmProperty); } set { SetValue(AlgorithmProperty, value); } }
-        public static readonly DependencyProperty AlgorithmProperty = DependencyProperty.Register("Algorithm", typeof(IElevatorLogic), typeof(ElevatorSystemPickerViewModel));
+        public IElevatorLogic<BasicRequestEvent> Algorithm { get { return (IElevatorLogic<BasicRequestEvent>)GetValue(AlgorithmProperty); } set { SetValue(AlgorithmProperty, value); } }
+        public static readonly DependencyProperty AlgorithmProperty = DependencyProperty.Register("Algorithm", typeof(IElevatorLogic<BasicRequestEvent>), typeof(ElevatorSystemPickerViewModel));
 
-        public Simulation? ResultingSimulation { get { return (Simulation?)GetValue(ResultingSimulationProperty); } set { SetValue(ResultingSimulationProperty, value); } }
-        public static readonly DependencyProperty ResultingSimulationProperty = DependencyProperty.Register("ResultingSimulation", typeof(Simulation), typeof(ElevatorSystemPickerViewModel));
+        public ISimulation? ResultingSimulation { get { return (ISimulation?)GetValue(ResultingSimulationProperty); } set { SetValue(ResultingSimulationProperty, value); } }
+        public static readonly DependencyProperty ResultingSimulationProperty = DependencyProperty.Register("ResultingSimulation", typeof(ISimulation), typeof(ElevatorSystemPickerViewModel));
 
         private void OnWindowClosing(Window modalWindow)
         {
@@ -74,7 +74,7 @@ namespace UI
                 BasicRequestsGenerator generator = new(new Random(420));
                 //
 
-                ResultingSimulation = new Simulation(building, Algorithm, generator.Generate(500, floors, TotalSimulationTime.ToSeconds()));
+                ResultingSimulation = new Simulation<BasicRequestEvent>(building, Algorithm, generator.Generate(500, floors, TotalSimulationTime.ToSeconds()));
 
                 modalWindow.DialogResult = true;
                 OnWindowClosing(modalWindow);
@@ -258,7 +258,7 @@ namespace UI
             Description = description;
         }
 
-        public IElevatorLogic ToAlgorithm(Building building)
+        public IElevatorLogic<BasicRequestEvent> ToAlgorithm(Building building)
         {
             switch (Model)
             {
