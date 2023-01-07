@@ -18,7 +18,12 @@
             void Restart();
         }
 
-        public interface IRequestEvent : IEvent
+        public interface IIdentifiable
+        {
+            int Id { get; }
+        }
+
+        public interface IRequestEvent : IEvent, IIdentifiable
         {
             Floor Destination { get; }
         }

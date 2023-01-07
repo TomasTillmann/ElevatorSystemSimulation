@@ -19,7 +19,7 @@ namespace Client
             Elevator elevator;
 
             // find idle
-            elevators = Building.ElevatorSystem.Elevators.Where(e => e.IsIdle);
+            elevators = Building.ElevatorSystem.Value.Where(e => e.IsIdle);
 
             if (elevators.Any())
             {
@@ -30,7 +30,7 @@ namespace Client
             }
 
             // find the closest generally
-            elevators = Building.ElevatorSystem.Elevators.FindMinSubset(e => Math.Abs((e.Location - state.CurrentEvent.Location).Value), int.MaxValue);
+            elevators = Building.ElevatorSystem.Value.FindMinSubset(e => Math.Abs((e.Location - state.CurrentEvent.Location).Value), int.MaxValue);
 
             elevator = elevators.First();
             elevator.MoveTo(state.CurrentEvent.EventLocation);

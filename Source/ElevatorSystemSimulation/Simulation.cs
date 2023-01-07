@@ -8,6 +8,7 @@ namespace ElevatorSystemSimulation
         private Calendar _Calendar { get; set; } = new();
         private Seconds _LastStepTime = 0.ToSeconds();
         private bool _DidClientMadeAction;
+        private Statistics Statistics;
 
         protected List<IRequestEvent> _Requests;
         private List<IRequestEvent> Requests
@@ -82,7 +83,7 @@ namespace ElevatorSystemSimulation
 
         public void Restart()
         {
-            Building.ElevatorSystem.Elevators.ForEach(elevator => elevator.Restart());
+            Building.ElevatorSystem.Value.ForEach(elevator => elevator.Restart());
             Building.Floors.Value.ForEach(floor => floor.Restart());
 
             // restart state
@@ -106,7 +107,7 @@ namespace ElevatorSystemSimulation
 
         private void SetElevatorsLocations(IEvent e)
         {
-            foreach(Elevator elevator in Building.ElevatorSystem.Elevators)
+            foreach(Elevator elevator in Building.ElevatorSystem.Value)
             {
                 elevator.SetLocation(CurrentTime - _LastStepTime);
             }
@@ -122,7 +123,7 @@ namespace ElevatorSystemSimulation
 
         private void ValidateElevatorsLocations()
         {
-            foreach(Elevator elevator in Building.ElevatorSystem.Elevators)
+            foreach(Elevator elevator in Building.ElevatorSystem.Value)
             {
                 if(elevator.Location > Building.Floors.HeighestFloor.Location || 
                     elevator.Location < Building.Floors.LowestFloor.Location)
@@ -134,7 +135,7 @@ namespace ElevatorSystemSimulation
 
         private void SetElevatorsIPlannableProperties()
         {
-            foreach (Elevator elevator in Building.ElevatorSystem.Elevators)
+            foreach (Elevator elevator in Building.ElevatorSystem.Value)
             {
                 elevator.PlanElevator = PlanElevator;
                 elevator.UnplanElevator = UnplanElevator;

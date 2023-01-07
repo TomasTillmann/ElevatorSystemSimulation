@@ -8,7 +8,7 @@ namespace ElevatorSystemSimulation
         #region Context
 
         public Building Building { get; }
-        protected List<Elevator> Elevators => Building.ElevatorSystem.Elevators;
+        protected List<Elevator> Elevators => Building.ElevatorSystem.Value;
         protected List<Floor> Floors => Building.Floors.Value;
 
         #endregion

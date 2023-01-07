@@ -3,7 +3,7 @@ using ElevatorSystemSimulation.Interfaces;
 
 namespace ElevatorSystemSimulation
 {
-    public class Elevator : IRestartable, ILocatable
+    public class Elevator : IRestartable, ILocatable, IIdentifiable
     {
         #region Identification
 
@@ -319,7 +319,7 @@ namespace ElevatorSystemSimulation
             return Value.Find(floor => floor.Id == floorId);
         }
 
-        public IEnumerable<IRequestEvent> GetAllRequests()
+        public IEnumerable<IRequestEvent> GetAllActiveRequests()
         {
             foreach(Floor floor in Value)
             {
@@ -345,14 +345,25 @@ namespace ElevatorSystemSimulation
 
     public class ElevatorSystem
     {
-        public List<Elevator> Elevators { get; set; } = new();
+        public List<Elevator> Value { get; set; } = new();
 
-        public ElevatorSystem(List<Elevator> elevators)
+        public IEnumerable<IRequestEvent> GetAllInElevatorRequests()
         {
-            Elevators = elevators;
+            foreach(Elevator elevator in Value)
+            {
+                foreach(IRequestEvent request in elevator.AttendingRequests)
+                {
+                    yield return request;
+                }
+            }
+        }
+
+        public ElevatorSystem(List<Elevator> value)
+        {
+            Value = value;
 
             int i = -1;
-            elevators.ForEach(e => e.Id = i+=1);
+            value.ForEach(e => e.Id = i+=1);
         }
     }
 }

@@ -98,7 +98,7 @@ namespace UI
         {
             _Simulation = simulation;
 
-            Elevators = _Simulation.Building.ElevatorSystem.Elevators.Select(e => new ElevatorViewModel(e)).ToList();
+            Elevators = _Simulation.Building.ElevatorSystem.Value.Select(e => new ElevatorViewModel(e)).ToList();
             Floors = _Simulation.Building.Floors.Value.Select(f => new FloorViewModel(f)).ToList();
         }
 
@@ -123,7 +123,7 @@ namespace UI
             int i = 0;
             foreach(ElevatorViewModel elevatorViewModel in Elevators)
             {
-                Elevator elevatorModel = _Simulation.Building.ElevatorSystem.Elevators[i++];
+                Elevator elevatorModel = _Simulation.Building.ElevatorSystem.Value[i++];
                 elevatorViewModel.Location = elevatorModel.Location;
                 elevatorViewModel.PeopleCount = elevatorModel.AttendingRequests.Count;
             }

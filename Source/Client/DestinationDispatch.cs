@@ -17,7 +17,7 @@ namespace Client
 
         public DestinationDispatch(Building building) : base(building)
         {
-            foreach(Elevator elevator in building.ElevatorSystem.Elevators)
+            foreach(Elevator elevator in building.ElevatorSystem.Value)
             {
                 DispatchElevators.Add(elevator, new DispatchElevator(elevator));
             }
@@ -36,13 +36,13 @@ namespace Client
             if (FreeGroups.Contains(state.CurrentEvent.Destination))
             {
                 // add all idle
-                foreach(Elevator elevator in Building.ElevatorSystem.Elevators.Where(e => e.IsIdle))
+                foreach(Elevator elevator in Building.ElevatorSystem.Value.Where(e => e.IsIdle))
                 {
                     elevatorCandidates.Add(DispatchElevators[elevator]);
                 }
 
                 // add without any group
-                foreach(Elevator elevator in Building.ElevatorSystem.Elevators.Where(e => DispatchElevators[e].Group is null))
+                foreach(Elevator elevator in Building.ElevatorSystem.Value.Where(e => DispatchElevators[e].Group is null))
                 {
                     elevatorCandidates.Add(DispatchElevators[elevator]);
                 }
@@ -50,7 +50,7 @@ namespace Client
             else
             {
                 // add only those dealing with the same group
-                foreach(Elevator elevator in Building.ElevatorSystem.Elevators.Where(e => DispatchElevators[e].Group == state.CurrentEvent.Destination))
+                foreach(Elevator elevator in Building.ElevatorSystem.Value.Where(e => DispatchElevators[e].Group == state.CurrentEvent.Destination))
                 {
                     elevatorCandidates.Add(DispatchElevators[elevator]);
                 }

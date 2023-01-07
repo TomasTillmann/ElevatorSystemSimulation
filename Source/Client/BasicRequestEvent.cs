@@ -5,6 +5,11 @@ namespace Client
 {
     public struct BasicRequestEvent : IRequestEvent
     {
+        #region Identification
+        public int Id { get; } 
+        private static int Counter = 0;
+        #endregion
+
         public Seconds WhenPlanned { get; } 
         public Floor EventLocation { get; } 
         public Floor Destination { get; }
@@ -16,6 +21,9 @@ namespace Client
             EventLocation = eventLocation;
             WhenPlanned = whenPlanned;
             Destination = destination;
+
+            Id = Counter;
+            Counter++;
         }
 
         public override string ToString() => 
