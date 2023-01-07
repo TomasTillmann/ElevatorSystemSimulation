@@ -20,8 +20,8 @@ namespace ElevatorSystemSimulation
 
         public bool IsIdle => PlannedTo is null;
 
-        public IReadOnlyCollection<IRequestEvent> AttendingRequests => _AttendingRequests;
-        protected readonly List<IRequestEvent> _AttendingRequests  = new();
+        public IReadOnlyCollection<Interfaces.RequestEvent> AttendingRequests => _AttendingRequests;
+        protected readonly List<Interfaces.RequestEvent> _AttendingRequests  = new();
 
         internal Action<Elevator, Seconds, Floor, ElevatorAction>? PlanElevator { get; set; }
         internal Action<Elevator>? UnplanElevator { get; set; }
@@ -143,7 +143,7 @@ namespace ElevatorSystemSimulation
         /// </summary>
         /// <param name="floor"></param>
         /// <param name="requests"></param>
-        public void Load(Floor? floor, IEnumerable<IRequestEvent>? requests = null)
+        public void Load(Floor? floor, IEnumerable<Interfaces.RequestEvent>? requests = null)
         {
             if(floor == null)
             {
@@ -162,8 +162,8 @@ namespace ElevatorSystemSimulation
 
             requests = requests == null ? floor.Requests : requests;
 
-            HashSet<IRequestEvent> requestsToDelete = new();
-            foreach(IRequestEvent request in requests)
+            HashSet<Interfaces.RequestEvent> requestsToDelete = new();
+            foreach(Interfaces.RequestEvent request in requests)
             {
                 if(_AttendingRequests.Count < Capacity)
                 {
@@ -254,8 +254,8 @@ namespace ElevatorSystemSimulation
 
         #region Simulation
 
-        public IReadOnlyCollection<IRequestEvent> Requests => _Requests; 
-        internal readonly List<IRequestEvent> _Requests = new();
+        public IReadOnlyCollection<RequestEvent> Requests => _Requests; 
+        internal readonly List<RequestEvent> _Requests = new();
 
         public IReadOnlyCollection<Elevator> PlannedElevators => _PlannedElevators;
         internal readonly List<Elevator> _PlannedElevators = new();
@@ -319,11 +319,11 @@ namespace ElevatorSystemSimulation
             return Value.Find(floor => floor.Id == floorId);
         }
 
-        public IEnumerable<IRequestEvent> GetAllActiveRequests()
+        public IEnumerable<Interfaces.RequestEvent> GetAllActiveRequests()
         {
             foreach(Floor floor in Value)
             {
-                foreach(IRequestEvent request in floor.Requests)
+                foreach(Interfaces.RequestEvent request in floor.Requests)
                 {
                     yield return request;
                 }
@@ -347,11 +347,11 @@ namespace ElevatorSystemSimulation
     {
         public List<Elevator> Value { get; set; } = new();
 
-        public IEnumerable<IRequestEvent> GetAllInElevatorRequests()
+        public IEnumerable<RequestEvent> GetAllInElevatorRequests()
         {
             foreach(Elevator elevator in Value)
             {
-                foreach(IRequestEvent request in elevator.AttendingRequests)
+                foreach(RequestEvent request in elevator.AttendingRequests)
                 {
                     yield return request;
                 }

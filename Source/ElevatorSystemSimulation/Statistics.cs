@@ -14,94 +14,58 @@ namespace ElevatorSystemSimulation
         private Dictionary<int, RequestInfo> requestInfos = new();
         private Dictionary<int, ElevatorInfo> elevatorInfos = new();
 
-        internal void UpdateRequestsOnFloorStats(Floors floors, Seconds duration, Seconds currentTime)
-        {
-            // requests not dealt by elevators yet 
-            IEnumerable<IRequestEvent> activeRequests = floors.GetAllActiveRequests();
-
-            foreach(IRequestEvent request in activeRequests)
-            {
-                if (requestInfos.TryGetValue(request.Id, out RequestInfo? requestInfo))
-                {
-                    requestInfos[request.Id].UpdateStats(duration);
-                }
-                else
-                {
-                    requestInfos.Add(request.Id, new RequestInfo(request, null, currentTime - request.WhenPlanned, 0.ToSeconds()));
-                }
-            }
-        }
-
-        internal void UpdateRequestsInElevatorsStats(ElevatorSystem elevatorSystem, Seconds duration, Seconds currentTime)
-        {
-            foreach(Elevator elevator in elevatorSystem.Value)
-            {
-                foreach(IRequestEvent request in elevator.AttendingRequests)
-                {
-                    // if is in elevator, it had to be added from the floor
-                    requestInfos[request.Id].ServingElevator = elevator;
-                    requestInfos[request.Id].WaitingTimeInElevator += duration;
-                }
-            }
-        }
-
-        public void Measure()
-        {
-
-        }
-
         public StatisticsResult GetResult()
         {
-            throw new NotImplementedException();
+            return new StatisticsResult(requestInfos.Values.ToList(), elevatorInfos.Values.ToList());
         }
     }
 
-    public struct StatisticsResult
+    public class StatisticsResult
     {
+        public List<RequestInfo> RequestInfos { get; }
+        public List<ElevatorInfo> ElevatorInfos { get; }
 
+        public Seconds AverageWaitingTimeOnFloor { get; }
+        public Seconds MaxWaitingTimeOnFloor { get; }
+        public Seconds AverageWaitingTimeInElevator { get; }
+        public Seconds MaxWaitingTimeInElevator { get; }
+        public int ServedRequests { get; }
+        public Seconds TotalTime { get; }
+        public Seconds AverageElevatorIdleTime { get; }
+        public int AverageRequestsPerElevatorCount { get; }
+
+        public StatisticsResult(List<RequestInfo> requestInfos, List<ElevatorInfo> elevatorInfos)
+        {
+            RequestInfos = requestInfos;
+            ElevatorInfos = elevatorInfos;
+
+            // TODO: will be all calculated from these two above
+        }
     }
 
-    internal class RequestInfo : IIdentifiable
+    public class RequestInfo
     {
-        public IRequestEvent Request { get; set; }
         public Elevator? ServingElevator { get; set; }
         public Seconds WaitingTimeOnFloor { get; set; }
         public Seconds WaitingTimeInElevator { get; set; }
 
-        public int Id => Request.Id;
-
-        public void UpdateStats(Seconds duration)
+        public RequestInfo(Elevator? servingElevator, Seconds waitingTimeOnFloor, Seconds waitingTimeInElevator)
         {
-            WaitingTimeOnFloor += duration; 
-
-            if(ServingElevator is not null)
-            {
-                WaitingTimeInElevator += duration;
-            }
-        }
-
-        public RequestInfo(IRequestEvent request, Elevator? servingElevator, Seconds waitingTimeOnFloor, Seconds waitingTimeInElevator)
-        {
-            Request = request;
             ServingElevator = servingElevator;
             WaitingTimeOnFloor = waitingTimeOnFloor;
             WaitingTimeInElevator = waitingTimeInElevator;
         }
     }
 
-    internal class ElevatorInfo : IIdentifiable
+    public class ElevatorInfo
     {
-        public Elevator Elevator { get; set; }
         public Seconds TotalInUseTime { get; set; }
         public Seconds TotalIdleTime { get; set; }
         public int DeparturesCount { get; set; }
         public int ServedRequestsCount { get; set; }
 
-        public int Id => Elevator.Id;
-
-        public ElevatorInfo(Elevator elevator, Seconds totalInUseTime, Seconds totalIdleTime, int departuresCount, int servedRequestsCount)
+        public ElevatorInfo(Seconds totalInUseTime, Seconds totalIdleTime, int departuresCount, int servedRequestsCount)
         {
-            Elevator = elevator;
             TotalInUseTime = totalInUseTime;
             TotalIdleTime = totalIdleTime;
             DeparturesCount = departuresCount;

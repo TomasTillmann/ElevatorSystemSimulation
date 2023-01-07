@@ -3,7 +3,7 @@ using ElevatorSystemSimulation.Extensions;
 
 namespace ElevatorSystemSimulation
 {
-    public abstract class ElevatorLogic<RequestEvent> : IElevatorLogic where RequestEvent : IRequestEvent
+    public abstract class ElevatorLogic<TRequestEvent> : IElevatorLogic where TRequestEvent : Interfaces.RequestEvent
     {
         #region Context
 
@@ -35,11 +35,11 @@ namespace ElevatorSystemSimulation
         {
             CurrentTime = state.CurrentTime;
 
-            if(state.CurrentEvent is RequestEvent ce)
+            if(state.CurrentEvent is TRequestEvent ce)
             {
                 ce.EventLocation._Requests.Add(ce);
 
-                Execute(new SimulationState<RequestEvent>(ce, state.CurrentTime));
+                Execute(new SimulationState<TRequestEvent>(ce, state.CurrentTime));
             }
             else if(state.CurrentEvent is ElevatorEvent ee)
             {
@@ -51,7 +51,7 @@ namespace ElevatorSystemSimulation
             }
         }
 
-        protected abstract void Execute(SimulationState<RequestEvent> state);
+        protected abstract void Execute(SimulationState<TRequestEvent> state);
         protected abstract void Execute(SimulationState<ElevatorEvent> state);
 
         #region Helpers
@@ -61,13 +61,13 @@ namespace ElevatorSystemSimulation
             return Math.Abs((l1.Location - l2.Location).Value).ToCentimeters();
         }
 
-        protected virtual IEnumerable<RequestEvent> GetAllCurrentRequestEvents(Predicate<Floor>? filter = null)
+        protected virtual IEnumerable<TRequestEvent> GetAllCurrentRequestEvents(Predicate<Floor>? filter = null)
         {
             filter = filter ?? new Predicate<Floor>(f => true);
 
             foreach(Floor floor in Building.Floors.Value.Where(f => filter(f)))
             {
-                foreach(RequestEvent requestEvent in floor.Requests)
+                foreach(TRequestEvent requestEvent in floor.Requests)
                 {
                     yield return requestEvent;
                 }
@@ -81,7 +81,7 @@ namespace ElevatorSystemSimulation
             int minDistance = int.MaxValue;
             List<Floor> closestFloors = new();
 
-            foreach (RequestEvent request in GetAllCurrentRequestEvents())
+            foreach (TRequestEvent request in GetAllCurrentRequestEvents())
             {
                 if (!floorFilter(request.EventLocation))
                 {
@@ -105,14 +105,14 @@ namespace ElevatorSystemSimulation
             return closestFloors;
         }
 
-        protected virtual List<Floor> GetClosestFloorsWithRequestOut(Elevator elevator, Predicate<RequestEvent>? requestFilter = null)
+        protected virtual List<Floor> GetClosestFloorsWithRequestOut(Elevator elevator, Predicate<TRequestEvent>? requestFilter = null)
         {
-            requestFilter = requestFilter ?? new Predicate<RequestEvent>(r => true);
+            requestFilter = requestFilter ?? new Predicate<TRequestEvent>(r => true);
 
             Centimeters minDistance = new(int.MaxValue);
             List<Floor> closestFloors = new();
 
-            foreach(RequestEvent request in elevator.AttendingRequests.Where(r => requestFilter((RequestEvent)r)))
+            foreach(TRequestEvent request in elevator.AttendingRequests.Where(r => requestFilter((TRequestEvent)r)))
             {
                 Centimeters distance = GetDistance(request.Destination, elevator);
 
@@ -186,37 +186,37 @@ namespace ElevatorSystemSimulation
 
     }
 
-    public abstract class ConditionAfterElevatorEvent<ContextType> : StateDecisionTreeConditionNode<SimulationState<ElevatorEvent>, ContextType> where ContextType : IElevatorLogic
+    public abstract class ConditionAfterElevatorEvent<TContextType> : StateDecisionTreeConditionNode<SimulationState<ElevatorEvent>, TContextType> where TContextType : IElevatorLogic
     {
         protected ConditionAfterElevatorEvent(
-            IStateDecisionTreeNode<SimulationState<ElevatorEvent>, ContextType> onTrue,
-            IStateDecisionTreeNode<SimulationState<ElevatorEvent>, ContextType> onFalse,
-            ContextType context
+            IStateDecisionTreeNode<SimulationState<ElevatorEvent>, TContextType> onTrue,
+            IStateDecisionTreeNode<SimulationState<ElevatorEvent>, TContextType> onFalse,
+            TContextType context
         )
         : base(onTrue, onFalse, context) { }
 
-        protected ConditionAfterElevatorEvent(ContextType context) : base(context) { }
+        protected ConditionAfterElevatorEvent(TContextType context) : base(context) { }
     }
 
-    public abstract class ActionAfterElevatorEvent<ContextType> : StateDecisionTreeActionNode<SimulationState<ElevatorEvent>, ContextType> where ContextType : IElevatorLogic
+    public abstract class ActionAfterElevatorEvent<TContextType> : StateDecisionTreeActionNode<SimulationState<ElevatorEvent>, TContextType> where TContextType : IElevatorLogic
     {
-        protected ActionAfterElevatorEvent(ContextType context) : base(context) { }
+        protected ActionAfterElevatorEvent(TContextType context) : base(context) { }
     }
 
-    public abstract class ConditionAfterRequestEvent<ContextType, RequestType> : StateDecisionTreeConditionNode<SimulationState<RequestType>, ContextType> where ContextType : IElevatorLogic where RequestType : IRequestEvent 
+    public abstract class ConditionAfterRequestEvent<TContextType, TRequestType> : StateDecisionTreeConditionNode<SimulationState<TRequestType>, TContextType> where TContextType : IElevatorLogic where TRequestType : Interfaces.RequestEvent 
     {
         protected ConditionAfterRequestEvent(
-            IStateDecisionTreeNode<SimulationState<RequestType>, ContextType> onTrue,
-            IStateDecisionTreeNode<SimulationState<RequestType>, ContextType> onFalse,
-            ContextType context
+            IStateDecisionTreeNode<SimulationState<TRequestType>, TContextType> onTrue,
+            IStateDecisionTreeNode<SimulationState<TRequestType>, TContextType> onFalse,
+            TContextType context
         )
         : base(onTrue, onFalse, context) { }
 
-        protected ConditionAfterRequestEvent(ContextType context) : base(context) { }
+        protected ConditionAfterRequestEvent(TContextType context) : base(context) { }
     }
 
-    public abstract class ActionAfterRequestEvent<ContextType, RequestType> : StateDecisionTreeActionNode<SimulationState<RequestType>, ContextType> where ContextType : IElevatorLogic where RequestType : IRequestEvent
+    public abstract class ActionAfterRequestEvent<TContextType, TRequestType> : StateDecisionTreeActionNode<SimulationState<TRequestType>, TContextType> where TContextType : IElevatorLogic where TRequestType : Interfaces.RequestEvent
     {
-        protected ActionAfterRequestEvent(ContextType context) : base(context) { }
+        protected ActionAfterRequestEvent(TContextType context) : base(context) { }
     }
 }

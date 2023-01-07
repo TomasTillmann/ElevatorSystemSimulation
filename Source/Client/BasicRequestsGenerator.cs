@@ -11,9 +11,9 @@ namespace Client
             _Random = random;
         }
 
-        public List<IRequestEvent> Generate(int count, Floors floors, Seconds maxPlannedTime)
+        public List<ElevatorSystemSimulation.Interfaces.RequestEvent> Generate(int count, Floors floors, Seconds maxPlannedTime)
         {
-            List<IRequestEvent> requests = new();
+            List<ElevatorSystemSimulation.Interfaces.RequestEvent> requests = new();
 
             for(int i = 0; i < count; i++)
             {

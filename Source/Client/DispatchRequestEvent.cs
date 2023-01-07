@@ -3,7 +3,7 @@ using ElevatorSystemSimulation.Interfaces;
 
 namespace Client
 {
-    //public struct DispatchRequestEvent : IRequestEvent
+    //public struct DispatchRequestEvent : RequestEvent
     //{
     //    public Floor Destination { get; } 
     //    public Seconds WhenPlanned { get; } 

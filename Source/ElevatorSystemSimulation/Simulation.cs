@@ -10,14 +10,14 @@ namespace ElevatorSystemSimulation
         private bool _DidClientMadeAction;
         private Statistics Statistics;
 
-        protected List<IRequestEvent> _Requests;
-        private List<IRequestEvent> Requests
+        protected List<RequestEvent> _Requests;
+        private List<RequestEvent> Requests
         {
             get => _Requests;
             set
             {
                 _Requests = value;
-                _Requests.Sort((IRequestEvent r1, IRequestEvent r2) => r1.WhenPlanned.Value.CompareTo(r2.WhenPlanned.Value));
+                _Requests.Sort((RequestEvent r1, RequestEvent r2) => r1.WhenPlanned.Value.CompareTo(r2.WhenPlanned.Value));
                 Restart();
             }
         }
@@ -37,7 +37,7 @@ namespace ElevatorSystemSimulation
             Building building,
             IElevatorLogic currentLogic,
             Seconds totalTime,
-            List<IRequestEvent> requests)
+            List<RequestEvent> requests)
         {
             CurrentLogic = currentLogic;
             _Requests = requests;
@@ -226,7 +226,7 @@ namespace ElevatorSystemSimulation
                 }
             }
 
-            public void Init(IEnumerable<IRequestEvent> requests)
+            public void Init(IEnumerable<RequestEvent> requests)
             {
                 foreach (IEvent request in requests)
                 {

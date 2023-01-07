@@ -10,13 +10,13 @@ namespace UI
         public int Id { get; }
         public Centimeters Height { get; }
 
-        public List<IRequestEvent> Requests { get; set; } 
+        public List<RequestEvent> Requests { get; set; } 
 
         public FloorViewModel(Floor floor)
         :base(floor)
         {
             Height = floor.Height;
-            Requests = (List<IRequestEvent>)floor.Requests;
+            Requests = (List<RequestEvent>)floor.Requests;
             Id = floor.Id;
         }
 
@@ -25,7 +25,7 @@ namespace UI
         {
             return new FloorViewModel(Model)
             {
-                Requests = new List<IRequestEvent>(Requests)
+                Requests = new List<RequestEvent>(Requests)
             };
         }
     }

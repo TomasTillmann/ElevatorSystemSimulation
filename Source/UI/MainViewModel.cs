@@ -135,7 +135,7 @@ namespace UI
             foreach(FloorViewModel floorViewModel in Floors)
             {
                 Floor floor = _Simulation.Building.Floors.Value[i++];
-                floorViewModel.Requests = (List<IRequestEvent>)floor.Requests;
+                floorViewModel.Requests = (List<RequestEvent>)floor.Requests;
             }
         }
 
