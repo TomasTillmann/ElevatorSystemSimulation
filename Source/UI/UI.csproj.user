@@ -10,13 +10,13 @@
     <Compile Update="BuildingView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="ElevatorSystemPickerModalView.xaml.cs">
+    <Compile Update="Modals\ElevatorSystemPickerModalView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="ElevatorView.xaml.cs">
+    <Compile Update="ObjectViews\ElevatorView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="FloorView.xaml.cs">
+    <Compile Update="ObjectViews\FloorView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="MainView.xaml.cs">
@@ -25,7 +25,10 @@
     <Compile Update="MainWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="RequestView.xaml.cs">
+    <Compile Update="ObjectViews\RequestView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Modals\StatisticsModalView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -33,13 +36,13 @@
     <Page Update="BuildingView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="ElevatorSystemPickerModalView.xaml">
+    <Page Update="Modals\ElevatorSystemPickerModalView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="ElevatorView.xaml">
+    <Page Update="ObjectViews\ElevatorView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="FloorView.xaml">
+    <Page Update="ObjectViews\FloorView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="MainView.xaml">
@@ -48,7 +51,10 @@
     <Page Update="MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="RequestView.xaml">
+    <Page Update="ObjectViews\RequestView.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Modals\StatisticsModalView.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

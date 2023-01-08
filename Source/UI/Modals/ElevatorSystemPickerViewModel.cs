@@ -3,6 +3,7 @@ using ElevatorSystemSimulation;
 using ElevatorSystemSimulation.Extensions;
 using ElevatorSystemSimulation.Interfaces;
 using System;
+using System.Buffers;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;

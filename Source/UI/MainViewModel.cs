@@ -140,6 +140,10 @@ namespace UI
                     originalCollection.Add(simulationCollection[i]);
                 }
             }
+            else if(originalCollection.Count != simulationCollection.Count)
+            {
+                originalCollection.Clear();
+            }
         }
 
         private void UpdateElevatorViewModels()
@@ -197,6 +201,27 @@ namespace UI
         }
 
         #region Commands
+
+        public ICommand ShowStatisticsCommand => _ShowStatisticsCommand ??= new CommandHandler<Window>(ShowStatistics, CanShowStatistics);
+        private ICommand _ShowStatisticsCommand;
+
+        private bool CanShowStatistics(Window _)
+        {
+            return _Simulation.IsOver;
+        }
+
+        private void ShowStatistics(Window owner)
+        {
+            if (!CanShowStatistics(owner))
+            {
+                return;
+            }
+
+            StatisticsModalView statisticsView = new(owner, _Simulation.GetStatistics());
+            statisticsView.ShowDialog();
+
+            owner.Opacity = 1;
+        }
 
         public ICommand ShowModalElevatorSystemPickerCommand => _ShowModalElevatorSystemPickerCommand ??= new CommandHandler<Window>(ShowModalElevatorSystemPicker);
         private ICommand _ShowModalElevatorSystemPickerCommand;

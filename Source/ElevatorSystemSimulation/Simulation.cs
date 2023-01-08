@@ -29,6 +29,8 @@ namespace ElevatorSystemSimulation
         private ElevatorSystem ElevatorSystem => _Building.ElevatorSystem;
         private Floors Floors => _Building.Floors;
 
+        List<Request> CurrentlyDepartedRequests = new();
+
         public Simulation(
             Building building,
             IElevatorLogic<TRequest> currentLogic,
@@ -58,6 +60,11 @@ namespace ElevatorSystemSimulation
 
         public void Step()
         {
+            if(_DepartedRequests.Count == AllRequests.Count)
+            {
+                IsOver = true;
+            }
+
             if (IsOver)
             {
                 return;
@@ -96,6 +103,10 @@ namespace ElevatorSystemSimulation
             StepCount = 0;
             LastEvent = null;
             LastAction = null;
+            //
+
+            //restart requests
+            _DepartedRequests.Clear();
             //
 
             _Calendar.Clear();
@@ -166,29 +177,31 @@ namespace ElevatorSystemSimulation
             {
                 elevator.PlanElevator = PlanElevator;
                 elevator.UnplanElevator = UnplanElevator;
+                elevator.AfterStepStateUpdate = AfterStepStateUpdate;
+            }
+        }
+
+        private void AfterStepStateUpdate(List<Request> servedRequests)
+        {
+            foreach(Request req in servedRequests)
+            {
+                //TODO: the cast is super ugly. Making Elevator abstract and parametrizing it should be a better idea and it could fix this.
+                _DepartedRequests.Add((TRequest)req);
+                CurrentlyDepartedRequests.Add(req);
             }
         }
 
         private void PlanElevator(Elevator elevator, Seconds duration, Floor destination, ElevatorAction action)
         {
             _DidClientMadeAction = true;
-            List<Request> currentlyDepartedRequests = new();
 
             if(action == ElevatorAction.MoveTo)
             {
                 //TODO: also had to remove elevators from planned elevators
                 destination._PlannedElevators.Add(elevator);
             }
-            else if(action == ElevatorAction.Unload || action == ElevatorAction.UnloadAndLoad)
-            {
-                foreach(TRequest req in elevator.AttendingRequests.Where(r => r.Destination == destination))
-                {
-                    _DepartedRequests.Add(req);
-                    currentlyDepartedRequests.Add(req);
-                }
-            }
 
-            ElevatorEvent ee = new ElevatorEvent(elevator, CurrentTime + duration, destination, action, currentlyDepartedRequests);
+            ElevatorEvent ee = new ElevatorEvent(elevator, CurrentTime + duration, destination, action, CurrentlyDepartedRequests);
 
             LastAction = ee;
 
@@ -223,6 +236,7 @@ namespace ElevatorSystemSimulation
         {
             LastAction = _DidClientMadeAction ? LastAction : null;
             _DidClientMadeAction = false;
+            CurrentlyDepartedRequests.Clear();
         }
 
         #region Calendar

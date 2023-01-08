@@ -56,7 +56,7 @@ namespace Client
             BasicRequestsGenerator generator = new(new Random(420));
             //
 
-            return new Simulation<BasicRequest>(building, elevatorLogic, generator.Generate(250, floors, 5000.ToSeconds()));
+            return new Simulation<BasicRequest>(building, elevatorLogic, generator.Generate(3, floors, 5000.ToSeconds()));
         }
     }
 }

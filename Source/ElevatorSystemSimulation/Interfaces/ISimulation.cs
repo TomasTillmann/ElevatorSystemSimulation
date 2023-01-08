@@ -10,8 +10,10 @@
             IEvent? LastAction { get; }
             bool IsOver { get; }
             int StepCount { get; }
+
             void Run();
             void Step();
+            StatisticsResult GetStatistics();
         }
 
         public interface ISimulation<TRequest> : ISimulation, IRestartable where TRequest : Request

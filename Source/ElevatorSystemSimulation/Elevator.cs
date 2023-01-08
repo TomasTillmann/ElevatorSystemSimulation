@@ -21,9 +21,10 @@ namespace ElevatorSystemSimulation
 
         public bool IsIdle => PlannedTo is null;
 
-        public IReadOnlyCollection<Interfaces.Request> AttendingRequests => _AttendingRequests;
-        protected readonly List<Interfaces.Request> _AttendingRequests  = new();
+        public IReadOnlyCollection<Request> AttendingRequests => _AttendingRequests;
+        protected readonly List<Request> _AttendingRequests  = new();
 
+        internal Action<List<Request>>? AfterStepStateUpdate { get; set; }
         internal Action<Elevator, Seconds, Floor, ElevatorAction>? PlanElevator { get; set; }
         internal Action<Elevator>? UnplanElevator { get; set; }
 
@@ -117,7 +118,7 @@ namespace ElevatorSystemSimulation
         /// </summary>
         /// <param name="floor"></param>
         /// <param name="requests"></param>
-        public void Load(Floor floor, IEnumerable<Interfaces.Request>? requests = null)
+        public void Load(Floor floor, IEnumerable<Request>? requests = null)
         {
             if (floor is null) return;
             IsFullyInFloor(floor);
@@ -181,7 +182,20 @@ namespace ElevatorSystemSimulation
 
         private void UnloadFloorRequests(Floor floor)
         {
+            List<Request> servedRequests = _AttendingRequests.Where(r => r.Destination == floor).ToList();
+            if (!servedRequests.Any())
+            {
+                return;
+            }
+
             _AttendingRequests.RemoveAll(r => r.Destination == floor);
+
+            if(AfterStepStateUpdate == null)
+            {
+                throw new Exception("Elevator cannot update simulation state. It is not in simulation yet.");
+            }
+
+            AfterStepStateUpdate.Invoke(servedRequests);
         }
 
         public override string ToString() => 

@@ -27,12 +27,20 @@
         <Grid Grid.Column="0"
               Background="SkyBlue">
 
-            <StackPanel Panel.ZIndex="2000" VerticalAlignment="Bottom">
+            <StackPanel Panel.ZIndex="2000" VerticalAlignment="Bottom" Orientation="Horizontal">
                 <Button Content="&#x2699;"
                         Command="{Binding ShowModalElevatorSystemPickerCommand}"
                         CommandParameter="{Binding Owner, ElementName=mainView}"
                         HorizontalAlignment="Left"
                         Margin="10"
+                        FontSize="20"/>
+
+                <Button Content="&#9776;"
+                        Command="{Binding ShowStatisticsCommand}"
+                        CommandParameter="{Binding Owner, ElementName=mainView}"
+                        HorizontalAlignment="Left"
+                        Margin="0,10,10,10"
+                        Padding="5,0,5,0"
                         FontSize="20"/>
             </StackPanel>
 
