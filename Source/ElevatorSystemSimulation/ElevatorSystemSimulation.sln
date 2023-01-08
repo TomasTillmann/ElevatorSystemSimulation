@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElevatorSystemSimulation", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "..\Client\Client.csproj", "{D28B9FFC-E447-4321-B5C2-DFFB52ACC466}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI", "..\UI\UI.csproj", "{30359D8C-066F-461D-853D-229D9452A153}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UI", "..\UI\UI.csproj", "{30359D8C-066F-461D-853D-229D9452A153}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

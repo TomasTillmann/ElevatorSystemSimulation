@@ -6,25 +6,6 @@ using System.Threading.Tasks;
 
 namespace ElevatorSystemSimulation
 {
-    public interface IStateDecisionTreeNode<StateType, ContextType>
-    {
-        public ContextType Context { get; }
-        public bool Execute(StateType state);
-    }
-
-    public abstract class StateDecisionTreeActionNode<StateType, ContextType> : IStateDecisionTreeNode<StateType, ContextType>
-    {
-        public ContextType Context { get; }
-
-        protected StateDecisionTreeActionNode(ContextType context)
-        {
-            Context = context;
-        }
-
-        /// Should return true if executed successfully
-        public abstract bool Execute(StateType state);
-    }
-
     public abstract class StateDecisionTreeConditionNode<StateType, ContextType> : IStateDecisionTreeNode<StateType, ContextType>
     {
         public ContextType Context { get; }

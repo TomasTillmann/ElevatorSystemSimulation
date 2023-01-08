@@ -8,6 +8,9 @@ using ElevatorSystemSimulation.Extensions;
 
 namespace Client
 {
+    /// <summary>
+    /// This is used on startup.
+    /// </summary>
     public class SimulationProvider
     {
         public static Simulation<BasicRequest> GetSimulation()
@@ -46,12 +49,8 @@ namespace Client
             Building building = new(floors, elevatorSystem);
 
 
-            // Only one algorithm for now - TODO
             Hungry elevatorLogic = new(building);
             //DestinationDispatch elevatorLogic = new(building);
-            //
-
-            ////
 
             // Will be able to pick in the future - TODO
             BasicRequestsGenerator generator = new(new Random(420));

@@ -186,38 +186,4 @@ namespace ElevatorSystemSimulation
         #endregion
 
     }
-
-    public abstract class ConditionAfterElevatorEvent<TContextType> : StateDecisionTreeConditionNode<ISimulationState<ElevatorEvent>, TContextType> where TContextType : IElevatorLogic
-    {
-        protected ConditionAfterElevatorEvent(
-            IStateDecisionTreeNode<ISimulationState<ElevatorEvent>, TContextType> onTrue,
-            IStateDecisionTreeNode<ISimulationState<ElevatorEvent>, TContextType> onFalse,
-            TContextType context
-        )
-        : base(onTrue, onFalse, context) { }
-
-        protected ConditionAfterElevatorEvent(TContextType context) : base(context) { }
-    }
-
-    public abstract class ActionAfterElevatorEvent<TContextType> : StateDecisionTreeActionNode<ISimulationState<ElevatorEvent>, TContextType> where TContextType : IElevatorLogic
-    {
-        protected ActionAfterElevatorEvent(TContextType context) : base(context) { }
-    }
-
-    public abstract class ConditionAfterRequestEvent<TContextType, TRequestType> : StateDecisionTreeConditionNode<ISimulationState<TRequestType>, TContextType> where TContextType : IElevatorLogic where TRequestType : Interfaces.Request 
-    {
-        protected ConditionAfterRequestEvent(
-            IStateDecisionTreeNode<ISimulationState<TRequestType>, TContextType> onTrue,
-            IStateDecisionTreeNode<ISimulationState<TRequestType>, TContextType> onFalse,
-            TContextType context
-        )
-        : base(onTrue, onFalse, context) { }
-
-        protected ConditionAfterRequestEvent(TContextType context) : base(context) { }
-    }
-
-    public abstract class ActionAfterRequestEvent<TContextType, TRequestType> : StateDecisionTreeActionNode<ISimulationState<TRequestType>, TContextType> where TContextType : IElevatorLogic where TRequestType : Interfaces.Request
-    {
-        protected ActionAfterRequestEvent(TContextType context) : base(context) { }
-    }
 }
