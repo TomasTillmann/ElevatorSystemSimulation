@@ -3,15 +3,18 @@ using ElevatorSystemSimulation.Extensions;
 
 namespace ElevatorSystemSimulation
 {
-    public sealed class Simulation<TRequest> : IRestartable, ISimulation where TRequest : Request
+    public sealed class Simulation<TRequest> : IRestartable, ISimulation<TRequest> where TRequest : Request
     {
         private Calendar _Calendar { get; set; } = new();
         private Seconds _LastStepTime = 0.ToSeconds();
         private bool _DidClientMadeAction;
         private Statistics<TRequest> Statistics = new();
 
-        public List<TRequest> AllRequests;
-        public List<TRequest> DepartedRequests = new();
+        public List<TRequest> _AllRequests;
+        public List<TRequest> _DepartedRequests = new();
+
+        public IReadOnlyList<TRequest> AllRequests => _AllRequests;
+        public IReadOnlyList<TRequest> DepartedRequests => _DepartedRequests;
 
         public Building Building { get => _Building; set { _Building = value; Restart(); } }
         private Building _Building;
@@ -32,10 +35,10 @@ namespace ElevatorSystemSimulation
             List<TRequest> requests)
         {
             CurrentLogic = currentLogic;
-            AllRequests = requests;
+            _AllRequests = requests;
             _Building = building;
 
-            _Calendar.Init(AllRequests);
+            _Calendar.Init(_AllRequests);
 
             SetElevatorsIPlannableProperties();
 
@@ -78,7 +81,7 @@ namespace ElevatorSystemSimulation
 
         public StatisticsResult GetStatistics()
         {
-            return Statistics.GetResult(AllRequests.Select(r => (Request)r).ToList(), ElevatorSystem.Elevators);
+            return Statistics.GetResult(_AllRequests.Select(r => (Request)r).ToList(), ElevatorSystem.Elevators);
         }
 
         public void Restart()
@@ -96,7 +99,7 @@ namespace ElevatorSystemSimulation
             //
 
             _Calendar.Clear();
-            _Calendar.Init(AllRequests);
+            _Calendar.Init(_AllRequests);
         }
 
         //TODO: ugly
@@ -123,8 +126,6 @@ namespace ElevatorSystemSimulation
         {
             if (state.CurrentEvent is TRequest ce)
             {
-                ce.EventLocation._Requests.Add(ce);
-
                 Statistics.Update(new SimulationState<TRequest>(ce, state.CurrentTime));
             }
             else if (state.CurrentEvent is ElevatorEvent ee)
@@ -182,7 +183,7 @@ namespace ElevatorSystemSimulation
             {
                 foreach(TRequest req in elevator.AttendingRequests.Where(r => r.Destination == destination))
                 {
-                    DepartedRequests.Add(req);
+                    _DepartedRequests.Add(req);
                     currentlyDepartedRequests.Add(req);
                 }
             }

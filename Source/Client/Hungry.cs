@@ -31,10 +31,9 @@ namespace Client
             }
 
             // find the closest generally
-            elevators = Building.ElevatorSystem.Elevators.FindMinSubset(e => Math.Abs((e.Location - state.Event.Location).Value), int.MaxValue);
+            //elevators = Building.ElevatorSystem.Elevators.FindMinSubset(e => Math.Abs((e.Location - state.Event.Location).Value), int.MaxValue);
 
-            elevator = elevators.First();
-            elevator.MoveTo(state.Event.EventLocation);
+            //elevator.MoveTo(state.Event.EventLocation);
         }
 
         /// <summary>
@@ -52,7 +51,7 @@ namespace Client
                     if(state.Event.EventLocation.Requests.Any()
                     || elevator.AttendingRequests.Any(r => r.Destination == state.Event.EventLocation))
                     {
-                        elevator.Unload(state.Event.EventLocation);
+                        elevator.UnloadAndLoad(state.Event.EventLocation);
                     }
                     else
                     {
@@ -62,7 +61,7 @@ namespace Client
 
                     break;
 
-                case ElevatorAction.Load:
+                case ElevatorAction.UnloadAndLoad:
                     if (elevator.AttendingRequests.Any())
                     {
                         Floor floor = GetClosestRequestOutFloor(elevator);
@@ -73,11 +72,6 @@ namespace Client
                         Floor? floor = GetClosestRequestInFloor(state);
                         elevator.MoveTo(floor != null ? floor : state.Event.EventLocation);
                     }
-
-                    break;
-
-                case ElevatorAction.Unload:
-                    elevator.Load(state.Event.EventLocation);
 
                     break;
 

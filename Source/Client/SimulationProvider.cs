@@ -40,9 +40,9 @@ namespace Client
             ElevatorSystem elevatorSystem = new ElevatorSystem(
                 new List<Elevator>()
                 {
-                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
-                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
-                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
+                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 5.ToSeconds(), 10),
+                    //new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
+                    //new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
                 }
             );
 
@@ -56,7 +56,7 @@ namespace Client
             BasicRequestsGenerator generator = new(new Random(420));
             //
 
-            return new Simulation<BasicRequest>(building, elevatorLogic, generator.Generate(500, floors, 5000.ToSeconds()));
+            return new Simulation<BasicRequest>(building, elevatorLogic, generator.Generate(250, floors, 5000.ToSeconds()));
         }
     }
 }

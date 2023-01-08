@@ -17,7 +17,7 @@ namespace UI
     public class MainViewModel : DependencyObject
     {
         // Model
-        private ISimulation _Simulation { get; set; }
+        private ISimulation<BasicRequest> _Simulation { get; set; }
         //
 
         #region History
@@ -41,6 +41,12 @@ namespace UI
 
         public int CurrentTime { get { return (int)GetValue(CurrentTimeProperty); } set { SetValue(CurrentTimeProperty, value); } }
         public static readonly DependencyProperty CurrentTimeProperty = DependencyProperty.Register("CurrentTime", typeof(int), typeof(MainViewModel));
+
+        public ObservableCollection<BasicRequest> ServedRequests  { get { return (ObservableCollection<BasicRequest>)GetValue(ServedRequestsProperty); } set { SetValue(ServedRequestsProperty, value); } }
+        public static readonly DependencyProperty ServedRequestsProperty = DependencyProperty.Register("ServedRequests", typeof(ObservableCollection<BasicRequest>), typeof(MainViewModel));
+
+        public ObservableCollection<BasicRequest> AllRequests  { get { return (ObservableCollection<BasicRequest>)GetValue(AllRequestsProperty); } set { SetValue(AllRequestsProperty, value); } }
+        public static readonly DependencyProperty AllRequestsProperty = DependencyProperty.Register("AllRequestskk", typeof(ObservableCollection<BasicRequest>), typeof(MainViewModel));
 
         public IEventViewModel? LastEvent { get { return (IEventViewModel?)GetValue(LastEventProperty); } set { SetValue(LastEventProperty, value); } }
         public static readonly DependencyProperty LastEventProperty = DependencyProperty.Register("LastEvent", typeof(IEventViewModel), typeof(MainViewModel));
@@ -100,6 +106,9 @@ namespace UI
 
             Elevators = _Simulation.Building.ElevatorSystem.Elevators.Select(e => new ElevatorViewModel(e)).ToList();
             Floors = _Simulation.Building.Floors.Value.Select(f => new FloorViewModel(f)).ToList();
+
+            ServedRequests = new ObservableCollection<BasicRequest>(_Simulation.DepartedRequests);
+            AllRequests = new ObservableCollection<BasicRequest>(_Simulation.AllRequests);
         }
 
         private Simulation<BasicRequest> GetInitSimulation()
@@ -111,11 +120,26 @@ namespace UI
         {
             StepCount = _Simulation.StepCount;
             CurrentTime = _Simulation.CurrentTime.Value;
+
+            UpdateRequests(AllRequests, _Simulation.AllRequests);
+            UpdateRequests(ServedRequests, _Simulation.DepartedRequests);
+
             UpdateLastEvent();
             UpdateLastAction();
 
             UpdateElevatorViewModels();
             UpdateFloorViewModels();
+        }
+
+        private void UpdateRequests(ICollection<BasicRequest> originalCollection, IReadOnlyList<BasicRequest> simulationCollection)
+        {
+            if(originalCollection.Count < simulationCollection.Count)
+            {
+                for(int i = originalCollection.Count; i < simulationCollection.Count; i++)
+                {
+                    originalCollection.Add(simulationCollection[i]);
+                }
+            }
         }
 
         private void UpdateElevatorViewModels()

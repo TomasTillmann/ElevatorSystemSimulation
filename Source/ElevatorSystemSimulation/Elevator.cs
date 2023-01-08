@@ -1,5 +1,6 @@
 ﻿using ElevatorSystemSimulation.Extensions;
 using ElevatorSystemSimulation.Interfaces;
+using System.Drawing;
 
 namespace ElevatorSystemSimulation
 {
@@ -66,17 +67,10 @@ namespace ElevatorSystemSimulation
             Location = 0.ToCentimeters();
         }
 
-        public void MoveTo(Floor? floor)
+        public void MoveTo(Floor floor)
         {
-            if (floor == null)
-            {
-                return;
-            }
-
-            if (!IsIdle)
-            {
-                UnplanMe();
-            }
+            if (floor is null) return;
+            Replan();
 
             PlannedTo = floor;
 
@@ -88,22 +82,11 @@ namespace ElevatorSystemSimulation
             PlanMe(GetDistance(floor.Location) / TravelSpeed, floor, ElevatorAction.MoveTo);
         }
 
-        public void Idle(Floor? floor)
+        public void Idle(Floor floor)
         {
-            if(floor == null)
-            {
-                return;
-            }
-
-            if (Location != floor.Location)
-            {
-                throw new Exception("Elevator cannot Idle. Elevators can Idle only when fully in the floor where the elevator currently is.");
-            }
-
-            if (!IsIdle)
-            {
-                UnplanMe();
-            }
+            if (floor is null) return;
+            IsFullyInFloor(floor);
+            Replan();
 
             PlannedTo = null;
 
@@ -112,27 +95,16 @@ namespace ElevatorSystemSimulation
             PlanMe(0.ToSeconds(), floor, ElevatorAction.Idle);
         }
 
-        public void UnloadAndLoad(Floor? floor)
+        public void UnloadAndLoad(Floor floor)
         {
-            if(floor == null)
-            {
-                return;
-            }
-
-            if (Location != floor.Location)
-            {
-                throw new Exception("Elevator cannot load and unload people. Elevators can load and unload people only when fully in a floor.");
-            }
-
-            if (!IsIdle)
-            {
-                UnplanMe();
-            }
+            if (floor is null) return;
+            IsFullyInFloor(floor);
+            Replan();
 
             PlannedTo = floor;
 
-            Unload(floor);
-            Load(floor);
+            UnloadFloorRequests(floor);
+            LoadFloorRequests(floor, floor.Requests);
 
             LastDirection = Direction;
             Direction = Direction.NoDirection;
@@ -145,36 +117,12 @@ namespace ElevatorSystemSimulation
         /// </summary>
         /// <param name="floor"></param>
         /// <param name="requests"></param>
-        public void Load(Floor? floor, IEnumerable<Interfaces.Request>? requests = null)
+        public void Load(Floor floor, IEnumerable<Interfaces.Request>? requests = null)
         {
-            if(floor == null)
-            {
-                return;
-            }
-
-            if (Location != floor.Location)
-            {
-                throw new Exception("Elevator cannot load people. Elevators can load people only when fully in a floor.");
-            }
-
-            if (!IsIdle)
-            {
-                UnplanMe();
-            }
-
-            requests = requests == null ? floor.Requests : requests;
-
-            HashSet<Interfaces.Request> requestsToDelete = new();
-            foreach(Interfaces.Request request in requests)
-            {
-                if(_AttendingRequests.Count < Capacity)
-                {
-                    _AttendingRequests.Add(request);
-                    requestsToDelete.Add(request);
-                }
-            }
-
-            floor._Requests.RemoveAll(r => requestsToDelete.Contains(r));
+            if (floor is null) return;
+            IsFullyInFloor(floor);
+            LoadFloorRequests(floor, requests is null ? floor.Requests : requests);
+            Replan();
 
             PlannedTo = floor;
             LastDirection = Direction;
@@ -186,29 +134,54 @@ namespace ElevatorSystemSimulation
         /// Unloads all the people that want to get out at this floor.
         /// </summary>
         /// <param name="floor"></param>
-        public void Unload(Floor? floor)
+        public void Unload(Floor floor)
         {
-            if(floor == null)
-            {
-                return;
-            }
-
-            if (Location != floor.Location)
-            {
-                throw new Exception("Elevator cannot unload people. Elevators can unload people only when fully in a floor.");
-            }
-
-            if (!IsIdle)
-            {
-                UnplanMe();
-            }
-
-            _AttendingRequests.RemoveAll(r => r.Destination == floor);
+            if (floor is null) return;
+            IsFullyInFloor(floor);
+            UnloadFloorRequests(floor);
+            Replan();
 
             PlannedTo = floor;
             LastDirection = Direction;
             Direction = Direction.NoDirection;
             PlanMe(DepartingTime, floor, ElevatorAction.Unload);
+        }
+
+        private void IsFullyInFloor(Floor floor)
+        {
+            if (Location != floor.Location)
+            {
+                throw new Exception("Elevator cannot be planned with this action when not fully in the floor.");
+            }
+        }
+
+        /// Unplans the last planned action. This allows for replanning. For example, if elevator in previous step was planned to move to floor 7, but now, it is planned to floor 5, it will not go to floor 7 and go to floor 5 only. Deleting the move to floor 7 plan entirely.
+        private void Replan()
+        {
+            if (!IsIdle)
+            {
+                UnplanMe();
+            }
+        }
+
+        private void LoadFloorRequests(Floor floor, IEnumerable<Request> requests)
+        {
+            HashSet<Request> requestsToDelete = new();
+            foreach (Request request in requests)
+            {
+                if (_AttendingRequests.Count < Capacity)
+                {
+                    _AttendingRequests.Add(request);
+                    requestsToDelete.Add(request);
+                }
+            }
+
+            floor._Requests.RemoveAll(r => requestsToDelete.Contains(r));
+        }
+
+        private void UnloadFloorRequests(Floor floor)
+        {
+            _AttendingRequests.RemoveAll(r => r.Destination == floor);
         }
 
         public override string ToString() => 

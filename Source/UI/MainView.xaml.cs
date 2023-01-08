@@ -29,6 +29,8 @@ namespace UI
         {
             InitializeComponent();
 
+            KeyDown += OnKeyDown;
+
             stepButton.Click += DataContext.Step;
             stepButton.Click += buildingView.Update;
 
@@ -72,6 +74,28 @@ namespace UI
                 SidePanelScale += 0.1;
             }
         }
+        #endregion
+
+        #region KeyPressListening
+
+        private void OnKeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.K:
+                    DataContext.Step();
+                    buildingView.UpdateViewAfterStep();
+
+                    break;
+
+                case Key.J:
+                    DataContext.StepBack();
+                    buildingView.UpdateViewAfterStep();
+
+                    break;
+            }
+        }
+
         #endregion
     }
 }

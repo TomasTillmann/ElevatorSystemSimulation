@@ -39,6 +39,8 @@
             <StackPanel Panel.ZIndex="2000">
                 <TextBlock Text="{Binding StepCount, StringFormat={}Step Count: {0}}" FontSize="20" Margin="20,20,0,0"/>
                 <TextBlock Text="{Binding CurrentTime, StringFormat={}Current Time: {0} s}" FontSize="20" Margin="20,10,0,0"/>
+                <TextBlock Text="{Binding AllRequests.Count, StringFormat={}All: {0}}" FontSize="20" Margin="20,10,0,0"/>
+                <TextBlock Text="{Binding ServedRequests.Count, StringFormat={}Served: {0}}" FontSize="20" Margin="20,10,0,0"/>
             </StackPanel>
 
             <ScrollViewer  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
@@ -73,13 +75,13 @@
                     <RepeatButton Grid.Column="0" 
                                       x:Name="stepBackButton"
                                       Content="Step Back"
-                                      Delay="500" Interval="50"
+                                      Delay="250" Interval="30"
                                       Margin="6"/>
 
                     <RepeatButton Grid.Column="1" 
                                       x:Name="stepButton"
                                       Content="Step"
-                                      Delay="500" Interval="50" 
+                                      Delay="250" Interval="30" 
                                       Margin="6"/>
 
                     <Button Grid.Column="2"
