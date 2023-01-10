@@ -41,22 +41,23 @@ namespace Client
                 new List<Elevator>()
                 {
                     new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 5.ToSeconds(), 10),
-                    //new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
-                    //new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
+                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
+                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
                 }
             );
 
             Building building = new(floors, elevatorSystem);
 
 
-            Hungry elevatorLogic = new(building);
+            SCAN elevatorLogic = new(building);
+            //Hungry elevatorLogic = new(building);
             //DestinationDispatch elevatorLogic = new(building);
 
             // Will be able to pick in the future - TODO
             BasicRequestsGenerator generator = new(new Random(420));
             //
 
-            return new Simulation<BasicRequest>(building, elevatorLogic, generator.Generate(3, floors, 5000.ToSeconds()));
+            return new Simulation<BasicRequest>(building, elevatorLogic, generator.Generate(250, floors, 5000.ToSeconds()));
         }
     }
 }

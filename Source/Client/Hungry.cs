@@ -44,6 +44,12 @@ namespace Client
         {
             Elevator elevator = state.Event.Elevator;
 
+            if(elevator.AttendingRequests.Count == elevator.Capacity)
+            {
+                elevator.MoveTo(GetClosestRequestOutFloor(elevator));
+                return;
+            }
+
             switch (state.Event.FinishedAction)
             {
                 case ElevatorAction.MoveTo:
@@ -56,7 +62,14 @@ namespace Client
                     else
                     {
                         Floor? floor = GetClosestRequestInFloor(state);
-                        elevator.MoveTo(floor != null ? floor : state.Event.EventLocation);
+                        if(floor is null)
+                        {
+                            elevator.Idle(state.Event.EventLocation);
+                        }
+                        else
+                        {
+                            elevator.MoveTo(floor);
+                        }
                     }
 
                     break;

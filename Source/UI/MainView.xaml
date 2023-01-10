@@ -148,7 +148,7 @@
 
                         <DataTemplate x:Key="lastActionTemplate" DataType="{x:Type local:ElevatorEventViewModel}">
                             <StackPanel Margin="20,0,0,0">
-                                <TextBlock Text="Last Action" Margin="0,10,0,10" FontSize="25"/>
+                                <TextBlock Text="Planned Action" Margin="0,10,0,10" FontSize="25"/>
                                 <TextBlock Text="Info" FontSize="16"/>
                                 <TextBlock Text="{Binding FinishedAction, StringFormat={}Planned Action: {0}}" FontSize="14"/>
                                 <TextBlock Text="{Binding EventLocation.Id, StringFormat={}To Floor: {0}}" FontSize="14"/>

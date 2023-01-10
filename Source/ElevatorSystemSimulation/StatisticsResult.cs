@@ -19,13 +19,13 @@ namespace ElevatorSystemSimulation
             RequestInfos = requestInfos;
             ElevatorInfos = elevatorInfos;
 
-            AverageWaitingTimeOnFloor = CalcAverage(RequestInfos.Select(r => r.WaitingTimeOnFloor));
-            AverageWaitingTimeInElevator = CalcAverage(RequestInfos.Select(r => r.WaitingTimeInElevator));
-            AverageElevatorIdleTime = CalcAverage(ElevatorInfos.Select(e => e.TotalIdleTime));
-            AverageServedRequestsPerElevatorCount = CalcAverage(ElevatorInfos.Select(e => e.ServedRequestsCount));
+            AverageWaitingTimeOnFloor = CalcAverage(RequestInfos.Where(r => r is not null).Select(r => r.WaitingTimeOnFloor));
+            AverageWaitingTimeInElevator = CalcAverage(RequestInfos.Where(r=> r is not null).Select(r => r.WaitingTimeInElevator));
+            AverageElevatorIdleTime = CalcAverage(ElevatorInfos.Where(r=> r is not null).Select(e => e.TotalIdleTime));
+            AverageServedRequestsPerElevatorCount = CalcAverage(ElevatorInfos.Where(r => r is not null).Select(e => e.ServedRequestsCount));
 
-            MaxWaitingTimeOnFloor = RequestInfos.FindMaxSubset(r => r.WaitingTimeOnFloor.Value, int.MinValue).First().WaitingTimeOnFloor;
-            MaxWaitingTimeInElevator = RequestInfos.FindMaxSubset(r => r.WaitingTimeInElevator.Value, int.MinValue).First().WaitingTimeInElevator;
+            MaxWaitingTimeOnFloor = RequestInfos.Where(r => r is not null).FindMaxSubset(r => r.WaitingTimeOnFloor.Value, int.MinValue).FirstOrDefault()?.WaitingTimeOnFloor ?? 0.ToSeconds();
+            MaxWaitingTimeInElevator = RequestInfos.Where(r => r is not null).FindMaxSubset(r => r.WaitingTimeInElevator.Value, int.MinValue).FirstOrDefault()?.WaitingTimeInElevator ?? 0.ToSeconds();
         }
 
         private static Seconds CalcAverage(IEnumerable<Seconds> values)
@@ -42,6 +42,16 @@ namespace ElevatorSystemSimulation
             {
                 sum += value;
                 count += 1;
+            }
+
+            if(sum == 0 && count == 0)
+            {
+                return 0;
+            }
+
+            if(count == 0)
+            {
+                return int.MaxValue;
             }
 
             return sum / count; 

@@ -16,7 +16,7 @@
         WindowStyle="None"
         WindowStartupLocation="CenterOwner"
         Style="{StaticResource modalWindow}"
-         xmlns:es="clr-namespace:ElevatorSystemSimulation;assembly=ElevatorSystemSimulation"
+        xmlns:es="clr-namespace:ElevatorSystemSimulation;assembly=ElevatorSystemSimulation"
         x:Name="statisticsModalView"
         Title="Statistics">
 
@@ -128,6 +128,12 @@
                     <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="100"/>
                 </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" x:Name="exportCommand"
+                        Command="{Binding ExportCommand}"
+                        CommandParameter="{Binding Path=ExportInfo, ElementName=statisticsModalView}"
+                        Content="Export"
+                        Margin="5,10,10,10"/>
 
                 <Button x:Name="backCommand"
                         Grid.Column="1"

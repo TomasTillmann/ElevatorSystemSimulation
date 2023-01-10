@@ -215,8 +215,10 @@ namespace ElevatorSystemSimulation
 
         private void UpdateStateBeforeStep(IEvent e)
         {
+            CurrentlyDepartedRequests.Clear();
             SetCurrentTime(e.WhenPlanned);
-            SetElevatorsLocations(e);
+
+            UpdateElevators(e);
 
             //TODO: I think this is not correct, but somehow it works fine
             if (e is ElevatorEvent ee)
@@ -232,11 +234,30 @@ namespace ElevatorSystemSimulation
             LastEvent = e;
         }
 
+        private void UpdateElevators(IEvent e)
+        {
+            SetElevatorsLocations(e);
+            if (e is ElevatorEvent ee)
+            {
+                if(ee.FinishedAction is ElevatorAction.UnloadAndLoad)
+                {
+                    ee.Elevator.UnloadAndLoadAction();
+                }
+                else if(ee.FinishedAction is ElevatorAction.Load)
+                {
+                    ee.Elevator.LoadAction();
+                }
+                else if(ee.FinishedAction is ElevatorAction.Unload)
+                {
+                    ee.Elevator.UnloadAction();
+                }
+            }
+        }
+
         private void UpdateStateAfterStep()
         {
             LastAction = _DidClientMadeAction ? LastAction : null;
             _DidClientMadeAction = false;
-            CurrentlyDepartedRequests.Clear();
         }
 
         #region Calendar

@@ -8,7 +8,8 @@ namespace ElevatorSystemSimulation
     {
         #region Identification
 
-        public int Id { get; internal set; }
+        public int Id { get { return _Id; } internal set { _Id = value; Info.ElevatorId = value; } }
+        private int _Id;
 
         #endregion
 
@@ -28,7 +29,7 @@ namespace ElevatorSystemSimulation
         internal Action<Elevator, Seconds, Floor, ElevatorAction>? PlanElevator { get; set; }
         internal Action<Elevator>? UnplanElevator { get; set; }
 
-        internal ElevatorInfo? Info { get; set; } = new(0.ToSeconds(), 0, 0);
+        internal ElevatorInfo Info { get; set; }
 
         public void Restart()
         {
@@ -50,6 +51,7 @@ namespace ElevatorSystemSimulation
 
         #endregion
 
+        private IEnumerable<Request>? DepartRequests;
 
         public Elevator(
             CentimetersPerSecond travelSpeed,
@@ -66,6 +68,8 @@ namespace ElevatorSystemSimulation
             DepartingTime = departingTime;
             Capacity = capacity;
             Location = 0.ToCentimeters();
+
+            Info = new(0.ToSeconds(), 0, 0);
         }
 
         public void MoveTo(Floor floor)
@@ -74,7 +78,6 @@ namespace ElevatorSystemSimulation
             Replan();
 
             PlannedTo = floor;
-
             LastDirection = Direction;
             Direction = (floor.Location - Location).Value > 0
                 ? Direction.Up
@@ -90,9 +93,9 @@ namespace ElevatorSystemSimulation
             Replan();
 
             PlannedTo = null;
-
             LastDirection = Direction;
             Direction = Direction.NoDirection;
+
             PlanMe(0.ToSeconds(), floor, ElevatorAction.Idle);
         }
 
@@ -103,12 +106,9 @@ namespace ElevatorSystemSimulation
             Replan();
 
             PlannedTo = floor;
-
-            UnloadFloorRequests(floor);
-            LoadFloorRequests(floor, floor.Requests);
-
             LastDirection = Direction;
             Direction = Direction.NoDirection;
+
             PlanMe(DepartingTime, floor, ElevatorAction.UnloadAndLoad);
         }
 
@@ -122,12 +122,13 @@ namespace ElevatorSystemSimulation
         {
             if (floor is null) return;
             IsFullyInFloor(floor);
-            LoadFloorRequests(floor, requests is null ? floor.Requests : requests);
             Replan();
 
+            DepartRequests = requests ?? floor.Requests;
             PlannedTo = floor;
             LastDirection = Direction;
             Direction = Direction.NoDirection;
+
             PlanMe(DepartingTime, floor, ElevatorAction.Load);
         }
 
@@ -139,13 +140,29 @@ namespace ElevatorSystemSimulation
         {
             if (floor is null) return;
             IsFullyInFloor(floor);
-            UnloadFloorRequests(floor);
             Replan();
 
             PlannedTo = floor;
             LastDirection = Direction;
             Direction = Direction.NoDirection;
+
             PlanMe(DepartingTime, floor, ElevatorAction.Unload);
+        }
+
+        internal void UnloadAndLoadAction()
+        {
+            UnloadFloorRequests(PlannedTo!);
+            LoadFloorRequests(PlannedTo!, PlannedTo!.Requests);
+        }
+
+        internal void UnloadAction()
+        {
+            UnloadFloorRequests(PlannedTo!);
+        }
+
+        internal void LoadAction()
+        {
+            LoadFloorRequests(PlannedTo!, PlannedTo!.Requests);
         }
 
         private void IsFullyInFloor(Floor floor)

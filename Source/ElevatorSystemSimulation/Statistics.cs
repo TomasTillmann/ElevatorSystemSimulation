@@ -11,6 +11,8 @@ namespace ElevatorSystemSimulation
     // Total Idle time and in use time by each elevator
     public class Statistics<TRequest> where TRequest : Request
     {
+        private HashSet<Elevator> IdleElevs = new();
+
         /// <summary>
         /// When this is triggered by simulation, it means, that the request just happened.
         /// </summary>
@@ -50,12 +52,14 @@ namespace ElevatorSystemSimulation
 
                 case ElevatorAction.Idle:
                     elevator.Info.StartOfIdle = state.Time;
+                    IdleElevs.Add(elevator);
                     break;
             }
 
-            if(state.Event.FinishedAction != ElevatorAction.Idle)
+            if(state.Event.FinishedAction != ElevatorAction.Idle && IdleElevs.Contains(elevator))
             {
-                elevator.Info.TotalIdleTime += elevator.Info.StartOfIdle + (state.Time - elevator.Info.StartOfIdle);
+                elevator.Info.TotalIdleTime += state.Time - elevator.Info.StartOfIdle;
+                IdleElevs.Remove(elevator);
             }
         }
 
@@ -77,7 +81,7 @@ namespace ElevatorSystemSimulation
             foreach (Request req in freshlyInElevator)
             {
                 // end of waiting in floor
-                req.Info.WaitingTimeOnFloor = req.Info.StartOfWaiting + (state.Time - req.Info.StartOfWaiting);
+                req.Info.WaitingTimeOnFloor = state.Time - req.Info.StartOfWaiting;
                 req.Info.ServingElevator = elevator;
 
                 // now start of waiting in elevator
@@ -94,7 +98,7 @@ namespace ElevatorSystemSimulation
             foreach(Request req in state.Event.DepartedRequests)
             {
                 // end of waiting in elevator
-                req.Info.WaitingTimeInElevator = req.Info.StartOfWaiting + (state.Time - req.Info.StartOfWaiting);
+                req.Info.WaitingTimeInElevator = state.Time - req.Info.StartOfWaiting;
                 elevator.Info.ServedRequestsCount += 1;
             }
         }

@@ -107,8 +107,32 @@ namespace UI
             Elevators = _Simulation.Building.ElevatorSystem.Elevators.Select(e => new ElevatorViewModel(e)).ToList();
             Floors = _Simulation.Building.Floors.Value.Select(f => new FloorViewModel(f)).ToList();
 
-            ServedRequests = new ObservableCollection<BasicRequest>(_Simulation.DepartedRequests);
-            AllRequests = new ObservableCollection<BasicRequest>(_Simulation.AllRequests);
+            UpdateRequests(simulation);
+        }
+
+        private void UpdateRequests(Simulation<BasicRequest> simulation)
+        {
+            if(ServedRequests is null)
+            {
+                ServedRequests = new ObservableCollection<BasicRequest>(_Simulation.DepartedRequests);
+            }
+            else
+            {
+                ServedRequests.Clear();
+            }
+
+            if(AllRequests is null)
+            {
+                AllRequests = new ObservableCollection<BasicRequest>(_Simulation.AllRequests);
+            }
+            else
+            {
+                //NOTE: Doing this to update the view. PropertyChanged event is not triggered by assignment only.
+                foreach(BasicRequest req in _Simulation.AllRequests)
+                {
+                    AllRequests.Add(req);
+                }
+            }
         }
 
         private Simulation<BasicRequest> GetInitSimulation()
@@ -207,7 +231,7 @@ namespace UI
 
         private bool CanShowStatistics(Window _)
         {
-            return _Simulation.IsOver;
+            return true; 
         }
 
         private void ShowStatistics(Window owner)
@@ -217,7 +241,7 @@ namespace UI
                 return;
             }
 
-            StatisticsModalView statisticsView = new(owner, _Simulation.GetStatistics());
+            StatisticsModalView statisticsView = new(owner, _Simulation.GetStatistics(), _Simulation);
             statisticsView.ShowDialog();
 
             owner.Opacity = 1;

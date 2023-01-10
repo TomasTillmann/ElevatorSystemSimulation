@@ -51,9 +51,7 @@ namespace UI
             Algorithms.Add(new AlgorithmInModalViewModel(ElevatorLogicType.Hungry, "Hungry", "Chooses always the closest elevators. Leads to starvation. Can't be used generally."));
             Algorithms.Add(new AlgorithmInModalViewModel(ElevatorLogicType.DestinationDispatch, "DestinationDispatch", "User Specifies destination before getting to the elevator. Can group people with the same destination then."));
 
-            //TODO - delete
-            //Select(Algorithms.FirstOrDefault());
-            Select(Algorithms[2]);
+            Select(Algorithms.FirstOrDefault());
         }
 
         #region Commands
@@ -75,7 +73,7 @@ namespace UI
                 BasicRequestsGenerator generator = new(new Random(420));
                 //
 
-                ResultingSimulation = new Simulation<BasicRequest>(building, Algorithm, generator.Generate(500, floors, TotalSimulationTime.ToSeconds()));
+                ResultingSimulation = new Simulation<BasicRequest>(building, Algorithm, generator.Generate(250, floors, TotalSimulationTime.ToSeconds()));
 
                 modalWindow.DialogResult = true;
                 OnWindowClosing(modalWindow);

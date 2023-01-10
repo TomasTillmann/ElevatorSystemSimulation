@@ -18,6 +18,7 @@
 
         public interface ISimulation<TRequest> : ISimulation, IRestartable where TRequest : Request
         {
+            IElevatorLogic<TRequest> CurrentLogic { get; }
             IReadOnlyList<TRequest> AllRequests { get; }
             IReadOnlyList<TRequest> DepartedRequests { get; }
 

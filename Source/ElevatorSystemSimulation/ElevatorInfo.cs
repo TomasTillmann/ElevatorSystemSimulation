@@ -2,6 +2,7 @@
 {
     public class ElevatorInfo
     {
+        public int ElevatorId { get; set; }
         public Seconds TotalIdleTime { get; set; }
         public int DeparturesCount { get; set; }
         public int ServedRequestsCount { get; set; }
