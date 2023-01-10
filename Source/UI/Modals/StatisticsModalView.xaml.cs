@@ -35,7 +35,7 @@ namespace UI
             Owner = owner;
             Owner.Opacity = 0.5;
             Stats = stats;
-            string exportFileName = $"{simulation.CurrentLogic}_{simulation.Building.ElevatorSystem.Elevators.Count}_{simulation.Building.Floors.Value.Count}_{DateTime.UtcNow.Date.DayOfYear}";
+            string exportFileName = $"{simulation.CurrentLogic}_{simulation.Building.ElevatorSystem.Elevators.Count}_{simulation.Building.Floors.Value.Count}_{DateTime.UtcNow.Date.DayOfYear}.{DateTime.UtcNow.Date.Month}_{DateTime.UtcNow.Hour}h{DateTime.UtcNow.Minute}m{DateTime.UtcNow.Second}s";
             ExportInfo = new(exportFileName, new StatsViewModel(stats));
 
             InitializeComponent();
@@ -85,6 +85,7 @@ namespace UI
             res += "Request infos:" + "\n";
             foreach(RequestInfo rInfo in Model.RequestInfos.Where(r => r is not null))
             {
+                res += "Assigned elevator: " + $"{rInfo.ServingElevator?.Id.ToString() ?? "No assigned yet"}" + "\n";
                 res += "Waiting time in elevator: " + $"{rInfo.WaitingTimeInElevator}" + "\n";
                 res += "Waiting time on floor: " + $"{rInfo.WaitingTimeOnFloor}" + "\n";
                 res += "\n";
