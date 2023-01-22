@@ -40,9 +40,10 @@ namespace Client
             ElevatorSystem elevatorSystem = new ElevatorSystem(
                 new List<Elevator>()
                 {
-                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 5.ToSeconds(), 10),
-                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
-                    new Elevator(50.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
+                    // just below 1m/s = 3.6km/h - which is considered an average speed of an elevator
+                    new Elevator(80.ToCmPerSec(), 5.ToCmPerSec(), 5.ToSeconds(), 10),
+                    new Elevator(80.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
+                    new Elevator(80.ToCmPerSec(), 5.ToCmPerSec(), 10.ToSeconds(), 10),
                 }
             );
 
@@ -57,7 +58,8 @@ namespace Client
             BasicRequestsGenerator generator = new(new Random(420));
             //
 
-            return new Simulation<BasicRequest>(building, elevatorLogic, generator.Generate(250, floors, 5000.ToSeconds()));
+            // run the simulation for 8 hours
+            return new Simulation<BasicRequest>(building, elevatorLogic, generator.Generate(250, floors, 28_800.ToSeconds()));
         }
     }
 }

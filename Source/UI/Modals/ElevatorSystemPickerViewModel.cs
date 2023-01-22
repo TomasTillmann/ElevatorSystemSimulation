@@ -6,6 +6,7 @@ using System;
 using System.Buffers;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -208,7 +209,7 @@ namespace UI
         public ElevatorInModalViewModel() : base(null)
         {
             // default values
-            TravelSpeed = 50;
+            TravelSpeed = 80;
             DepartingTime = 10;
             Capacity = 10;
         }
@@ -299,6 +300,39 @@ namespace UI
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
+        }
+    }
+
+    public class CmToMsConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if(value is int ivalue)
+            {
+                return ivalue / 100d;
+            }
+
+            throw new ArgumentException("Converter used badly");
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if(value is int ivalue)
+            {
+                return ivalue * 100;
+            }
+
+            if(value is double dvalue)
+            {
+                return (int)dvalue * 100;
+            }
+
+            if(value is string svalue)
+            {
+                return (int)(double.Parse(svalue, System.Globalization.CultureInfo.InvariantCulture) * 100);
+            }
+
+            throw new ArgumentException("Converter used badly");
         }
     }
 

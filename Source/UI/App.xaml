@@ -22,6 +22,8 @@
 
         <local:NullToFalseConverter x:Key="nullToFalseConverter"/>
 
+        <local:CmToMsConverter x:Key="cmToMsConverter"/>
+
     </Application.Resources>
 
 </Application>
