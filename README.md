@@ -170,6 +170,7 @@ If we have $q_M$ and some set of strategies $S_{strategies}$, we can very easily
 $$
 s_{optimal} : q_M(s_{optimal},B) = max(\{q_M(s, B) | \forall s \in S_{strategies}\})
 $$
+
 that is the most optimal.
 
 Obtaining some $S_{strategies}$ isn't very difficult. It can be for example a set of some well-known scheduling algorithms, such as SCAN, First comes first served, priority scheduling, round robin scheduling, ...
