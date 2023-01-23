@@ -29,7 +29,12 @@ In summary, this tool helps clients design optimal elevator system for any build
 
 ### Planned Action
 * Represents what the current elevator system (algorithm) chosed to do after this specific request happened
-* In the screenshot, after someone pressing button at floor 2, current algorithm, which is SCAN, decided to plan elevator with Id 2 to floor 2
+* Situation in the screenshot is:
+   * Current event is Elevator Event
+      * Elevator `2` finished unloading and loading people in floor `8`
+      * We can also see some additional information about the elevator
+   * Planned action after current event, which was decided by current algorithm (SCAN in this case), is to move this elevator to floor 6
+      * The reason is, that we can see there are 2 requests in elevator 2, one of which wants to go to floor 6. Since floor 6 is closer than floor 5 (desired destination of the other request).
 
 ## Left upper corner 
 * Represents current state of the simulation
