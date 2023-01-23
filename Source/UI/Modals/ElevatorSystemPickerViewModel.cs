@@ -266,7 +266,7 @@ namespace UI
                     return new SCAN(building);
 
                 case ElevatorLogicType.Hungry:
-                    return new Hungry(building);
+                    return new Greedy(building);
 
                 case ElevatorLogicType.DestinationDispatch:
                     return new DestinationDispatch(building);

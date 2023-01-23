@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace Client
 {
-    public class Hungry : ElevatorLogic<BasicRequest>
+    public class Greedy : ElevatorLogic<BasicRequest>
     {
-        public Hungry(Building building) : base(building) { }
+        public Greedy(Building building) : base(building) { }
 
         public override void Execute(ISimulationState<BasicRequest> state)
         {
