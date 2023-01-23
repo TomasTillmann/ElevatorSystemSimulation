@@ -19,7 +19,7 @@ In summary, this tool helps clients design optimal elevator system for any build
 * Press Restart button to restart the simulation
 
 ### Request Event / Elevator Event
-* Represents current event which occurent
+* Represents current event which occured
 * Either an elevator event
     * Elevator has arrived to a floor
     * Elevator Loads / Unloads people
@@ -28,7 +28,7 @@ In summary, this tool helps clients design optimal elevator system for any build
     * This would in real life correspond for example to a button being pressed
 
 ### Planned Action
-* Represents what the current elevator system (algorithm) chosed to do after this request happens
+* Represents what the current elevator system (algorithm) chosed to do after this specific request happened
 * In the screenshot, after someone pressing button at floor 2, current algorithm, which is SCAN, decided to plan elevator with Id 2 to floor 2
 
 ## Left upper corner 
@@ -46,10 +46,10 @@ In summary, this tool helps clients design optimal elevator system for any build
 
 ## Buttons in the bottom left corner
 * Settings button opens Menu
-* Statas button opens Statistics
+* Stats button opens Statistics
 
 ## Remarks
-* The current event is visually marked green to easier understand what is currently happening
+* The current event is visually marked green for easier understanding of what is currently happening
 
 ---
 
@@ -88,7 +88,7 @@ In summary, this tool helps clients design optimal elevator system for any build
 
 * As described above, there is a lot of things you can as a user adjust
 * With this great flexibility, you can test out many different elevator algorithms with many different elevator systems working on a big variety of buildings handling great amount of different population distributions 
-* This software is mainly distributed as fully functional package, but it build on the core logic, which is `Simulation` project under this solution
+* This software is mainly distributed as fully functional package, but it is build on the core logic, which is `Simulation` project under this solution
 * Feel free to extend this library with your own elevator algorithms, functionality and whatever idea you would have in a separate fork
 * You can ask for a pull request and if I find your contribution useful, I would definitely be open to add your contribution to this project
 
