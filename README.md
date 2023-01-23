@@ -1,4 +1,4 @@
-# Elevator System optimization - Library
+# **Elevator System optimization**
 # Introduction 
 Imagine we want to construct a building and we want to design an elevator
 system for it. How can we do it, so the elevator system is the most efficient one
@@ -10,258 +10,201 @@ This library will help client to setup an elevator system for a building, specif
 
 In summary, this tool helps clients design optimal elevator system for any building.
 
-## Model
-### Building
-* Represents a real life building with floors, elevators system and population
-* List of floors is ordered by their FloorId
-* Two floors next to each other in the list has also their Ids different by one
-    * Thanks to this, it is easy to calcuate floor's distances and elevator's and floor's distances.
-    * It's just their Id's difference ()
-* Simulations will be run on this
+# How to use
+![ess main](./Screenshots/ess.png "Elevator system simulation main window") 
 
-### Elevator
-* TravelSpeed is a speed of the elevator. How long does it take the elevator to go from floor A to floor B is calculated from it's speed and from proper floor's height.
+## The right side panel
+* Press Step button to step forward in the simulation
+* Press Step Back button to step backwards in the simulation
+* Press Restart button to restart the simulation
 
-* AccelerationDelaySpeed represents Speed of the elevator from standing position (last action was Idle() or DepartXXX()) or when it changed direction (eg last action was MoveUp() and current action is MoveDown()).
-    * Time of travel from floor A to floor B is calculated the same way as for TravelSpeed.
+### Request Event / Elevator Event
+* Represents current event which occurent
+* Either an elevator event
+    * Elevator has arrived to a floor
+    * Elevator Loads / Unloads people
+* Or a request event
+    * Request has occured on some floor
+    * This would in real life correspond for example to a button being pressed
 
-* DepartTIme represent time for departing people. Either Coming off the elevator or coming in the elevator.
-* Capacity stand for the maximum number of people that are allowed in the elevator.
+### Planned Action
+* Represents what the current elevator system (algorithm) chosed to do after this request happens
+* In the screenshot, after someone pressing button at floor 2, current algorithm, which is SCAN, decided to plan elevator with Id 2 to floor 2
 
-* FloorLocation is an identification of where the elevator is. Note that the Id is double. The reson for that is, that elevator can be between two floors. That can happen if some elevators have different speeds.
-    * If that's the case, calculating elevator's distance from some floor A is still just the difference of their Id's.
+## Left upper corner 
+* Represents current state of the simulation
+* Step Count represents current step in the simulation
+* Current Time represents how much seconds elapsed from start of the simulation
+* All represents number of all requests
+* Served represents number of already served requests
+    * Served request is a request which was handled by some elevator
 
-* Set of possible actions - move up/down, stay and do nothing or depart in/out.
+## Building in the middle
+* Represent the building on which the simulation is run, with elevators moving around 
+* The numbers on the right side represent number of requests in each floor
+* Number in the elevator represents number of requests in the elevator
 
-* MaxFloor and MinFloor give a range of possible floors the elevator can operate on. Sometimes, elevators cannot go pass certain floors and are therefore conceived to only some portion of building's floors.
-    * If both null, there is no limitation.
+## Buttons in the bottom left corner
+* Settings button opens Menu
+* Statas button opens Statistics
 
-### Floor
-* Represents one floor in the building.
-* Is locaten by unique identifier.
-* FloorName can be used for rendering or generally for a better display name.
+## Remarks
+* The current event is visually marked green to easier understand what is currently happening
 
-### Statistics
-* From these statistics the quality of each algoritm is deduced. 
+---
 
-* AverageWaitingTime represents waiting time of each request
-    * It's calculated dynamically
-    * Waiting time of one request is calculated as differnce of it's CreatedDateTime and first DepartureIn handling this request
+## Menu
+* Screenshot shows Elevators tab. There is also Floors tab, Population tab and Elevator algorithm tab.
+* In each of these tabs you can modify corresponding part of the simulation
 
-* Worst waiting time stands for the longest time some request waited for being handled
+![Elevators menu](./Screenshots/Elevators-menu.png "Elevator system simulation main window") 
 
-* PeopleTotalCount is the total count of people handled during some predefined time.
+### Elevators tab
+* You can add and remove elevators
+* You can specify capacity, load / unload time and travel speed for each elevator
 
-* TotalSimulationInRealLifeTime represents the total time simulation took mapped to real life time.
+![Floors menu](./Screenshots/Floors-menu.png "Elevator system simulation main window") 
 
-### Simulation
-* Runs the discrete simulation of given algorithms on a given building
-* Produces statistics for each algorithm
-* One step of simulation is moving elevators to a position (floor or in between floors), where at least one elevator is fully on one floor (eg e1 is on f1 and e2 is on f3 - one step - e1 is on f2 e2 is on f3.5, that means e1 was currently faster and is fully on a floor)
+### Floors tab
+* You can add and remove floors
+* You can specify height of each floor
 
-* DurationTime represents how much time should the simulation simulate (eg 1 day, or just a noon / afternoon ... ).
-    * When in simulation time is greater than DurationTime, simulation terminates.
+![Population menu](./Screenshots/Population-menu.png "Elevator system simulation main window") 
 
-* PeopleToDepartCount dictates how many people should be departed. When in simulation people departed count is greater, simulation terminates.
-    * If set, takes precedence over DurationTime.
+### Population tab
+* You can choose number of requests and time span in which it is generated
+* You can choose seed for generation, to exactly reproduce simulations
 
-* RunCount dictates how many times is each algorithms run. If more than once, resulting statistics are then averaged from each independent run.
+![Statistics window](./Screenshots/stats.png "Elevator system simulation main window") 
 
-* SetAlgorithmsToCompare() sets the algorithms on which the simulation will run and which will be compared to each other.
+## Statistics
+* At any given time throughout the simulation, you can see real time statistics of the simulation, such as average waiting time of people on floor or in elevator, maximum waiting times and many more.
+* You can also export the statistics, for later use, such as comparing them with other models
+* In the exported version, you can find much more detailed statistics, such as statistics for each and every elevator and requests
 
-* SetRequestsToGenerate() indicates the possible requests types. The simulation's internal request generator will genearte only these request. 
+# Remarks
 
-* SetRequestTypeToGenerate()
-    * Provides a RequestType. All generated requests will be in it's range and generate with given probabilities.
-    * This is very handy, because this way, it is very easy to specify concrete elevator systems (such as if our elevator system supports whether it could know where the user wants to go before he departs etc ...)
-    * And because we know what elevator system we have at our disposal, algorithms passed to the simulation doesn't have to check for every possible request option and can anticipate what kind of request it might get
+![Bigger building with more elevators](./Screenshots/bigger-building.png "Elevator system simulation main window") 
 
-* Run() runs the simulation
-    * Building and DurationTime or PeopleToDepartCount must be set, otherwise exception is thrown
+* As described above, there is a lot of things you can as a user adjust
+* With this great flexibility, you can test out many different elevator algorithms with many different elevator systems working on a big variety of buildings handling great amount of different population distributions 
+* This software is mainly distributed as fully functional package, but it build on the core logic, which is `Simulation` project under this solution
+* Feel free to extend this library with your own elevator algorithms, functionality and whatever idea you would have in a separate fork
+* You can ask for a pull request and if I find your contribution useful, I would definitely be open to add your contribution to this project
 
-* Algorithm() is protected and overrired from parent. Each algorithm passed to SetAlgorithmsToCompare() will be assigned to this ALgorithm as a delegate.
-    * Simulation calls this Algorithm class internally to decide from elevator's positions, requests and population predictions how to plan each elevator's action
-    * This Algorithm method is the main logic of the whole algorithm
-    * Simulation only takes care of managing request and the underlying discrete simulation
-    * Algorithm is called in each step of the simulation
+# How to run
+* Clone this repository (`git clone https://github.com/TomasTillmann/ElevatorSystemSimulation.git`) or manually download whole folder
+* Install latest [Visual Studio](https://visualstudio.microsoft.com/downloads/), open `ElevatorSystemSimulation.sln` solution, right click the solution in the solution explorer and click `build`.
+* After few seconds, you will find the executable in a `bin` folder in the project's folder
 
-* Requests are used internally
-    * Input to Algorithm() with building
+# **Main idea**
+Imagine we want to construct a building and we want to design an elevator system for it. How can we do it, so the elevator system is the most efficient one for this specific building? We run simulations of different elevator systems and different algorithms, compare them and pick the best one. This is what this program is about.
 
-### AlgorithmEnviroment
-* Client will inherit from this class and implement his custom algorithm as Algorithm()
-* Then pass this method as a delegate to the simulation using SetAlgorithmsToCompare()
-* For each new algorithm, define new class - AlgorithmHandler
+## Problem
+Imagine a building with an elevator system. How should the elevator system work to be the most efficient one? What is the best elevator system strategy for this concrete building?
 
-### Population
-* Population is crucial for generating people - requests
-* PopulationDistribution specifies a Distribution that will hold for the entire run of the simulation (eg Poission, Uniform, or some custom)
+Before we dive into these questions, we need to start with what an elevator system actually is. 
+Elevator system consists of elevators, each having some parameters (speed, capacity, ...) and possible actions (move up, move down, stay, open doors, ...).
+Elevator system is controlled by strategy (SCAN, first comes first served, ...). This strategy is what we would like to optimize. 
 
-* PopulationDistributionInTime describes different distributions in time
-    * It might be wiser to simulate only time intervals for concrete distributions instead of mixing several distributions together
+Thus we want to find the best way how should an elevator system behave.
+Elevator system makes it's decisions based on these information:
 
-## Static architecture - API
-```plantuml
-@startuml
-Building --* Population
-Building --* Elevator : Has n
-Building --* Floor : Has k
-Simulation --* Statistics : Produces
-Simulation --* Building : Simulates on
-AlgorithmEnviroment <|-- Simulation
+* on what floors are requests
+* what floors must each elevator visit
+* where each elevator is
 
-class Building {
-   Floors : List
-   Elevators : List
-   Population : Population
-}
+These are also information that every elevator system needs to have at it's disposal, otherwise it could only operate randomly.
+Just having these information as input is sufficient for developing some more sophisticated strategy, but there are other information, that an elevator system can have access to:
 
-class Elevator {
-   TravelSpeed : MetersPerSecond 
-   AccelerationDelaySpeed : MetersPerSecond
-   DepartTime : TimeSpan
-   Capacity : Integer
-   FloorLocation : FLoorLocation
-   MaxFloor : FloorLocation
-   MinFloor : FloorLocation
-   void MoveUp()
-   void MoveDown()
-   void Idle()
-   void DepartOut()
-   void DepartIn()
-}
+**Current situation information**:
 
-class Floor {
-    FloorName : String
-    Location : FloorLocation
-    Height : Meters
-}
+* how many people each elevator has
+* how many people in elevator want to go to each floor
+* how many people requesting for elevator is on each floor
+* how many people is in the building
 
-class Population {
-    PopulationDistribution : Distribution
-    PopulationDistributionsInTime : List<(Distribution, TimeSpan elapsedTime)>
-}
+**Population predictions**:
 
-class Simulation {
-    Building : Building
-    DurationTime : TimeSpan
-    Statistics : Statistics
-    RunCount : Integer
-    PeopleToDepartCount : Integer
-    --
-    # Requests : List<Request>
-    --
-    void SetAlgorithmsToCompare(List<Action> algorithms)
-    void SetRequestsToGenerate(List<Request> requestTypes)
-    void SetRequestTypeToGenerate(RequestType requestType)
-    void Run()
-    --
-    # void Algorithm()
-}
+* how likely a request appears at some floor (can change over time)
+* how likely a person from floor A would like to go to floor B (can change over time)
 
-class Statistics {
-    AverageWaitingTime : TimeSpan
-    WorstWaitingTime : TimeSpan
-    PeopleTotalCount : Integer 
-    TotalSimulationInRealLifeTime : TimeSpan
-}
+If elevator system has some of these (or possibly some different) information at his disposal, his strategy can be much more sophisticated and has potential to operate much better. Note, that information, that each elevator needs to have at it's disposal are of course **Current situation information**.
 
-abstract class AlgorithmEnviroment {
-    + {Abstract} Building : Building
-    # {Abstract} Requests : List<Request> 
-    # {Abstract} void Algorithm() : Action
-}
+How likely a request appears at some floor changes over time. For example in up peak period, it is very likely that requests occur in ground floor. In down peak period, most of the requests would appear in higher floors.
+Similiarly, for how likely a person would like to go from floor A to a different floor B. In up peak, persons from ground floor would probably like to go to their offices, let's say floors 5 to 10 and during down peak period, they would like to go from their offices to ground floor.
 
-@enduml
-```
+What information elevator system has depends on how sophisticated it is.
+Some elevator systems for example have the abilitiy to know how many people is in the building, each floor, or in each elevator, because elevator users have some sort of identification card with which they request the elevator.
 
-## Data
-### Request
-* request represents clicking the elevator call button, or register of employees ID card, etc ...
+Some other systems have the ability to know how many people in elevator want to go to each floor, because when user calls for the elevator, he doesn't just press a button, but also configures on a display where would he like to go.
 
-* FloorLocation stand for the floor location where the request happened.
-    * Even though Id is double, for request only Integer values make sense (Request cannot happen in between two floors).
-    * Floor location is the only required field, others are optional (more on why is this way in Simulation chapter).
+There is many different elevator systems with different information at their disposal. It is safe to say, that elevator systems with more available information have the biggest potential to be the most optimal, but we might not always have the financial needs for the best elevator systems. Sometimes, we would like to find the most optimal strategy for some not so sophisticated elevator systems.
 
-* NumberOfPersons describes how many people are tied to this request.
-    * For example, if employee calls elevator using his ID card, elevator system can have some more information about the employee at it's disposible. Such as, how many people are potentially with him.
-        * Usually one ID to one person is waiting mapping makes the most sense
-    * Without the ID card, one press of the elevator call button doesn't mean anything. One person can press the call button how many times he likes.
+Consequently, there is also a handful of metrics against we can measure how some strategy is succesful. Some very reasonable metrics are average waiting time for an elevator, average waiting time in an elevator, worst-case waiting time or even some average of all of these metrics combined ...
 
-* ToFloorLocation maps to a floor where the person would like to go. In more sophisticated elevator systems, there is a possibility for users to specify where they would like to go even before some elevator departs.
-    * If null, elevator system cannot know where the user would like to go beforehand.
+So now we know what problem we want to solve. We want to find the best strategy for some elevator system or more elevator systems with different available information about the enviroment. How good a strategy is could be predefined by some metrics.
 
-* Priority specifies the importance of given request. This covers situation where eg a VIP person calls an elevator (using his ID to verify it's really him)
-    * The higher the number, the higher the priority
+## Formalization of the problem 
+### Input
+* Buildig $B = (F, E_s)$
+    * $F \subseteq \mathbb{Z}$, floors 
+    * $E_s = (E, C)$, elevator system
+    * $E$ is set of elevators
+        * $e \in E:$ $e = (e_A, e_P)$
+            * $e_A$ are elevator's possible actions
+            * $e_P$ are elevator's parameters
+    * $C$, current situation information that elevator system can obtain from the enviroment 
+* $P_B$, population predictions for $B$
+* Metrics $M$ that define how succesful strategy is
 
-* AllowedElevators are elevators that can depart person / persons making this request. From real life, person requesting the elevator might have some disability or he and some other people transport a very heavy load. And not all elevators support this.
-    * If null, all elevators are allowed.
+### Output
+* find the most optimal strategy $s$ for given building $B$ against given metrics $M$
 
-### RequestType
-* Specifies a set of requests.
-* To each concrete value is assign a probability of it's occurence
-* Probabilities in each field's list must add to one, otherwise exception is thrown
-* If some property is not set, all possible options are allowed with uniform probabilities
+## My approach
+Let there be some efficiency function $q_M: q_M(s, B) \rightarrow [0,1]$, obeying given metrics $M$.
+This efficiency function takes strategy $s$ and building $B$ and rates it by number from 0 to 1. The bigger the number, the more $s$ is optimal for elevator system $E$ in $B$.
 
-### FloorLocation
-* Note that the Id is double.
-    * Elevator can be in between floors (see Elevators section).
-    * eg Id=3.5 means the elevator is exactly between floor with Id=3 and floor with Id=4
+If we have $q_M$ and some set of strategies $S_{strategies}$, we can very easily find 
 
-```plantuml
-@startuml
-struct Request {
-   FloorLocation : FloorLocation
-   NumberOfPersons : Integer?
-   ToFloorLocation : FloorLocation?
-   Priority : Integer?
-   AllowedElevators : List<Integer>?
-}
+$$
+s_{optimal} : q_M(s_{optimal},B) = max(\{q_M(s, B) | \forall s \in S_{strategies}\})
+$$
+that is the most optimal.
 
-class RequestType {
-   FloorLocation : List<(FloorLocation, Integer probability)>?
-   NumberOfPersons : List<(Integer, Integer probability)>?
-   ToFloorLocation : List<(FloorLocation, Integer probability)>?
-   Priority : List<(Integer, Integer probability)>?
-   AllowedElevators : List<(Integer, Integer probability)>?
-}
+Obtaining some $S_{strategies}$ isn't very difficult. It can be for example a set of some well-known scheduling algorithms, such as SCAN, First comes first served, priority scheduling, round robin scheduling, ...
+Set $S_{strategies}$ could also potentially contain some user defined algorithms or some algorithms developed specificaly for $B$ (for example by some genetic algorithm,...).
 
-struct FloorLocation {
-   Id : Double?
-}
-@enduml
-```
-# Logic of the simulation
-Simulation object will run underlying discrete event simulation on the building with given algorithms for either a given time or given total of people to depart.
-Simulation object will manage request queue, steps, statistics and time (which can also be considered as a statistic). In each step of the discrete event simulation, simulation object will call some Algorithm method given by a client from given Algorithms list.
-This method is the main logic of the whole simulation and it decides how the elevators move in each step based on:
-1. Elevator's positions
-1. Requests
-1. Possibly population predictions
+It is much harder to obtain $q_M$, which is right now the only missing piece needed for solving the problem. 
 
-## Step
-One step of the simulation is moving of elevator's (or staying) according to their action (move up/down, idle, depart in/out).
-The moving stops when at least one elevator is fully on some floor.
-Because elevators can have different speeds, it's possible that other elevators are inbetween floors.
-The exact Id on Elevator.FloorLocation is calculated from elevator's speed, appropriate floor's height and elapsed time from the previous step.
-After each step, simulation increases it's internal time property by the duration of the step.
-Not only time is updated, also all statistics properties are updated too. Also, in each step Alogrithm() is called.
+I want $q_M$ to run a discrete simulation. 
 
-## Requests
-Requests can be of many types depending on what properties are set and how they are set. What requests will be internally generated in simulation object is defined by SetRequestsToGenerate or SetRequestTypeToGenerate methods. This information is very useful for Algorithm(). The implementation can vary heavily on the type of requests that are being used. Hence both Algorithm() and types of requests that are generated by simulation are both defined by client, it's his responsibility to glue these two concepts together.
+## Discrete Simulation
+Efficiency function $q_M$ will run discrete event simulation using next-event progression paradigm. 
 
-## Time
-Simulation tracks it's time duration, that represents time for how long what was simulated will take in real world.
-It's tracked in seconds.
-It does it by incrementing it in each step by step's duration.
-Step's duration is calculated by the time it took some of the elevator's that is fully on a floor to travel from here from the previous step.
-That is calculated from elevator's speed property and appropriate floor's height property.
-At the end of the simulation, it is converted to TimeSpan.
+The simulation schedules events. Events are:
 
-## Population
-Population is generated based on given distribution / distributions.
-Nothing stops client to develop more sophisticated Algorithm() method that can also decide based on population distribution and "predict" where people / requests could occur more likely and for example keep elevators always close to this area.
+1. Move elevator to the current floor 
+2. Move elevator to the floor above
+3. Move elevator to the floor beyond
+4. Board people to elevator
+5. Spawn people to floors
 
+Each event takes some time. For example, time of moving an elevator to the floor above or beyond can be calculated from elevator's speed and height of rooms, it can also be an elevator's parameter ($\in e_P$).
+
+Boarding time can also be an elevator's parameter ($\in e_P$). Interval between spawning people and potentially some other could be set before the simulation start. 
+
+This time, after picking up the event from scheduler's queue is of course added to the total time $t$. Time $t$ represent total running time of the simulation.
+
+Each of these events is then scheduled by scheduler at the appropriately calculated time.
+What the next scheduled event is going to be is determined by some logic, depending on what event exactly is being scheduled. If the event regards elevators, next event is determined by current situation context and by the strategy $s$. If the event regards enviroment, such as spawning people, the decision is based on $P$ and $t$.
+
+So what is being simulated is the enviroment (where people spawn, how many, where people want to go, ...), this affects the current situation context, and elevators (where to move in each step of the simulation, boarding, ...) and this is what $s$ wants to optimize.
+
+Now we have to measure how well are elevators operating under control of given strategy $s$, in order to measure how good the strategy is.
+What is beining measured is called statistics. What exactly statistics are depends on given metric $M$. 
+
+After the simulation is terminated (either if $t$ is too big or by some other condition), quality of the strategy will be based on collected statistics.
 
 # Why this approach
 I believe this gives client a great deal of flexibility on how to implement the main logic.
@@ -270,7 +213,15 @@ This approach also ensure loose coupling, where data model is decoupled from sim
 Also, the simulation provides all the functionality that client doesn't and shouldn't care about, such as managing the simulation.
 Thanks to this desing, it's also easy to extend many of the objects properties and methods, even the most crucial ones, such as elevator and request.
 
-# Advanced concept from C#
+---
+
+# School
+As this project is largely done due to my studies at University, I would like to add some addition information from this perspective
+
+## Advanced concept from C#
 I will use parallel programming for running the simulation. I can run simulation with different Algorithm methods in parallel, because they are completely independent of each other. It could potentially make the simulation run faster.
 
 I would also like to use some serialization techniques. I assume that generics or linq would also come in handy.
+
+# Major updates of this documentation - log 
+* 23.01.2023 - upload
