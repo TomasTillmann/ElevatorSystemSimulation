@@ -47,7 +47,11 @@ namespace Client
                 }
             );
 
-            Building building = new(floors, elevatorSystem);
+            Seconds requestsTimeSpan = 28_800.ToSeconds();
+            int requestsCount = 250;
+            int seed = 420;
+
+            Building building = new(floors, elevatorSystem, new Population(requestsTimeSpan, requestsCount, seed));
 
 
             SCAN elevatorLogic = new(building);
@@ -55,11 +59,11 @@ namespace Client
             //DestinationDispatch elevatorLogic = new(building);
 
             // Will be able to pick in the future - TODO
-            BasicRequestsGenerator generator = new(new Random(420));
+            BasicRequestsGenerator generator = new(new Random(seed));
             //
 
             // run the simulation for 8 hours
-            return new Simulation<BasicRequest>(building, elevatorLogic, generator.Generate(250, floors, 28_800.ToSeconds()));
+            return new Simulation<BasicRequest>(building, elevatorLogic, generator.Generate(requestsCount, floors, requestsTimeSpan));
         }
     }
 }

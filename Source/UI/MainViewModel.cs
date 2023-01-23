@@ -252,7 +252,7 @@ namespace UI
 
         private void ShowModalElevatorSystemPicker(Window owner)
         {
-            ElevatorSystemPickerModalView elevatorSystemPicker = new(owner);
+            MenuModalView elevatorSystemPicker = new(owner, _Simulation.Building);
 
             bool? result = elevatorSystemPicker.ShowDialog();
 
@@ -272,8 +272,6 @@ namespace UI
                     throw new Exception("SHOULDNT HAPPEN - modal window view model should validate before saving if its not null or empty.");
                 }
             }
-
-            owner.Opacity = 1;
         }
 
         #endregion

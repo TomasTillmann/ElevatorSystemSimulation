@@ -10,7 +10,7 @@
     <Compile Update="BuildingView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Modals\ElevatorSystemPickerModalView.xaml.cs">
+    <Compile Update="Modals\MenuModalView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="ObjectViews\ElevatorView.xaml.cs">
@@ -36,7 +36,7 @@
     <Page Update="BuildingView.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Modals\ElevatorSystemPickerModalView.xaml">
+    <Page Update="Modals\MenuModalView.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="ObjectViews\ElevatorView.xaml">

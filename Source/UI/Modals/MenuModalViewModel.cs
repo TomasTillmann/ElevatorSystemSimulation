@@ -15,41 +15,49 @@ using System.Windows.Input;
 
 namespace UI
 {
-    public class ElevatorSystemPickerViewModel : ViewModelBase
+    public class MenuModalViewModel : ViewModelBase
     {
         public ObservableCollection<ElevatorInModalViewModel> Elevators { get; set; } = new();
 
         public ElevatorInModalViewModel? SelectedElevator { get { return (ElevatorInModalViewModel)GetValue(SelectedElevatorProperty); } set { SetValue(SelectedElevatorProperty, value); } }
-        public static readonly DependencyProperty SelectedElevatorProperty = DependencyProperty.Register("SelectedElevator", typeof(ElevatorInModalViewModel), typeof(ElevatorSystemPickerViewModel));
+        public static readonly DependencyProperty SelectedElevatorProperty = DependencyProperty.Register("SelectedElevator", typeof(ElevatorInModalViewModel), typeof(MenuModalViewModel));
 
         public ObservableCollection<FloorInModalViewModel> Floors { get; set; } = new();
 
         public FloorInModalViewModel? SelectedFloor { get { return (FloorInModalViewModel)GetValue(SelectedFloorProperty); } set { SetValue(SelectedFloorProperty, value); } }
-        public static readonly DependencyProperty SelectedFloorProperty = DependencyProperty.Register("SelectedFloor", typeof(FloorInModalViewModel), typeof(ElevatorSystemPickerViewModel));
+        public static readonly DependencyProperty SelectedFloorProperty = DependencyProperty.Register("SelectedFloor", typeof(FloorInModalViewModel), typeof(MenuModalViewModel));
 
         public ObservableCollection<AlgorithmInModalViewModel> Algorithms { get; set; } = new();
 
         public AlgorithmInModalViewModel SelectedAlgorithm { get { return (AlgorithmInModalViewModel)GetValue(SelectedAlgorithmProperty); } set { SetValue(SelectedAlgorithmProperty, value); } }
-        public static readonly DependencyProperty SelectedAlgorithmProperty = DependencyProperty.Register("SelectedAlgorithm", typeof(AlgorithmInModalViewModel), typeof(ElevatorSystemPickerViewModel));
-
-        public int TotalSimulationTime { get { return (int)GetValue(TotalSimulationTimeProperty); } set { SetValue(TotalSimulationTimeProperty, value); } }
-        public static readonly DependencyProperty TotalSimulationTimeProperty = DependencyProperty.Register("TotalSimulationTime", typeof(int), typeof(ElevatorSystemPickerViewModel), new FrameworkPropertyMetadata(5000));
+        public static readonly DependencyProperty SelectedAlgorithmProperty = DependencyProperty.Register("SelectedAlgorithm", typeof(AlgorithmInModalViewModel), typeof(MenuModalViewModel));
 
         public IElevatorLogic<BasicRequest> Algorithm { get { return (IElevatorLogic<BasicRequest>)GetValue(AlgorithmProperty); } set { SetValue(AlgorithmProperty, value); } }
-        public static readonly DependencyProperty AlgorithmProperty = DependencyProperty.Register("Algorithm", typeof(IElevatorLogic<BasicRequest>), typeof(ElevatorSystemPickerViewModel));
+        public static readonly DependencyProperty AlgorithmProperty = DependencyProperty.Register("Algorithm", typeof(IElevatorLogic<BasicRequest>), typeof(MenuModalViewModel));
 
         public ISimulation? ResultingSimulation { get { return (ISimulation?)GetValue(ResultingSimulationProperty); } set { SetValue(ResultingSimulationProperty, value); } }
-        public static readonly DependencyProperty ResultingSimulationProperty = DependencyProperty.Register("ResultingSimulation", typeof(ISimulation), typeof(ElevatorSystemPickerViewModel));
+        public static readonly DependencyProperty ResultingSimulationProperty = DependencyProperty.Register("ResultingSimulation", typeof(ISimulation), typeof(MenuModalViewModel));
+
+        public int Seed { get { return (int)GetValue(SeedProperty); } set { SetValue(SeedProperty, value); } }
+        public static readonly DependencyProperty SeedProperty = DependencyProperty.Register("Seed", typeof(int), typeof(MenuModalViewModel));
+
+        public int RequestsCount { get { return (int)GetValue(RequestsCountProperty); } set { SetValue(RequestsCountProperty, value); } }
+        public static readonly DependencyProperty RequestsCountProperty = DependencyProperty.Register("RequestsCount", typeof(int), typeof(MenuModalViewModel));
+        public int RequestsTimeSpan { get { return (int)GetValue(RequestsTimeSpanProperty); } set { SetValue(RequestsTimeSpanProperty, value); } }
+        public static readonly DependencyProperty RequestsTimeSpanProperty = DependencyProperty.Register("RequestsTimeSpan", typeof(int), typeof(MenuModalViewModel));
+
+        public Window Owner;
 
         private void OnWindowClosing(Window modalWindow)
         {
+            Owner.Opacity = 1;
             modalWindow.Close();
         }
 
-        public ElevatorSystemPickerViewModel()
+        public MenuModalViewModel()
         {
             Algorithms.Add(new AlgorithmInModalViewModel(ElevatorLogicType.SCAN, "SCAN", "The most widely used"));
-            Algorithms.Add(new AlgorithmInModalViewModel(ElevatorLogicType.Hungry, "Hungry", "Chooses always the closest elevators. Leads to starvation. Can't be used generally."));
+            Algorithms.Add(new AlgorithmInModalViewModel(ElevatorLogicType.Greedy, "Greedy", "Chooses always the closest elevators. Leads to starvation. Can't be used generally."));
             Algorithms.Add(new AlgorithmInModalViewModel(ElevatorLogicType.DestinationDispatch, "DestinationDispatch", "User Specifies destination before getting to the elevator. Can group people with the same destination then."));
 
             Select(Algorithms.FirstOrDefault());
@@ -66,15 +74,14 @@ namespace UI
             {
                 Floors floors = new(Floors.Select(f => f.ToFloor()).ToList(), Floors[0].Height.ToCentimeters());
                 ElevatorSystem elevatorSystem = new (Elevators.Select(e => e.ToElevator()).ToList());
-                Building building = new(floors, elevatorSystem);
+                Building building = new(floors, elevatorSystem, new Population(RequestsTimeSpan.ToSeconds(), RequestsCount, Seed));
 
                 Algorithm = SelectedAlgorithm.ToAlgorithm(building);
 
-                // user could choose in future - TODO
-                BasicRequestsGenerator generator = new(new Random(420));
-                //
+                // TODO: user could choose distribution - add support for distributions, so far only uniform is allowed
+                BasicRequestsGenerator generator = new(new Random(Seed));
 
-                ResultingSimulation = new Simulation<BasicRequest>(building, Algorithm, generator.Generate(250, floors, TotalSimulationTime.ToSeconds()));
+                ResultingSimulation = new Simulation<BasicRequest>(building, Algorithm, generator.Generate(RequestsCount, floors, RequestsTimeSpan.ToSeconds()));
 
                 modalWindow.DialogResult = true;
                 OnWindowClosing(modalWindow);
@@ -204,7 +211,12 @@ namespace UI
         public bool IsSelected { get { return (bool)GetValue(IsSelectedProperty); } set { SetValue(IsSelectedProperty, value); } }
         public static readonly DependencyProperty IsSelectedProperty = DependencyProperty.Register("IsSelected", typeof(bool), typeof(ElevatorInModalViewModel));
 
-        public ElevatorInModalViewModel(Elevator model) : base(model) { }
+        public ElevatorInModalViewModel(Elevator model) : base(model)
+        {
+            TravelSpeed = model.TravelSpeed.Value;
+            DepartingTime = model.DepartingTime.Value;
+            Capacity = model.Capacity;
+        }
 
         public ElevatorInModalViewModel() : base(null)
         {
@@ -228,7 +240,10 @@ namespace UI
         public bool IsSelected { get { return (bool)GetValue(IsSelectedProperty); } set { SetValue(IsSelectedProperty, value); } }
         public static readonly DependencyProperty IsSelectedProperty = DependencyProperty.Register("IsSelected", typeof(bool), typeof(FloorInModalViewModel));
 
-        public FloorInModalViewModel(Floor model) : base(model) { }
+        public FloorInModalViewModel(Floor model) : base(model)
+        {
+            Height = model.Height.Value;
+        }
 
         public FloorInModalViewModel() : base(null)
         {
@@ -265,7 +280,7 @@ namespace UI
                 case ElevatorLogicType.SCAN:
                     return new SCAN(building);
 
-                case ElevatorLogicType.Hungry:
+                case ElevatorLogicType.Greedy:
                     return new Greedy(building);
 
                 case ElevatorLogicType.DestinationDispatch:
@@ -279,7 +294,7 @@ namespace UI
     public enum ElevatorLogicType
     {
         SCAN,
-        Hungry,
+        Greedy,
         DestinationDispatch,
     }
 
